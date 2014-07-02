@@ -1,7 +1,10 @@
 module Data.List (
     List(..)
+  , fromList
+  , (!)
   ) where
 
+import Data.Maybe
 import Data.Monoid
 import Data.Foldable
 import Data.Traversable
@@ -76,4 +79,14 @@ instance monadList :: Monad List
 instance alternativeList :: Alternative List where
   empty = Nil
   (<|>) = (<>)
+
+fromList :: forall a. [a] -> List a
+fromList = foldr Cons Nil
+
+infix 4 !
+
+(!) :: forall a. List a -> Number -> Maybe a
+(!) Nil _ = Nothing
+(!) (Cons a _) 0 = Just a
+(!) (Cons _ as) i = as ! i - 1
 
