@@ -1,12 +1,17 @@
 module Data.List (
     List(..)
-  , fromList
+  , fromArray
+  , toArray
   , (!)
+  , drop
+  , take
   ) where
 
 import Data.Maybe
+import Data.Tuple
 import Data.Monoid
 import Data.Foldable
+import Data.Unfoldable
 import Data.Traversable
 
 data List a = Nil | Cons a (List a)
@@ -80,8 +85,15 @@ instance alternativeList :: Alternative List where
   empty = Nil
   (<|>) = (<>)
 
-fromList :: forall a. [a] -> List a
-fromList = foldr Cons Nil
+fromArray :: forall a. [a] -> List a
+fromArray = foldr Cons Nil
+
+toArray :: forall a. List a -> [a]
+toArray = unfoldr step
+  where
+  step :: forall a. List a -> Maybe (Tuple a (List a))
+  step Nil = Nothing
+  step (Cons x xs) = Just (Tuple x xs)
 
 infix 4 !
 
@@ -90,3 +102,12 @@ infix 4 !
 (!) (Cons a _) 0 = Just a
 (!) (Cons _ as) i = as ! i - 1
 
+drop :: forall a. Number -> List a -> List a
+drop 0 xs = xs
+drop _ Nil = Nil
+drop n (Cons x xs) = drop (n - 1) xs
+
+take :: forall a. Number -> List a -> List a
+take 0 _ = Nil
+take _ Nil = Nil
+take n (Cons x xs) = Cons x (take (n - 1) xs)

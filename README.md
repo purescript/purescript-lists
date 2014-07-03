@@ -42,4 +42,10 @@
 
     (!) :: forall a. List a -> Number -> Maybe a
 
-    fromList :: forall a. [a] -> List a
+    drop :: forall a. Number -> List a -> List a
+
+    fromArray :: forall a. [a] -> List a
+
+    take :: forall a. Number -> List a -> List a
+
+    toArray :: forall a. List a -> [a]
