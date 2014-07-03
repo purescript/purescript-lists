@@ -62,11 +62,15 @@
 
     mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
 
+    null :: forall a. List a -> Boolean
+
     tail :: forall a. List a -> Maybe (List a)
 
     take :: forall a. Number -> List a -> List a
 
     toArray :: forall a. List a -> [a]
+
+    zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
 
 
 ## Module Data.List.Unsafe

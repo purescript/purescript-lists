@@ -12,7 +12,9 @@ module Data.List (
   , head
   , tail
   , last
-  , init) where
+  , init
+  , zipWith
+  , null) where
 
 import Data.Maybe
 import Data.Tuple
@@ -162,3 +164,12 @@ init :: forall a. List a -> Maybe (List a)
 init (Cons x Nil) = Just Nil
 init (Cons x xs)  = Cons x <$> init xs
 init _            = Nothing
+
+zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
+zipWith _ Nil _ = Nil
+zipWith _ _ Nil = Nil
+zipWith f (Cons a as) (Cons b bs) = Cons (f a b) (zipWith f as bs)
+
+null :: forall a. List a -> Boolean
+null Nil = true
+null _ = false
