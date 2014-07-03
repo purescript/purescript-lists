@@ -8,7 +8,9 @@ module Data.List (
   , length
   , filter
   , mapMaybe
-  , catMaybes) where
+  , catMaybes
+  , head
+  , tail) where
 
 import Data.Maybe
 import Data.Tuple
@@ -133,3 +135,11 @@ mapMaybe f (Cons x xs) =
 
 catMaybes :: forall a. List (Maybe a) -> List a
 catMaybes = mapMaybe id
+
+head :: forall a. List a -> Maybe a
+head Nil = Nothing
+head (Cons x _) = Just x
+
+tail :: forall a. List a -> Maybe (List a)
+tail Nil = Nothing
+tail (Cons _ xs) = Just xs

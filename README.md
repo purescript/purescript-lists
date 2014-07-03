@@ -50,10 +50,23 @@
 
     fromArray :: forall a. [a] -> List a
 
+    head :: forall a. List a -> Maybe a
+
     length :: forall a. List a -> Number
 
     mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
 
+    tail :: forall a. List a -> Maybe (List a)
+
     take :: forall a. Number -> List a -> List a
 
     toArray :: forall a. List a -> [a]
+
+
+## Module Data.List.Unsafe
+
+### Values
+
+    head :: forall a. List a -> a
+
+    tail :: forall a. List a -> List a
