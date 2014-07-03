@@ -65,7 +65,14 @@ instance foldableList :: Foldable List where
   -- foldMap :: forall a m. (Monoid m) => (a -> m) -> f a -> m 
   foldMap _ Nil = mempty
   foldMap f (Cons x xs) = f x <> foldMap f xs 
- 
+
+instance unfoldableList :: Unfoldable List where
+  -- unfoldr :: forall a b. (b -> Maybe (Tuple a b)) -> b -> List a
+  unfoldr f b = go (f b)
+    where
+    go Nothing = Nil
+    go (Just (Tuple a b)) = Cons a (go (f b))
+
 instance traversableList :: Traversable List where
   -- traverse :: forall a b m. (Applicative m) => (a -> m b) -> t a -> m (t b)
   traverse _ Nil = pure Nil

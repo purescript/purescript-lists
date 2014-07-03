@@ -37,6 +37,8 @@
 
     instance traversableList :: Traversable List
 
+    instance unfoldableList :: Unfoldable List
+
 
 ### Values
 
