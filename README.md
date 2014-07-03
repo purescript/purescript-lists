@@ -42,9 +42,17 @@
 
     (!) :: forall a. List a -> Number -> Maybe a
 
+    catMaybes :: forall a. List (Maybe a) -> List a
+
     drop :: forall a. Number -> List a -> List a
 
+    filter :: forall a. (a -> Boolean) -> List a -> List a
+
     fromArray :: forall a. [a] -> List a
+
+    length :: forall a. List a -> Number
+
+    mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
 
     take :: forall a. Number -> List a -> List a
 

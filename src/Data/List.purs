@@ -5,7 +5,10 @@ module Data.List (
   , (!)
   , drop
   , take
-  ) where
+  , length
+  , filter
+  , mapMaybe
+  , catMaybes) where
 
 import Data.Maybe
 import Data.Tuple
@@ -111,3 +114,22 @@ take :: forall a. Number -> List a -> List a
 take 0 _ = Nil
 take _ Nil = Nil
 take n (Cons x xs) = Cons x (take (n - 1) xs)
+
+length :: forall a. List a -> Number
+length Nil = 0
+length (Cons _ xs) = 1 + length xs
+
+filter :: forall a. (a -> Boolean) -> List a -> List a
+filter _ Nil = Nil
+filter p (Cons x xs) | p x = Cons x (filter p xs)
+filter p (Cons _ xs) = filter p xs
+
+mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
+mapMaybe _ Nil = Nil
+mapMaybe f (Cons x xs) =
+  case f x of
+    Nothing -> mapMaybe f xs
+    Just y -> Cons y (mapMaybe f xs)
+
+catMaybes :: forall a. List (Maybe a) -> List a
+catMaybes = mapMaybe id
