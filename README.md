@@ -52,6 +52,10 @@
 
     head :: forall a. List a -> Maybe a
 
+    init :: forall a. List a -> Maybe (List a)
+
+    last :: forall a. List a -> Maybe a
+
     length :: forall a. List a -> Number
 
     mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
@@ -68,5 +72,9 @@
 ### Values
 
     head :: forall a. List a -> a
+
+    init :: forall a. List a -> List a
+
+    last :: forall a. List a -> a
 
     tail :: forall a. List a -> List a

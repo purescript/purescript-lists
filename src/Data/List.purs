@@ -10,7 +10,9 @@ module Data.List (
   , mapMaybe
   , catMaybes
   , head
-  , tail) where
+  , tail
+  , last
+  , init) where
 
 import Data.Maybe
 import Data.Tuple
@@ -143,3 +145,13 @@ head (Cons x _) = Just x
 tail :: forall a. List a -> Maybe (List a)
 tail Nil = Nothing
 tail (Cons _ xs) = Just xs
+
+last :: forall a. List a -> Maybe a
+last (Cons x Nil) = Just x
+last (Cons _ xs)  = last xs
+last _            = Nothing
+
+init :: forall a. List a -> Maybe (List a)
+init (Cons x Nil) = Just Nil
+init (Cons x xs)  = Cons x <$> init xs
+init _            = Nothing
