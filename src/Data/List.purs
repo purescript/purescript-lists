@@ -14,7 +14,25 @@ module Data.List (
   , last
   , init
   , zipWith
-  , null) where
+  , null
+  , span
+  , group
+  , groupBy
+  , (\\)
+  , insert
+  , insertBy
+  , insertAt
+  , delete
+  , deleteBy
+  , deleteAt
+  , alterAt
+  , reverse
+  , nub
+  , nubBy
+  , intersect
+  , intersectBy
+  , union
+  , unionBy) where
 
 import Data.Maybe
 import Data.Tuple
@@ -173,3 +191,86 @@ zipWith f (Cons a as) (Cons b bs) = Cons (f a b) (zipWith f as bs)
 null :: forall a. List a -> Boolean
 null Nil = true
 null _ = false
+
+span :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
+span p (Cons x xs) | p x = 
+  case span p xs of
+    Tuple ys zs -> Tuple (Cons x ys) zs
+span _ xs = Tuple Nil xs
+
+group :: forall a. (Eq a) => List a -> List (List a)
+group = groupBy (==)
+
+groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
+groupBy _ Nil = Nil
+groupBy eq (Cons x xs) = 
+  case span (eq x) xs of
+    Tuple ys zs -> Cons (Cons x ys) (groupBy eq zs)
+
+infix 5 \\
+
+(\\) :: forall a. (Eq a) => List a -> List a -> List a
+(\\) = foldl (flip delete)
+
+insert :: forall a. (Ord a) => a -> List a -> List a
+insert = insertBy compare
+
+insertBy :: forall a. (a -> a -> Ordering) -> a -> List a -> List a
+insertBy _ x Nil = Cons x Nil
+insertBy cmp x ys@(Cons y ys') =
+  case cmp x y of
+    GT -> Cons y (insertBy cmp x ys')
+    _  -> Cons x ys
+    
+insertAt :: forall a. Number -> a -> List a -> Maybe (List a)
+insertAt 0 x xs = Just (Cons x xs)
+insertAt n x (Cons y ys) = Cons y <$> insertAt (n - 1) x ys
+insertAt _ _ _  = Nothing
+
+delete :: forall a. (Eq a) => a -> List a -> List a
+delete = deleteBy (==)
+
+deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
+deleteBy _ _ Nil = Nil
+deleteBy (==) x (Cons y ys) | x == y = ys 
+deleteBy (==) x (Cons y ys) = Cons y (deleteBy (==) x ys)
+    
+deleteAt :: forall a. Number -> List a -> Maybe (List a)
+deleteAt 0 (Cons y ys) = Just ys
+deleteAt n (Cons y ys) = Cons y <$> deleteAt (n - 1) ys
+deleteAt _ _  = Nothing
+
+alterAt :: forall a. Number -> (a -> Maybe a) -> List a -> Maybe (List a)
+alterAt 0 f (Cons y ys) = Just $
+  case f y of
+    Nothing -> ys
+    Just y' -> Cons y' ys
+alterAt n f (Cons y ys) = Cons y <$> alterAt (n - 1) f ys
+alterAt _ _ _  = Nothing
+
+reverse :: forall a. List a -> List a
+reverse = go Nil
+  where
+  go acc Nil = acc
+  go acc (Cons x xs) = go (Cons x acc) xs
+
+nub :: forall a. (Eq a) => List a -> List a
+nub = nubBy (==)
+
+nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
+nubBy _     Nil = Nil
+nubBy (==) (Cons x xs) = Cons x (nubBy (==) (filter (\y -> not (x == y)) xs))
+
+intersect :: forall a. (Eq a) => List a -> List a -> List a
+intersect = intersectBy (==)
+
+intersectBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
+intersectBy _  Nil _   = Nil
+intersectBy _  _   Nil = Nil
+intersectBy eq xs  ys  = filter (\x -> any (eq x) ys) xs
+
+union :: forall a. (Eq a) => List a -> List a -> List a
+union = unionBy (==)
+
+unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
+unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
