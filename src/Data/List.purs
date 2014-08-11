@@ -41,6 +41,11 @@ import Data.Foldable
 import Data.Unfoldable
 import Data.Traversable
 
+import Control.Alt
+import Control.Alternative
+import Control.MonadPlus
+import Control.Plus
+
 data List a = Nil | Cons a (List a)
 
 instance showList :: (Show a) => Show (List a) where
@@ -57,7 +62,7 @@ instance ordList :: (Ord a) => Ord (List a) where
   compare Nil Nil = EQ
   compare Nil _   = LT
   compare _   Nil = GT
-  compare (Cons x xs) (Cons y ys) = 
+  compare (Cons x xs) (Cons y ys) =
     case compare x y of
       EQ -> compare xs ys
       other -> other
@@ -82,9 +87,9 @@ instance foldableList :: Foldable List where
   foldl _ b Nil = b
   foldl o b (Cons a as) = foldl o (b `o` a) as
 
-  -- foldMap :: forall a m. (Monoid m) => (a -> m) -> f a -> m 
+  -- foldMap :: forall a m. (Monoid m) => (a -> m) -> f a -> m
   foldMap _ Nil = mempty
-  foldMap f (Cons x xs) = f x <> foldMap f xs 
+  foldMap f (Cons x xs) = f x <> foldMap f xs
 
 instance unfoldableList :: Unfoldable List where
   -- unfoldr :: forall a b. (b -> Maybe (Tuple a b)) -> b -> List a
@@ -98,7 +103,7 @@ instance traversableList :: Traversable List where
   traverse _ Nil = pure Nil
   traverse f (Cons a as) = Cons <$> f a <*> traverse f as
 
-  -- sequence :: forall a m. (Applicative m) => t (m a) -> m (t a)   
+  -- sequence :: forall a m. (Applicative m) => t (m a) -> m (t a)
   sequence Nil = pure Nil
   sequence (Cons a as) = Cons <$> a <*> sequence as
 
@@ -109,15 +114,21 @@ instance applyList :: Apply List where
 instance applicativeList :: Applicative List where
   pure a = Cons a Nil
 
+instance altList :: Alt List where
+  (<|>) = (<>)
+
+instance plusList :: Plus List where
+  empty = Nil
+
+instance alternativeList :: Alternative List
+
 instance bindList :: Bind List where
   (>>=) Nil _ = Nil
   (>>=) (Cons a as) f = f a <> (as >>= f)
 
 instance monadList :: Monad List
 
-instance alternativeList :: Alternative List where
-  empty = Nil
-  (<|>) = (<>)
+instance monadPlusList :: MonadPlus List
 
 fromArray :: forall a. [a] -> List a
 fromArray = foldr Cons Nil
@@ -193,7 +204,7 @@ null Nil = true
 null _ = false
 
 span :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
-span p (Cons x xs) | p x = 
+span p (Cons x xs) | p x =
   case span p xs of
     Tuple ys zs -> Tuple (Cons x ys) zs
 span _ xs = Tuple Nil xs
@@ -203,7 +214,7 @@ group = groupBy (==)
 
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
 groupBy _ Nil = Nil
-groupBy eq (Cons x xs) = 
+groupBy eq (Cons x xs) =
   case span (eq x) xs of
     Tuple ys zs -> Cons (Cons x ys) (groupBy eq zs)
 
@@ -221,7 +232,7 @@ insertBy cmp x ys@(Cons y ys') =
   case cmp x y of
     GT -> Cons y (insertBy cmp x ys')
     _  -> Cons x ys
-    
+
 insertAt :: forall a. Number -> a -> List a -> Maybe (List a)
 insertAt 0 x xs = Just (Cons x xs)
 insertAt n x (Cons y ys) = Cons y <$> insertAt (n - 1) x ys
@@ -232,9 +243,9 @@ delete = deleteBy (==)
 
 deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
 deleteBy _ _ Nil = Nil
-deleteBy (==) x (Cons y ys) | x == y = ys 
+deleteBy (==) x (Cons y ys) | x == y = ys
 deleteBy (==) x (Cons y ys) = Cons y (deleteBy (==) x ys)
-    
+
 deleteAt :: forall a. Number -> List a -> Maybe (List a)
 deleteAt 0 (Cons y ys) = Just ys
 deleteAt n (Cons y ys) = Cons y <$> deleteAt (n - 1) ys
