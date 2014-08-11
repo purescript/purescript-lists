@@ -16,6 +16,7 @@
   ],
   "dependencies": {
     "purescript-arrays"               : "~0.2.0",
+    "purescript-control"              : "~0.2.0",
     "purescript-maybe"                : "~0.2.0",
     "purescript-foldable-traversable" : "*",
     "purescript-unfoldable"           : "*"
