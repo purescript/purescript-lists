@@ -41,6 +41,11 @@ import Data.Foldable
 import Data.Unfoldable
 import Data.Traversable
 
+import Control.Alt
+import Control.Plus
+import Control.Alternative
+import Control.MonadPlus
+
 data List a = Nil | Cons a (List a)
 
 instance showList :: (Show a) => Show (List a) where
@@ -115,9 +120,15 @@ instance bindList :: Bind List where
 
 instance monadList :: Monad List
 
-instance alternativeList :: Alternative List where
-  empty = Nil
+instance altList :: Alt List where
   (<|>) = (<>)
+
+instance plusList :: Plus List where
+  empty = Nil
+
+instance alternativeList :: Alternative List 
+
+instance monadPlusList :: MonadPlus List
 
 fromArray :: forall a. [a] -> List a
 fromArray = foldr Cons Nil

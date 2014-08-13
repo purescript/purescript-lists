@@ -11,6 +11,8 @@
 
 ### Type Class Instances
 
+    instance altList :: Alt List
+
     instance alternativeList :: Alternative List
 
     instance applicativeList :: Applicative List
@@ -27,9 +29,13 @@
 
     instance monadList :: Monad List
 
+    instance monadPlusList :: MonadPlus List
+
     instance monoidList :: Monoid (List a)
 
     instance ordList :: (Ord a) => Ord (List a)
+
+    instance plusList :: Plus List
 
     instance semigroupList :: Semigroup (List a)
 
@@ -76,6 +82,10 @@
 
     insertBy :: forall a. (a -> a -> Ordering) -> a -> List a -> List a
 
+    intersect :: forall a. (Eq a) => List a -> List a -> List a
+
+    intersectBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
+
     last :: forall a. List a -> Maybe a
 
     length :: forall a. List a -> Number
@@ -97,6 +107,10 @@
     take :: forall a. Number -> List a -> List a
 
     toArray :: forall a. List a -> [a]
+
+    union :: forall a. (Eq a) => List a -> List a -> List a
+
+    unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
 
     zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
 
