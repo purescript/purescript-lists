@@ -1,5 +1,6 @@
 module Control.Monad.ListT
-  ( ListT()
+  ( ListT(..) -- FIXME: compiler bug: error in exports (wrong kind) unless constructor is exported
+  , Step(..) -- FIXME: have to export this for the preceding export
   , nil
   , cons'
   , prepend'
@@ -64,8 +65,8 @@ module Control.Monad.ListT
 
   concat :: forall f a. (Applicative f) => ListT f a -> ListT f a -> ListT f a
   concat x y = stepMap f x where
-    f (Yield a s) = Yield a (g <$> s) where g s = s <> y
-    f (Skip s)    = Skip (g <$> s) where g s = s <> y
+    f (Yield a s) = Yield a (flip (<>) y <$> s)
+    f (Skip s)    = Skip (flip (<>) y <$> s)
     f Done        = Skip (defer $ const y)
 
   instance semigroupListT :: (Applicative f) => Semigroup (ListT f a) where
@@ -88,7 +89,7 @@ module Control.Monad.ListT
 
   instance bindListT :: (Monad f) => Bind (ListT f) where
     (>>=) fa f = stepMap g fa where
-      g (Yield a s) = Skip (h <$> s) where h s = f a `concat` (s >>= f) -- why overlapping instances?
+      g (Yield a s) = Skip (h <$> s) where h s = f a `concat` (s >>= f) -- FIXME compiler bug with overlapping instances?
       g (Skip s)    = Skip (h <$> s) where h s = s >>= f
       g Done        = Done
 
@@ -124,7 +125,7 @@ module Control.Monad.ListT
 
   takeWhile :: forall f a. (Applicative f) => (a -> Boolean) -> ListT f a -> ListT f a
   takeWhile f = stepMap g where
-    -- type inferencer bug with if/then/else !!!!!
+    -- FIXME: type inferencer bug with if/then/else
     g (Yield a s) = ifThenElse (f a) (Yield a (takeWhile f <$> s)) Done where ifThenElse p a b = if p then a else b 
     g (Skip s)    = Skip $ takeWhile f <$> s
     g Done        = Done

@@ -4,7 +4,13 @@
 
 ### Types
 
-    data ListT f a
+    data ListT f a where
+      ListT :: f (Step a (ListT f a)) -> ListT f a
+
+    data Step a s where
+      Yield :: a -> Lazy s -> Step a s
+      Skip :: Lazy s -> Step a s
+      Done :: Step a s
 
 
 ### Type Class Instances
@@ -69,6 +75,10 @@
     wrapEffect :: forall f a. (Monad f) => f (ListT f a) -> ListT f a
 
     wrapLazy :: forall f a. (Monad f) => Lazy (ListT f a) -> ListT f a
+
+    zipWith :: forall f a b c. (Monad f) => (a -> b -> c) -> ListT f a -> ListT f b -> ListT f c
+
+    zipWith' :: forall f a b c. (Monad f) => (a -> b -> f c) -> ListT f a -> ListT f b -> ListT f c
 
 
 ## Module Data.List
