@@ -1,5 +1,76 @@
 # Module Documentation
 
+## Module Control.Monad.ListT
+
+### Types
+
+    data ListT f a
+
+
+### Type Class Instances
+
+    instance applicativeListT :: (Monad f) => Applicative (ListT f)
+
+    instance applyListT :: (Monad f) => Apply (ListT f)
+
+    instance bindListT :: (Monad f) => Bind (ListT f)
+
+    instance functorListT :: (Functor f) => Functor (ListT f)
+
+    instance monadListT :: (Monad f) => Monad (ListT f)
+
+    instance monoidListT :: (Applicative f) => Monoid (ListT f a)
+
+    instance semigroupListT :: (Applicative f) => Semigroup (ListT f a)
+
+
+### Values
+
+    catMaybes :: forall f a. (Functor f) => ListT f (Maybe a) -> ListT f a
+
+    cons' :: forall f a. (Applicative f) => Lazy a -> Lazy (ListT f a) -> ListT f a
+
+    drop :: forall f a. (Applicative f) => Number -> ListT f a -> ListT f a
+
+    dropWhile :: forall f a. (Applicative f) => (a -> Boolean) -> ListT f a -> ListT f a
+
+    filter :: forall f a. (Functor f) => (a -> Boolean) -> ListT f a -> ListT f a
+
+    foldl :: forall f a b. (Monad f) => (b -> a -> b) -> b -> ListT f a -> f b
+
+    fromArray :: forall f a. (Monad f) => [a] -> ListT f a
+
+    fromEffect :: forall f a. (Applicative f) => f a -> ListT f a
+
+    head :: forall f a. (Monad f) => ListT f a -> f (Maybe a)
+
+    mapMaybe :: forall f a b. (Functor f) => (a -> Maybe b) -> ListT f a -> ListT f b
+
+    nil :: forall f a. (Applicative f) => ListT f a
+
+    prepend :: forall f a. (Applicative f) => a -> ListT f a -> ListT f a
+
+    prepend' :: forall f a. (Applicative f) => a -> Lazy (ListT f a) -> ListT f a
+
+    scanl :: forall f a b. (Monad f) => (b -> a -> b) -> b -> ListT f a -> ListT f b
+
+    singleton :: forall f a. (Applicative f) => a -> ListT f a
+
+    tail :: forall f a. (Monad f) => ListT f a -> f (Maybe (ListT f a))
+
+    take :: forall f a. (Applicative f) => Number -> ListT f a -> ListT f a
+
+    takeWhile :: forall f a. (Applicative f) => (a -> Boolean) -> ListT f a -> ListT f a
+
+    uncons :: forall f a. (Monad f) => ListT f a -> f (Maybe (Tuple a (ListT f a)))
+
+    unfold :: forall f a z. (Monad f) => (z -> f (Maybe (Tuple z a))) -> z -> ListT f a
+
+    wrapEffect :: forall f a. (Monad f) => f (ListT f a) -> ListT f a
+
+    wrapLazy :: forall f a. (Monad f) => Lazy (ListT f a) -> ListT f a
+
+
 ## Module Data.List
 
 ### Types

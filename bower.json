@@ -18,7 +18,11 @@
     "purescript-arrays"               : "*",
     "purescript-maybe"                : "*",
     "purescript-foldable-traversable" : "*",
-    "purescript-unfoldable"           : "*"
+    "purescript-unfoldable"           : "*",
+    "purescript-transformers"         : "*",
+    "purescript-lazy"                 : "*",
+    "purescript-monoid"               : "*",
+    "purescript-tuples"               : "*"
   },
   "devDependencies": {
     "purescript-quickcheck"           : "*"
