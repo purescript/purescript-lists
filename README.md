@@ -7,10 +7,7 @@
     data ListT f a where
       ListT :: f (Step a (ListT f a)) -> ListT f a
 
-    data Step a s where
-      Yield :: a -> Lazy s -> Step a s
-      Skip :: Lazy s -> Step a s
-      Done :: Step a s
+    data Step a s
 
 
 ### Type Class Instances

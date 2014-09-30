@@ -1,6 +1,6 @@
 module Control.Monad.ListT
   ( ListT(..) -- FIXME: compiler bug: error in exports (wrong kind) unless constructor is exported
-  , Step(..) -- FIXME: have to export this for the preceding export
+  , Step() -- FIXME: have to export this for the preceding export
   , nil
   , cons'
   , prepend'
@@ -34,8 +34,6 @@ module Control.Monad.ListT
   import Data.Maybe
   import Data.Tuple
   import qualified Data.Array as A
-
-  type LazyF f a = Lazy (f a)
 
   data ListT f a = ListT (f (Step a (ListT f a)))
   
