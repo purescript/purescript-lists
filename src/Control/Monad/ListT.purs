@@ -95,6 +95,9 @@ module Control.Monad.ListT
 
   instance monadListT :: (Monad f) => Monad (ListT f)
 
+  instance monadTransListT :: MonadTrans ListT where
+    lift = fromEffect
+
   singleton :: forall f a. (Applicative f) => a -> ListT f a
   singleton a = prepend a nil
 

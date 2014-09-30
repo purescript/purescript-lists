@@ -25,6 +25,8 @@
 
     instance monadListT :: (Monad f) => Monad (ListT f)
 
+    instance monadTransListT :: MonadTrans ListT
+
     instance monoidListT :: (Applicative f) => Monoid (ListT f a)
 
     instance semigroupListT :: (Applicative f) => Semigroup (ListT f a)
