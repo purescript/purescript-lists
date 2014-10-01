@@ -16,7 +16,7 @@ module.exports = function(grunt) {
         src: ["<%=libFiles%>"]
       },
       tests: {
-        src: ["tests/Tests.purs", "<%=libFiles%>"]
+        src: ["tests/**/*.purs", "<%=libFiles%>"]
       }
     },
 
