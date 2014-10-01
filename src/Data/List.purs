@@ -46,6 +46,9 @@ import Control.Plus
 import Control.Alternative
 import Control.MonadPlus
 
+import Test.QuickCheck
+import Test.QuickCheck.LCG
+
 data List a = Nil | Cons a (List a)
 
 instance showList :: (Show a) => Show (List a) where
@@ -129,6 +132,9 @@ instance plusList :: Plus List where
 instance alternativeList :: Alternative List 
 
 instance monadPlusList :: MonadPlus List
+
+instance arbitraryList :: (Arbitrary a) => Arbitrary (List a) where
+  arbitrary = fromArray <$> arbitrary
 
 fromArray :: forall a. [a] -> List a
 fromArray = foldr Cons Nil

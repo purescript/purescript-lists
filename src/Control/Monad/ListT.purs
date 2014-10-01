@@ -10,7 +10,9 @@ module Control.Monad.ListT
   , wrapEffect
   , wrapLazy
   , unfold
+  , iterate
   , fromArray
+  , toArray
   , take
   , takeWhile
   , drop
@@ -22,6 +24,7 @@ module Control.Monad.ListT
   , head
   , tail
   , foldl
+  , foldl'
   , scanl
   , zipWith'
   , zipWith
@@ -34,6 +37,9 @@ module Control.Monad.ListT
   import Data.Maybe
   import Data.Tuple
   import qualified Data.Array as A
+
+  import Test.QuickCheck
+  import Test.QuickCheck.LCG
 
   data ListT f a = ListT (f (Step a (ListT f a)))
   
@@ -96,6 +102,9 @@ module Control.Monad.ListT
   instance monadTransListT :: MonadTrans ListT where
     lift = fromEffect
 
+  instance arbitraryListT :: (Monad f, Arbitrary a) => Arbitrary (ListT f a) where
+    arbitrary = fromArray <$> arbitrary
+
   singleton :: forall f a. (Applicative f) => a -> ListT f a
   singleton a = prepend a nil
 
@@ -112,10 +121,17 @@ module Control.Monad.ListT
   unfold f z = ListT $ g <$> f z where
       g (Just (Tuple z a))  = Yield a (defer \_ -> (unfold f z))
       g Nothing             = Done
+
+  iterate :: forall f a. (Monad f) => (a -> a) -> a -> ListT f a
+  iterate f a = unfold g a where
+    g a = pure $ Just (Tuple (f a) a)
  
   fromArray :: forall f a. (Monad f) => [a] -> ListT f a
   fromArray xs = unfold f 0 where    
     f n = pure $ Tuple (n + 1) <$> (xs A.!! n)
+
+  toArray :: forall f a. (Monad f) => ListT f a -> f [a]
+  toArray = ((<$>) A.reverse) <<< foldl (flip (:)) []
 
   take :: forall f a. (Applicative f) => Number -> ListT f a -> ListT f a
   take 0 fa = nil
@@ -170,6 +186,12 @@ module Control.Monad.ListT
 
   tail :: forall f a. (Monad f) => ListT f a -> f (Maybe (ListT f a))
   tail l = ((<$>) snd) <$> uncons l
+
+  foldl' :: forall f a b. (Monad f) => (b -> a -> f b) -> b -> ListT f a -> f b
+  foldl' f = loop where
+    loop b l = uncons l >>= g where
+      g Nothing             = pure b
+      g (Just (Tuple a as)) = (f b a) >>= (flip loop as)
 
   foldl :: forall f a b. (Monad f) => (b -> a -> b) -> b -> ListT f a -> f b
   foldl f = loop where

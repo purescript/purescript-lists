@@ -16,6 +16,8 @@
 
     instance applyListT :: (Monad f) => Apply (ListT f)
 
+    instance arbitraryListT :: (Monad f, Arbitrary a) => Arbitrary (ListT f a)
+
     instance bindListT :: (Monad f) => Bind (ListT f)
 
     instance functorListT :: (Functor f) => Functor (ListT f)
@@ -98,6 +100,8 @@
     instance applicativeList :: Applicative List
 
     instance applyList :: Apply List
+
+    instance arbitraryList :: (Arbitrary a) => Arbitrary (List a)
 
     instance bindList :: Bind List
 
