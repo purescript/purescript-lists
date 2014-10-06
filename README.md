@@ -5,7 +5,7 @@
 ### Types
 
     data ListT f a where
-      ListT :: f (Step a (ListT f a)) -> ListT f a
+      ListT :: f (Step a (ListT f a)) -> ListT
 
     data Step a s
 
@@ -45,11 +45,15 @@
 
     foldl :: forall f a b. (Monad f) => (b -> a -> b) -> b -> ListT f a -> f b
 
+    foldl' :: forall f a b. (Monad f) => (b -> a -> f b) -> b -> ListT f a -> f b
+
     fromArray :: forall f a. (Monad f) => [a] -> ListT f a
 
     fromEffect :: forall f a. (Applicative f) => f a -> ListT f a
 
     head :: forall f a. (Monad f) => ListT f a -> f (Maybe a)
+
+    iterate :: forall f a. (Monad f) => (a -> a) -> a -> ListT f a
 
     mapMaybe :: forall f a b. (Functor f) => (a -> Maybe b) -> ListT f a -> ListT f b
 
@@ -69,6 +73,8 @@
 
     takeWhile :: forall f a. (Applicative f) => (a -> Boolean) -> ListT f a -> ListT f a
 
+    toArray :: forall f a. (Monad f) => ListT f a -> f [a]
+
     uncons :: forall f a. (Monad f) => ListT f a -> f (Maybe (Tuple a (ListT f a)))
 
     unfold :: forall f a z. (Monad f) => (z -> f (Maybe (Tuple z a))) -> z -> ListT f a
@@ -87,8 +93,8 @@
 ### Types
 
     data List a where
-      Nil :: List a
-      Cons :: a -> List a -> List a
+      Nil :: List
+      Cons :: a -> List a -> List
 
 
 ### Type Class Instances
