@@ -5,7 +5,7 @@
 ### Types
 
     data ListT f a where
-      ListT :: f (Step a (ListT f a)) -> ListT
+      ListT :: f (Step a (ListT f a)) -> ListT f a
 
     data Step a s
 
@@ -93,8 +93,8 @@
 ### Types
 
     data List a where
-      Nil :: List
-      Cons :: a -> List a -> List
+      Nil :: List a
+      Cons :: a -> List a -> List a
 
 
 ### Type Class Instances
