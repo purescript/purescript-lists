@@ -4,10 +4,7 @@
 
 ### Types
 
-    data ListT f a where
-      ListT :: f (Step a (ListT f a)) -> ListT f a
-
-    data Step a s
+    data ListT f a
 
 
 ### Type Class Instances

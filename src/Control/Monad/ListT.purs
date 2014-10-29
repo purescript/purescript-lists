@@ -1,6 +1,5 @@
 module Control.Monad.ListT
-  ( ListT(..) -- FIXME: compiler bug: error in exports (wrong kind) unless constructor is exported
-  , Step() -- FIXME: have to export this for the preceding export
+  ( ListT()
   , nil
   , cons'
   , prepend'
