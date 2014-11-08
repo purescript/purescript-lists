@@ -47,7 +47,7 @@ import Control.Alternative
 import Control.MonadPlus
 
 import Test.QuickCheck
-import Test.QuickCheck.LCG
+import Test.QuickCheck.Gen
 
 data List a = Nil | Cons a (List a)
 

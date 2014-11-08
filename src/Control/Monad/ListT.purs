@@ -38,7 +38,7 @@ module Control.Monad.ListT
   import qualified Data.Array as A
 
   import Test.QuickCheck
-  import Test.QuickCheck.LCG
+  import Test.QuickCheck.Gen
 
   data ListT f a = ListT (f (Step a (ListT f a)))
   

@@ -5,7 +5,7 @@ module Tests.Data.ListT (runListTTests) where
   import Control.Monad.Identity
 
   import Test.QuickCheck
-  import Test.QuickCheck.LCG
+  import Test.QuickCheck.Gen
   import Data.Tuple
   import Data.Maybe
 

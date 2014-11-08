@@ -3,7 +3,7 @@ module Tests.Data.List where
   import Debug.Trace
 
   import Test.QuickCheck
-  import Test.QuickCheck.LCG
+  import Test.QuickCheck.Gen
 
   import Data.List
 

@@ -22,7 +22,7 @@
     "purescript-transformers"         : "*",
     "purescript-lazy"                 : "*",
     "purescript-monoid"               : "*",
-    "purescript-quickcheck"           : "*",
+    "purescript-quickcheck"           : "~0.3.0",
     "purescript-tuples"               : "*"
   }
 }
