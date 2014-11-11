@@ -21,6 +21,7 @@ module Control.Monad.ListT
   , catMaybes
   , uncons
   , head
+  , repeat
   , tail
   , foldl
   , foldl'
@@ -124,6 +125,9 @@ module Control.Monad.ListT
   iterate :: forall f a. (Monad f) => (a -> a) -> a -> ListT f a
   iterate f a = unfold g a where
     g a = pure $ Just (Tuple (f a) a)
+
+  repeat :: forall f a. (Monad f) => a -> ListT f a
+  repeat = iterate id
  
   fromArray :: forall f a. (Monad f) => [a] -> ListT f a
   fromArray xs = unfold f 0 where    

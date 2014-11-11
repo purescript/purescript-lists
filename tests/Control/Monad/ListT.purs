@@ -2,7 +2,7 @@ module Tests.Data.ListT (runListTTests) where
 
   import Debug.Trace
 
-  import Control.Monad.Identity
+  import Data.Identity
 
   import Test.QuickCheck
   import Test.QuickCheck.Gen
