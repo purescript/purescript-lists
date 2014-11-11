@@ -309,7 +309,7 @@ module Data.List.Lazy
   unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
 
   repeat :: forall a. a -> List a
-  repeat x = Cons x (defer \_ -> repeat x)
+  repeat = iterate id
 
   iterate :: forall a. (a -> a) -> a -> List a
   iterate f a = Cons a (defer \_ -> iterate f (f a))
