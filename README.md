@@ -9,6 +9,10 @@
 
 ### Type Class Instances
 
+    instance altListT :: (Applicative f) => Alt (ListT f)
+
+    instance alternativeListT :: (Monad f) => Alternative (ListT f)
+
     instance applicativeListT :: (Monad f) => Applicative (ListT f)
 
     instance applyListT :: (Monad f) => Apply (ListT f)
@@ -21,11 +25,17 @@
 
     instance monadListT :: (Monad f) => Monad (ListT f)
 
+    instance monadPlusListT :: (Monad f) => MonadPlus (ListT f)
+
     instance monadTransListT :: MonadTrans ListT
 
     instance monoidListT :: (Applicative f) => Monoid (ListT f a)
 
+    instance plusListT :: (Monad f) => Plus (ListT f)
+
     instance semigroupListT :: (Applicative f) => Semigroup (ListT f a)
+
+    instance unfoldableListT :: (Monad f) => Unfoldable (ListT f)
 
 
 ### Values
@@ -197,6 +207,8 @@
 
     toArray :: forall a. List a -> [a]
 
+    uncons :: forall a. List a -> Maybe (Tuple a (List a))
+
     union :: forall a. (Eq a) => List a -> List a -> List a
 
     unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
@@ -317,6 +329,8 @@
     take :: forall a. Number -> List a -> List a
 
     toArray :: forall a. List a -> [a]
+
+    uncons :: forall a. List a -> Maybe (Tuple a (List a))
 
     union :: forall a. (Eq a) => List a -> List a -> List a
 
