@@ -1,5 +1,5 @@
-module Data.List (
-    List(..)
+module Data.List 
+  ( List(..)
   , fromArray
   , toArray
   , (!)
@@ -31,6 +31,7 @@ module Data.List (
   , nubBy
   , intersect
   , intersectBy
+  , uncons
   , union
   , unionBy) where
 

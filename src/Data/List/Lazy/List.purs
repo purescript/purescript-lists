@@ -33,6 +33,7 @@ module Data.List.Lazy
   , nubBy
   , intersect
   , intersectBy
+  , uncons
   , union
   , unionBy) where
 
