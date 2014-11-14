@@ -1,41 +1,48 @@
 module Control.Monad.ListT
   ( ListT()
-  , nil
+  , catMaybes
   , cons'
-  , prepend'
-  , prepend
-  , singleton
-  , fromEffect
-  , wrapEffect
-  , wrapLazy
-  , unfold
-  , iterate
-  , fromArray
-  , toArray
-  , take
-  , takeWhile
   , drop
   , dropWhile
   , filter
-  , mapMaybe
-  , catMaybes
-  , uncons
-  , head
-  , tail
   , foldl
   , foldl'
+  , fromArray
+  , fromEffect
+  , head
+  , iterate
+  , mapMaybe
+  , nil
+  , prepend
+  , prepend'
+  , repeat
   , scanl
-  , zipWith'
+  , singleton
+  , tail
+  , take
+  , takeWhile
+  , toArray
+  , uncons
+  , unfold
+  , wrapEffect
+  , wrapLazy
   , zipWith
+  , zipWith'
   ) where 
 
-  import Control.Monad
-  import Control.Monad.Trans
   import Data.Lazy
   import Data.Monoid
   import Data.Maybe
   import Data.Tuple
+  import Data.Unfoldable
   import qualified Data.Array as A
+
+  import Control.Alt
+  import Control.Plus
+  import Control.Alternative
+  import Control.MonadPlus
+  import Control.Monad
+  import Control.Monad.Trans
 
   import Test.QuickCheck
   import Test.QuickCheck.Gen
@@ -72,38 +79,6 @@ module Control.Monad.ListT
     f (Skip s)    = Skip (flip (<>) y <$> s)
     f Done        = Skip (defer $ const y)
 
-  instance semigroupListT :: (Applicative f) => Semigroup (ListT f a) where
-    (<>) = concat
-
-  instance monoidListT :: (Applicative f) => Monoid (ListT f a) where
-    mempty = nil
-
-  instance functorListT :: (Functor f) => Functor (ListT f) where 
-    (<$>) f = stepMap g where
-      g (Yield a s) = Yield (f a) ((<$>) f <$> s)
-      g (Skip s)    = Skip ((<$>) f <$> s)
-      g Done        = Done
-
-  instance applyListT :: (Monad f) => Apply (ListT f) where 
-    (<*>) = zipWith g where g f x = f x
-
-  instance applicativeListT :: (Monad f) => Applicative (ListT f) where
-    pure = singleton
-
-  instance bindListT :: (Monad f) => Bind (ListT f) where
-    (>>=) fa f = stepMap g fa where
-      g (Yield a s) = Skip (h <$> s) where h s = f a `concat` (s >>= f) -- FIXME compiler bug with overlapping instances?
-      g (Skip s)    = Skip (h <$> s) where h s = s >>= f
-      g Done        = Done
-
-  instance monadListT :: (Monad f) => Monad (ListT f)
-
-  instance monadTransListT :: MonadTrans ListT where
-    lift = fromEffect
-
-  instance arbitraryListT :: (Monad f, Arbitrary a) => Arbitrary (ListT f a) where
-    arbitrary = fromArray <$> arbitrary
-
   singleton :: forall f a. (Applicative f) => a -> ListT f a
   singleton a = prepend a nil
 
@@ -124,6 +99,9 @@ module Control.Monad.ListT
   iterate :: forall f a. (Monad f) => (a -> a) -> a -> ListT f a
   iterate f a = unfold g a where
     g a = pure $ Just (Tuple (f a) a)
+
+  repeat :: forall f a. (Monad f) => a -> ListT f a
+  repeat = iterate id
  
   fromArray :: forall f a. (Monad f) => [a] -> ListT f a
   fromArray xs = unfold f 0 where    
@@ -219,3 +197,51 @@ module Control.Monad.ListT
   zipWith :: forall f a b c. (Monad f) => (a -> b -> c) -> ListT f a -> ListT f b -> ListT f c
   zipWith f = zipWith' g where
     g a b = pure $ f a b
+
+  instance semigroupListT :: (Applicative f) => Semigroup (ListT f a) where
+    (<>) = concat
+
+  instance monoidListT :: (Applicative f) => Monoid (ListT f a) where
+    mempty = nil
+
+  instance functorListT :: (Functor f) => Functor (ListT f) where 
+    (<$>) f = stepMap g where
+      g (Yield a s) = Yield (f a) ((<$>) f <$> s)
+      g (Skip s)    = Skip ((<$>) f <$> s)
+      g Done        = Done
+
+  instance unfoldableListT :: (Monad f) => Unfoldable (ListT f) where
+    -- unfoldr :: forall a b. (b -> Maybe (Tuple a b)) -> b -> ListT f a
+    unfoldr f b = go (f b)
+      where go Nothing = nil
+            go (Just (Tuple a b)) = cons' (pure a) (defer \_ -> (go (f b)))
+
+  instance applyListT :: (Monad f) => Apply (ListT f) where 
+    (<*>) = zipWith g where g f x = f x
+
+  instance applicativeListT :: (Monad f) => Applicative (ListT f) where
+    pure = singleton
+
+  instance bindListT :: (Monad f) => Bind (ListT f) where
+    (>>=) fa f = stepMap g fa where
+      g (Yield a s) = Skip (h <$> s) where h s = f a `concat` (s >>= f) -- FIXME compiler bug with overlapping instances?
+      g (Skip s)    = Skip (h <$> s) where h s = s >>= f
+      g Done        = Done
+
+  instance monadListT :: (Monad f) => Monad (ListT f)
+
+  instance monadTransListT :: MonadTrans ListT where
+    lift = fromEffect
+
+  instance altListT :: (Applicative f) => Alt (ListT f) where
+    (<|>) = concat
+
+  instance plusListT :: (Monad f) => Plus (ListT f) where
+    empty = nil
+
+  instance alternativeListT :: (Monad f) => Alternative (ListT f)
+
+  instance monadPlusListT :: (Monad f) => MonadPlus (ListT f)
+
+  instance arbitraryListT :: (Monad f, Arbitrary a) => Arbitrary (ListT f a) where
+    arbitrary = fromArray <$> arbitrary

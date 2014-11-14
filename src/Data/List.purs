@@ -1,5 +1,5 @@
-module Data.List (
-    List(..)
+module Data.List 
+  ( List(..)
   , fromArray
   , toArray
   , (!)
@@ -31,6 +31,7 @@ module Data.List (
   , nubBy
   , intersect
   , intersectBy
+  , uncons
   , union
   , unionBy) where
 
@@ -146,6 +147,9 @@ toArray = unfoldr step
   step Nil = Nothing
   step (Cons x xs) = Just (Tuple x xs)
 
+singleton :: forall a. a -> List a
+singleton a = Cons a Nil
+
 infix 4 !
 
 (!) :: forall a. List a -> Number -> Maybe a
@@ -189,6 +193,10 @@ head (Cons x _) = Just x
 tail :: forall a. List a -> Maybe (List a)
 tail Nil = Nothing
 tail (Cons _ xs) = Just xs
+
+uncons :: forall a. List a -> Maybe (Tuple a (List a))
+uncons Nil = Nothing
+uncons (Cons x xs) = Just $ Tuple x xs
 
 last :: forall a. List a -> Maybe a
 last (Cons x Nil) = Just x

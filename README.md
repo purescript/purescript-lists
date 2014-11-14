@@ -9,6 +9,10 @@
 
 ### Type Class Instances
 
+    instance altListT :: (Applicative f) => Alt (ListT f)
+
+    instance alternativeListT :: (Monad f) => Alternative (ListT f)
+
     instance applicativeListT :: (Monad f) => Applicative (ListT f)
 
     instance applyListT :: (Monad f) => Apply (ListT f)
@@ -21,11 +25,17 @@
 
     instance monadListT :: (Monad f) => Monad (ListT f)
 
+    instance monadPlusListT :: (Monad f) => MonadPlus (ListT f)
+
     instance monadTransListT :: MonadTrans ListT
 
     instance monoidListT :: (Applicative f) => Monoid (ListT f a)
 
+    instance plusListT :: (Monad f) => Plus (ListT f)
+
     instance semigroupListT :: (Applicative f) => Semigroup (ListT f a)
+
+    instance unfoldableListT :: (Monad f) => Unfoldable (ListT f)
 
 
 ### Values
@@ -59,6 +69,8 @@
     prepend :: forall f a. (Applicative f) => a -> ListT f a -> ListT f a
 
     prepend' :: forall f a. (Applicative f) => a -> Lazy (ListT f a) -> ListT f a
+
+    repeat :: forall f a. (Monad f) => a -> ListT f a
 
     scanl :: forall f a b. (Monad f) => (b -> a -> b) -> b -> ListT f a -> ListT f b
 
@@ -195,11 +207,33 @@
 
     toArray :: forall a. List a -> [a]
 
+    uncons :: forall a. List a -> Maybe (Tuple a (List a))
+
     union :: forall a. (Eq a) => List a -> List a -> List a
 
     unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
 
     zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
+
+
+## Module Data.List.Lazy
+
+### Types
+
+    newtype LazyList a where
+      LazyList :: List a -> LazyList a
+
+    type List  = L.ListT Lazy
+
+
+### Type Class Instances
+
+    instance foldableLazyList :: Foldable LazyList
+
+
+### Values
+
+    unLazyList :: forall a. LazyList a -> List a
 
 
 ## Module Data.List.Unsafe

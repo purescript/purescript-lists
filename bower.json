@@ -15,14 +15,15 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-arrays"               : "*",
-    "purescript-maybe"                : "*",
-    "purescript-foldable-traversable" : "*",
-    "purescript-unfoldable"           : "*",
-    "purescript-transformers"         : "*",
-    "purescript-lazy"                 : "*",
-    "purescript-monoid"               : "*",
+    "purescript-arrays"               : "~0.2.1",
+    "purescript-maybe"                : "~0.2.1",
+    "purescript-foldable-traversable" : "~0.1.4",
+    "purescript-unfoldable"           : "~0.1.0",
+    "purescript-transformers"         : "~0.3.0",
+    "purescript-lazy"                 : "~0.1.1",
+    "purescript-strings"              : "~0.4.1",
+    "purescript-monoid"               : "~0.1.4",
     "purescript-quickcheck"           : "~0.3.0",
-    "purescript-tuples"               : "*"
+    "purescript-tuples"               : "~0.2.2"
   }
 }
