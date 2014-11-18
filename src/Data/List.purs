@@ -218,10 +218,10 @@ null Nil = true
 null _ = false
 
 span :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
-span p (Cons x xs) | p x = 
-  case span p xs of
-    Tuple ys zs -> Tuple (Cons x ys) zs
-span _ xs = Tuple Nil xs
+span p xs@(Cons x xs') 
+  | p x = case span p xs' of
+            Tuple ys zs -> Tuple (Cons x ys) zs
+  | otherwise = Tuple Nil xs
 
 group :: forall a. (Eq a) => List a -> List (List a)
 group = groupBy (==)
