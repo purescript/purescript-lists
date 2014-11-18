@@ -223,7 +223,7 @@
     newtype LazyList a where
       LazyList :: List a -> LazyList a
 
-    type List  = L.ListT Lazy
+    type List = L.ListT Lazy
 
 
 ### Type Class Instances
