@@ -1,6 +1,6 @@
 # purescript-lists
 
-A library for strict linked lists (```Data.List```), lazy linked lists (```Data.List.Lazy```) and for the list transformer (```Control.Monad.ListT```).
+A library for strict linked lists (```Data.List```), lazy linked lists (```Data.List.Lazy```) and for the list monad transformer (```Control.Monad.ListT```).
 
 - [Module Documentation](docs/)
 
