@@ -16,7 +16,7 @@ module.exports = function(grunt) {
         src: ["<%=libFiles%>"]
       },
       tests: {
-        src: ["tests/**/*.purs", "<%=libFiles%>"]
+        src: ["tests/**/*.purs", "quickcheck-test-src/**/*.purs", "<%=libFiles%>"]
       }
     },
 
@@ -24,8 +24,8 @@ module.exports = function(grunt) {
   
     pscDocs: {
       readme: {
-        src: "src/**/*.purs",
-        dest: "README.md"
+        src: ["src/**/*.purs", "quickcheck-test-src/**/*.purs"],
+        dest: "docs/README.md"
       }
     },	
     copy: [
