@@ -44,9 +44,6 @@ module Control.Monad.ListT
   import Control.Monad
   import Control.Monad.Trans
 
-  import Test.QuickCheck
-  import Test.QuickCheck.Gen
-
   data ListT f a = ListT (f (Step a (ListT f a)))
   
   data Step a s =
@@ -242,6 +239,3 @@ module Control.Monad.ListT
   instance alternativeListT :: (Monad f) => Alternative (ListT f)
 
   instance monadPlusListT :: (Monad f) => MonadPlus (ListT f)
-
-  instance arbitraryListT :: (Monad f, Arbitrary a) => Arbitrary (ListT f a) where
-    arbitrary = fromArray <$> arbitrary

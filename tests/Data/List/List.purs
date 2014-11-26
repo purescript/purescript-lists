@@ -1,4 +1,4 @@
-module Tests.Data.List where
+module Tests.Data.List (runListTests) where
 
   import Debug.Trace
 
