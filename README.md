@@ -9,7 +9,7 @@ A library for strict linked lists (```Data.List```), lazy linked lists (```Data.
 Add the following to your ```bower.json``` file under ```dependencies```:
 
 ```
-"purescript-lists" : "~0.3.7"
+"purescript-lists" : "~0.3.8"
 ```
 
 If you would like to use quickcheck bindings for ```List``` and ```ListT```, 
