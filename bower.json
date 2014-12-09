@@ -18,7 +18,7 @@
     "purescript-arrays"               : "~0.2.1",
     "purescript-maybe"                : "~0.2.1",
     "purescript-foldable-traversable" : "~0.1.4",
-    "purescript-unfoldable"           : "~0.1.0",
+    "purescript-unfoldable"           : "~0.2.0",
     "purescript-transformers"         : "~0.3.0",
     "purescript-lazy"                 : "~0.1.1",
     "purescript-strings"              : "~0.4.1",
