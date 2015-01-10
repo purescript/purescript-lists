@@ -15,7 +15,6 @@ module Data.List.Lazy
   , prepend
   , prepend'
   , repeat
-  , scanl
   , singleton
   , tail
   , take
@@ -61,7 +60,6 @@ module Data.List.Lazy
   prepend     = L.prepend
   prepend'    = L.prepend'
   repeat      = L.repeat
-  scanl       = L.scanl
   singleton   = L.singleton
   tail        = L.tail
   take        = L.take
