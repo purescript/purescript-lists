@@ -5,7 +5,7 @@
 #### `ListT`
 
 ``` purescript
-data ListT f a
+newtype ListT f a
 ```
 
 
@@ -103,7 +103,7 @@ toArray :: forall f a. (Monad f) => ListT f a -> f [a]
 #### `take`
 
 ``` purescript
-take :: forall f a. (Applicative f) => Number -> ListT f a -> ListT f a
+take :: forall f a. (Applicative f) => Int -> ListT f a -> ListT f a
 ```
 
 
@@ -117,7 +117,7 @@ takeWhile :: forall f a. (Applicative f) => (a -> Boolean) -> ListT f a -> ListT
 #### `drop`
 
 ``` purescript
-drop :: forall f a. (Applicative f) => Number -> ListT f a -> ListT f a
+drop :: forall f a. (Applicative f) => Int -> ListT f a -> ListT f a
 ```
 
 
@@ -444,28 +444,28 @@ toArray :: forall a. List a -> [a]
 #### `(!)`
 
 ``` purescript
-(!) :: forall a. List a -> Number -> Maybe a
+(!) :: forall a. List a -> Int -> Maybe a
 ```
 
 
 #### `drop`
 
 ``` purescript
-drop :: forall a. Number -> List a -> List a
+drop :: forall a. Int -> List a -> List a
 ```
 
 
 #### `take`
 
 ``` purescript
-take :: forall a. Number -> List a -> List a
+take :: forall a. Int -> List a -> List a
 ```
 
 
 #### `length`
 
 ``` purescript
-length :: forall a. List a -> Number
+length :: forall a. List a -> Int
 ```
 
 
@@ -584,7 +584,7 @@ insertBy :: forall a. (a -> a -> Ordering) -> a -> List a -> List a
 #### `insertAt`
 
 ``` purescript
-insertAt :: forall a. Number -> a -> List a -> Maybe (List a)
+insertAt :: forall a. Int -> a -> List a -> Maybe (List a)
 ```
 
 
@@ -605,14 +605,14 @@ deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
 #### `deleteAt`
 
 ``` purescript
-deleteAt :: forall a. Number -> List a -> Maybe (List a)
+deleteAt :: forall a. Int -> List a -> Maybe (List a)
 ```
 
 
 #### `alterAt`
 
 ``` purescript
-alterAt :: forall a. Number -> (a -> Maybe a) -> List a -> Maybe (List a)
+alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> Maybe (List a)
 ```
 
 
@@ -738,6 +738,13 @@ instance arbitraryListT :: (Monad f, Arbitrary a) => Arbitrary (ListT f a)
 ```
 
 
+#### `arbZeroToTen`
+
+``` purescript
+instance arbZeroToTen :: Arbitrary ZeroToTen
+```
+
+
 
 ## Module Test.Data.List
 
@@ -746,3 +753,7 @@ instance arbitraryListT :: (Monad f, Arbitrary a) => Arbitrary (ListT f a)
 ``` purescript
 instance arbitraryList :: (Arbitrary a) => Arbitrary (List a)
 ```
+
+
+
+## Module Test.Main

@@ -1,4 +1,4 @@
-module Data.List 
+module Data.List
   ( List(..)
   , fromArray
   , toArray
@@ -33,19 +33,20 @@ module Data.List
   , intersectBy
   , uncons
   , union
-  , unionBy) where
+  , unionBy
+  ) where
 
-import Data.Maybe
-import Data.Tuple
-import Data.Monoid
-import Data.Foldable
-import Data.Unfoldable
-import Data.Traversable
-
-import Control.Alt
-import Control.Plus
-import Control.Alternative
-import Control.MonadPlus
+import Control.Alt (Alt)
+import Control.Alternative (Alternative)
+import Control.MonadPlus (MonadPlus)
+import Control.Plus (Plus)
+import Data.Foldable (Foldable, foldl, foldr, foldMap, any)
+import Data.Int (Int())
+import Data.Maybe (Maybe(..), maybe)
+import Data.Monoid (Monoid, mempty)
+import Data.Traversable (Traversable, traverse, sequence)
+import Data.Tuple (Tuple(..))
+import Data.Unfoldable (Unfoldable, unfoldr)
 
 data List a = Nil | Cons a (List a)
 
@@ -63,7 +64,7 @@ instance ordList :: (Ord a) => Ord (List a) where
   compare Nil Nil = EQ
   compare Nil _   = LT
   compare _   Nil = GT
-  compare (Cons x xs) (Cons y ys) = 
+  compare (Cons x xs) (Cons y ys) =
     case compare x y of
       EQ -> compare xs ys
       other -> other
@@ -88,9 +89,9 @@ instance foldableList :: Foldable List where
   foldl _ b Nil = b
   foldl o b (Cons a as) = foldl o (b `o` a) as
 
-  -- foldMap :: forall a m. (Monoid m) => (a -> m) -> f a -> m 
+  -- foldMap :: forall a m. (Monoid m) => (a -> m) -> f a -> m
   foldMap _ Nil = mempty
-  foldMap f (Cons x xs) = f x <> foldMap f xs 
+  foldMap f (Cons x xs) = f x <> foldMap f xs
 
 instance unfoldableList :: Unfoldable List where
   -- unfoldr :: forall a b. (b -> Maybe (Tuple a b)) -> b -> List a
@@ -104,7 +105,7 @@ instance traversableList :: Traversable List where
   traverse _ Nil = pure Nil
   traverse f (Cons a as) = Cons <$> f a <*> traverse f as
 
-  -- sequence :: forall a m. (Applicative m) => t (m a) -> m (t a)   
+  -- sequence :: forall a m. (Applicative m) => t (m a) -> m (t a)
   sequence Nil = pure Nil
   sequence (Cons a as) = Cons <$> a <*> sequence as
 
@@ -127,7 +128,7 @@ instance altList :: Alt List where
 instance plusList :: Plus List where
   empty = Nil
 
-instance alternativeList :: Alternative List 
+instance alternativeList :: Alternative List
 
 instance monadPlusList :: MonadPlus List
 
@@ -146,24 +147,25 @@ singleton a = Cons a Nil
 
 infix 4 !
 
-(!) :: forall a. List a -> Number -> Maybe a
+(!) :: forall a. List a -> Int -> Maybe a
 (!) Nil _ = Nothing
-(!) (Cons a _) 0 = Just a
-(!) (Cons _ as) i = as ! i - 1
+(!) (Cons a as) i | i < zero = Nothing
+                  | i == zero = Just a
+                  | otherwise = as ! i - one
 
-drop :: forall a. Number -> List a -> List a
-drop 0 xs = xs
+drop :: forall a. Int -> List a -> List a
 drop _ Nil = Nil
-drop n (Cons x xs) = drop (n - 1) xs
+drop n l@(Cons x xs) | n < one = l
+                     | otherwise = drop (n - one) xs
 
-take :: forall a. Number -> List a -> List a
-take 0 _ = Nil
+take :: forall a. Int -> List a -> List a
 take _ Nil = Nil
-take n (Cons x xs) = Cons x (take (n - 1) xs)
+take n (Cons x xs) | n < one = Nil
+                   | otherwise = Cons x (take (n - one) xs)
 
-length :: forall a. List a -> Number
-length Nil = 0
-length (Cons _ xs) = 1 + length xs
+length :: forall a. List a -> Int
+length Nil = zero
+length (Cons _ xs) = one + length xs
 
 filter :: forall a. (a -> Boolean) -> List a -> List a
 filter _ Nil = Nil
@@ -212,7 +214,7 @@ null Nil = true
 null _ = false
 
 span :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
-span p xs@(Cons x xs') 
+span p xs@(Cons x xs')
   | p x = case span p xs' of
             Tuple ys zs -> Tuple (Cons x ys) zs
   | otherwise = Tuple Nil xs
@@ -222,7 +224,7 @@ group = groupBy (==)
 
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
 groupBy _ Nil = Nil
-groupBy eq (Cons x xs) = 
+groupBy eq (Cons x xs) =
   case span (eq x) xs of
     Tuple ys zs -> Cons (Cons x ys) (groupBy eq zs)
 
@@ -240,10 +242,11 @@ insertBy cmp x ys@(Cons y ys') =
   case cmp x y of
     GT -> Cons y (insertBy cmp x ys')
     _  -> Cons x ys
-    
-insertAt :: forall a. Number -> a -> List a -> Maybe (List a)
-insertAt 0 x xs = Just (Cons x xs)
-insertAt n x (Cons y ys) = Cons y <$> insertAt (n - 1) x ys
+
+insertAt :: forall a. Int -> a -> List a -> Maybe (List a)
+insertAt n x xs@(Cons y ys) | n < zero = Nothing
+                            | n == zero = Just (Cons x xs)
+                            | otherwise = Cons y <$> insertAt (n - one) x ys
 insertAt _ _ _  = Nothing
 
 delete :: forall a. (Eq a) => a -> List a -> List a
@@ -251,20 +254,19 @@ delete = deleteBy (==)
 
 deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
 deleteBy _ _ Nil = Nil
-deleteBy (==) x (Cons y ys) | x == y = ys 
+deleteBy (==) x (Cons y ys) | x == y = ys
 deleteBy (==) x (Cons y ys) = Cons y (deleteBy (==) x ys)
-    
-deleteAt :: forall a. Number -> List a -> Maybe (List a)
-deleteAt 0 (Cons y ys) = Just ys
-deleteAt n (Cons y ys) = Cons y <$> deleteAt (n - 1) ys
+
+deleteAt :: forall a. Int -> List a -> Maybe (List a)
+deleteAt n (Cons y ys) | n < zero = Nothing
+                       | n == zero = Just ys
+                       | otherwise = Cons y <$> deleteAt (n - one) ys
 deleteAt _ _  = Nothing
 
-alterAt :: forall a. Number -> (a -> Maybe a) -> List a -> Maybe (List a)
-alterAt 0 f (Cons y ys) = Just $
-  case f y of
-    Nothing -> ys
-    Just y' -> Cons y' ys
-alterAt n f (Cons y ys) = Cons y <$> alterAt (n - 1) f ys
+alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> Maybe (List a)
+alterAt n f (Cons y ys) | n < zero = Nothing
+                        | n == zero = Just $ maybe ys (\y -> Cons y ys) (f y)
+                        | otherwise = Cons y <$> alterAt (n - one) f ys
 alterAt _ _ _  = Nothing
 
 reverse :: forall a. List a -> List a

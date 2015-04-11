@@ -1,1 +1,1 @@
-require("Main").main();
+require("Test.Main").main();
