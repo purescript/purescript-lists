@@ -6,4 +6,4 @@ module Test.Data.List where
   import Data.List
 
   instance arbitraryList :: (Arbitrary a) => Arbitrary (List a) where
-  arbitrary = fromArray <$> arbitrary
+    arbitrary = fromArray <$> arbitrary

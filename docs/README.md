@@ -1,302 +1,5 @@
 # Module Documentation
 
-## Module Control.Monad.ListT
-
-#### `ListT`
-
-``` purescript
-data ListT f a
-```
-
-
-#### `nil`
-
-``` purescript
-nil :: forall f a. (Applicative f) => ListT f a
-```
-
-
-#### `cons'`
-
-``` purescript
-cons' :: forall f a. (Applicative f) => Lazy a -> Lazy (ListT f a) -> ListT f a
-```
-
-
-#### `prepend'`
-
-``` purescript
-prepend' :: forall f a. (Applicative f) => a -> Lazy (ListT f a) -> ListT f a
-```
-
-
-#### `prepend`
-
-``` purescript
-prepend :: forall f a. (Applicative f) => a -> ListT f a -> ListT f a
-```
-
-
-#### `singleton`
-
-``` purescript
-singleton :: forall f a. (Applicative f) => a -> ListT f a
-```
-
-
-#### `fromEffect`
-
-``` purescript
-fromEffect :: forall f a. (Applicative f) => f a -> ListT f a
-```
-
-
-#### `wrapEffect`
-
-``` purescript
-wrapEffect :: forall f a. (Monad f) => f (ListT f a) -> ListT f a
-```
-
-
-#### `wrapLazy`
-
-``` purescript
-wrapLazy :: forall f a. (Monad f) => Lazy (ListT f a) -> ListT f a
-```
-
-
-#### `unfold`
-
-``` purescript
-unfold :: forall f a z. (Monad f) => (z -> f (Maybe (Tuple z a))) -> z -> ListT f a
-```
-
-
-#### `iterate`
-
-``` purescript
-iterate :: forall f a. (Monad f) => (a -> a) -> a -> ListT f a
-```
-
-
-#### `repeat`
-
-``` purescript
-repeat :: forall f a. (Monad f) => a -> ListT f a
-```
-
-
-#### `fromArray`
-
-``` purescript
-fromArray :: forall f a. (Monad f) => [a] -> ListT f a
-```
-
-
-#### `toArray`
-
-``` purescript
-toArray :: forall f a. (Monad f) => ListT f a -> f [a]
-```
-
-
-#### `take`
-
-``` purescript
-take :: forall f a. (Applicative f) => Number -> ListT f a -> ListT f a
-```
-
-
-#### `takeWhile`
-
-``` purescript
-takeWhile :: forall f a. (Applicative f) => (a -> Boolean) -> ListT f a -> ListT f a
-```
-
-
-#### `drop`
-
-``` purescript
-drop :: forall f a. (Applicative f) => Number -> ListT f a -> ListT f a
-```
-
-
-#### `dropWhile`
-
-``` purescript
-dropWhile :: forall f a. (Applicative f) => (a -> Boolean) -> ListT f a -> ListT f a
-```
-
-
-#### `filter`
-
-``` purescript
-filter :: forall f a. (Functor f) => (a -> Boolean) -> ListT f a -> ListT f a
-```
-
-
-#### `mapMaybe`
-
-``` purescript
-mapMaybe :: forall f a b. (Functor f) => (a -> Maybe b) -> ListT f a -> ListT f b
-```
-
-
-#### `catMaybes`
-
-``` purescript
-catMaybes :: forall f a. (Functor f) => ListT f (Maybe a) -> ListT f a
-```
-
-
-#### `uncons`
-
-``` purescript
-uncons :: forall f a. (Monad f) => ListT f a -> f (Maybe (Tuple a (ListT f a)))
-```
-
-
-#### `head`
-
-``` purescript
-head :: forall f a. (Monad f) => ListT f a -> f (Maybe a)
-```
-
-
-#### `tail`
-
-``` purescript
-tail :: forall f a. (Monad f) => ListT f a -> f (Maybe (ListT f a))
-```
-
-
-#### `foldl'`
-
-``` purescript
-foldl' :: forall f a b. (Monad f) => (b -> a -> f b) -> b -> ListT f a -> f b
-```
-
-
-#### `foldl`
-
-``` purescript
-foldl :: forall f a b. (Monad f) => (b -> a -> b) -> b -> ListT f a -> f b
-```
-
-
-#### `scanl`
-
-``` purescript
-scanl :: forall f a b. (Monad f) => (b -> a -> b) -> b -> ListT f a -> ListT f b
-```
-
-
-#### `zipWith'`
-
-``` purescript
-zipWith' :: forall f a b c. (Monad f) => (a -> b -> f c) -> ListT f a -> ListT f b -> ListT f c
-```
-
-
-#### `zipWith`
-
-``` purescript
-zipWith :: forall f a b c. (Monad f) => (a -> b -> c) -> ListT f a -> ListT f b -> ListT f c
-```
-
-
-#### `semigroupListT`
-
-``` purescript
-instance semigroupListT :: (Applicative f) => Semigroup (ListT f a)
-```
-
-
-#### `monoidListT`
-
-``` purescript
-instance monoidListT :: (Applicative f) => Monoid (ListT f a)
-```
-
-
-#### `functorListT`
-
-``` purescript
-instance functorListT :: (Functor f) => Functor (ListT f)
-```
-
-
-#### `unfoldableListT`
-
-``` purescript
-instance unfoldableListT :: (Monad f) => Unfoldable (ListT f)
-```
-
-
-#### `applyListT`
-
-``` purescript
-instance applyListT :: (Monad f) => Apply (ListT f)
-```
-
-
-#### `applicativeListT`
-
-``` purescript
-instance applicativeListT :: (Monad f) => Applicative (ListT f)
-```
-
-
-#### `bindListT`
-
-``` purescript
-instance bindListT :: (Monad f) => Bind (ListT f)
-```
-
-
-#### `monadListT`
-
-``` purescript
-instance monadListT :: (Monad f) => Monad (ListT f)
-```
-
-
-#### `monadTransListT`
-
-``` purescript
-instance monadTransListT :: MonadTrans ListT
-```
-
-
-#### `altListT`
-
-``` purescript
-instance altListT :: (Applicative f) => Alt (ListT f)
-```
-
-
-#### `plusListT`
-
-``` purescript
-instance plusListT :: (Monad f) => Plus (ListT f)
-```
-
-
-#### `alternativeListT`
-
-``` purescript
-instance alternativeListT :: (Monad f) => Alternative (ListT f)
-```
-
-
-#### `monadPlusListT`
-
-``` purescript
-instance monadPlusListT :: (Monad f) => MonadPlus (ListT f)
-```
-
-
-
 ## Module Data.List
 
 #### `List`
@@ -441,10 +144,25 @@ toArray :: forall a. List a -> [a]
 ```
 
 
-#### `(!)`
+#### `(:)`
 
 ``` purescript
-(!) :: forall a. List a -> Number -> Maybe a
+(:) :: forall a. a -> List a -> List a
+```
+
+An infix alias for `Cons`.
+
+#### `singleton`
+
+``` purescript
+singleton :: forall a. a -> List a
+```
+
+
+#### `(!!)`
+
+``` purescript
+(!!) :: forall a. List a -> Number -> Maybe a
 ```
 
 
@@ -455,10 +173,24 @@ drop :: forall a. Number -> List a -> List a
 ```
 
 
+#### `dropWhile`
+
+``` purescript
+dropWhile :: forall a. (a -> Boolean) -> List a -> List a
+```
+
+
 #### `take`
 
 ``` purescript
 take :: forall a. Number -> List a -> List a
+```
+
+
+#### `takeWhile`
+
+``` purescript
+takeWhile :: forall a. (a -> Boolean) -> List a -> List a
 ```
 
 
@@ -529,6 +261,20 @@ init :: forall a. List a -> Maybe (List a)
 
 ``` purescript
 zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
+```
+
+
+#### `concat`
+
+``` purescript
+concat :: forall a. List (List a) -> List a
+```
+
+
+#### `concatMap`
+
+``` purescript
+concatMap :: forall a b. (a -> List b) -> List a -> List b
 ```
 
 
@@ -609,6 +355,20 @@ deleteAt :: forall a. Number -> List a -> Maybe (List a)
 ```
 
 
+#### `updateAt`
+
+``` purescript
+updateAt :: forall a. Number -> a -> List a -> Maybe (List a)
+```
+
+
+#### `modifyAt`
+
+``` purescript
+modifyAt :: forall a. Number -> (a -> a) -> List a -> Maybe (List a)
+```
+
+
 #### `alterAt`
 
 ``` purescript
@@ -666,38 +426,6 @@ unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
 
 
 
-## Module Data.List.Lazy
-
-#### `List`
-
-``` purescript
-type List = L.ListT Lazy
-```
-
-
-#### `LazyList`
-
-``` purescript
-newtype LazyList a
-  = LazyList (List a)
-```
-
-
-#### `unLazyList`
-
-``` purescript
-unLazyList :: forall a. LazyList a -> List a
-```
-
-
-#### `foldableLazyList`
-
-``` purescript
-instance foldableLazyList :: Foldable LazyList
-```
-
-
-
 ## Module Data.List.Unsafe
 
 #### `head`
@@ -729,20 +457,4 @@ init :: forall a. List a -> List a
 
 
 
-## Module Test.Control.Monad.ListT
 
-#### `arbitraryListT`
-
-``` purescript
-instance arbitraryListT :: (Monad f, Arbitrary a) => Arbitrary (ListT f a)
-```
-
-
-
-## Module Test.Data.List
-
-#### `arbitraryList`
-
-``` purescript
-instance arbitraryList :: (Arbitrary a) => Arbitrary (List a)
-```

@@ -1,10 +1,14 @@
 module Data.List 
   ( List(..)
+  , (:)
+  , singleton
   , fromArray
   , toArray
-  , (!)
+  , (!!)
   , drop
+  , dropWhile
   , take
+  , takeWhile
   , length
   , filter
   , mapMaybe
@@ -14,6 +18,8 @@ module Data.List
   , last
   , init
   , zipWith
+  , concat
+  , concatMap
   , null
   , span
   , group
@@ -25,6 +31,8 @@ module Data.List
   , delete
   , deleteBy
   , deleteAt
+  , updateAt
+  , modifyAt
   , alterAt
   , reverse
   , nub
@@ -33,7 +41,10 @@ module Data.List
   , intersectBy
   , uncons
   , union
-  , unionBy) where
+  , unionBy
+  ) where
+
+import Prelude hiding ((:))
 
 import Data.Maybe
 import Data.Tuple
@@ -116,8 +127,7 @@ instance applicativeList :: Applicative List where
   pure a = Cons a Nil
 
 instance bindList :: Bind List where
-  (>>=) Nil _ = Nil
-  (>>=) (Cons a as) f = f a <> (as >>= f)
+  (>>=) = flip concatMap
 
 instance monadList :: Monad List
 
@@ -141,34 +151,57 @@ toArray = unfoldr step
   step Nil = Nothing
   step (Cons x xs) = Just (Tuple x xs)
 
+infixr 6 :
+
+-- | An infix alias for `Cons`.
+(:) :: forall a. a -> List a -> List a
+(:) = Cons
+
 singleton :: forall a. a -> List a
 singleton a = Cons a Nil
 
-infix 4 !
+infix 4 !!
 
-(!) :: forall a. List a -> Number -> Maybe a
-(!) Nil _ = Nothing
-(!) (Cons a _) 0 = Just a
-(!) (Cons _ as) i = as ! i - 1
+(!!) :: forall a. List a -> Number -> Maybe a
+(!!) Nil _ = Nothing
+(!!) (Cons a _) 0 = Just a
+(!!) (Cons _ as) i = as !! i - 1
 
 drop :: forall a. Number -> List a -> List a
 drop 0 xs = xs
 drop _ Nil = Nil
 drop n (Cons x xs) = drop (n - 1) xs
 
+dropWhile :: forall a. (a -> Boolean) -> List a -> List a
+dropWhile p = go
+  where
+  go (Cons x xs) | p x = go xs
+  go xs = xs
+
 take :: forall a. Number -> List a -> List a
-take 0 _ = Nil
-take _ Nil = Nil
-take n (Cons x xs) = Cons x (take (n - 1) xs)
+take = go Nil
+  where 
+  go acc 0 _ = reverse acc
+  go acc _ Nil = reverse acc
+  go acc n (Cons x xs) = go (Cons x acc) (n - 1) xs
+
+takeWhile :: forall a. (a -> Boolean) -> List a -> List a
+takeWhile p = go Nil
+  where
+  go acc (Cons x xs) | p x = go (Cons x acc) xs
+  go acc _ = reverse acc
 
 length :: forall a. List a -> Number
 length Nil = 0
 length (Cons _ xs) = 1 + length xs
 
 filter :: forall a. (a -> Boolean) -> List a -> List a
-filter _ Nil = Nil
-filter p (Cons x xs) | p x = Cons x (filter p xs)
-filter p (Cons _ xs) = filter p xs
+filter p = go Nil
+  where
+  go acc Nil = reverse acc
+  go acc (Cons x xs) 
+    | p x = go (Cons x acc) xs
+    | otherwise = go acc xs
 
 mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
 mapMaybe _ Nil = Nil
@@ -206,6 +239,13 @@ zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
 zipWith _ Nil _ = Nil
 zipWith _ _ Nil = Nil
 zipWith f (Cons a as) (Cons b bs) = Cons (f a b) (zipWith f as bs)
+
+concat :: forall a. List (List a) -> List a
+concat = (>>= id)
+
+concatMap :: forall a b. (a -> List b) -> List a -> List b
+concatMap _ Nil = Nil
+concatMap f (Cons x xs) = f x <> concatMap f xs
 
 null :: forall a. List a -> Boolean
 null Nil = true
@@ -258,6 +298,14 @@ deleteAt :: forall a. Number -> List a -> Maybe (List a)
 deleteAt 0 (Cons y ys) = Just ys
 deleteAt n (Cons y ys) = Cons y <$> deleteAt (n - 1) ys
 deleteAt _ _  = Nothing
+
+updateAt :: forall a. Number -> a -> List a -> Maybe (List a)
+updateAt 0 x (Cons _ xs) = Just (Cons x xs)
+updateAt n x (Cons x1 xs) = Cons x1 <$> updateAt (n - 1) x xs
+updateAt _ _ _ = Nothing
+
+modifyAt :: forall a. Number -> (a -> a) -> List a -> Maybe (List a)
+modifyAt n f = alterAt n (Just <<< f)
 
 alterAt :: forall a. Number -> (a -> Maybe a) -> List a -> Maybe (List a)
 alterAt 0 f (Cons y ys) = Just $
