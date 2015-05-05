@@ -121,7 +121,7 @@ toList = foldr cons nil
 -- | Convert a list into any unfoldable structure.
 -- |
 -- | Running time: `O(n)`
-fromList :: forall f a. (Unfoldable f) => List a -> [a]
+fromList :: forall f a. (Unfoldable f) => List a -> f a
 fromList = unfoldr uncons
 
 -- | Create a list by repeating an element
@@ -163,7 +163,7 @@ singleton a = cons a nil
 -- |
 -- | Running time: `O(1)`
 uncons :: forall a. List a -> Maybe (Tuple a (List a))
-uncons xs = case force (runList xs) of 
+uncons xs = case step xs of 
               Nil -> Nothing
               Cons x xs -> Just (Tuple x xs)
 

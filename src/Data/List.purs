@@ -11,8 +11,8 @@ module Data.List
   ( List(..)
   , (:)
   , singleton
-  , fromArray
-  , toArray
+  , fromList
+  , toList
   , index
   , (!!)
   , drop
@@ -76,17 +76,17 @@ import Control.MonadPlus
 -- | `Cons` constructor).
 data List a = Nil | Cons a (List a)
 
--- | Construct a list from an immutable array.
+-- | Construct a list from a foldable structure.
 -- |
 -- | Running time: `O(n)`
-fromArray :: forall a. [a] -> List a
-fromArray = foldr Cons Nil
+toList :: forall f a. (Foldable f) => f a -> List a
+toList = foldr Cons Nil
 
--- | Convert a list into an immutable array.
+-- | Convert a list into any unfoldable structure.
 -- |
 -- | Running time: `O(n)`
-toArray :: forall a. List a -> [a]
-toArray = unfoldr uncons
+fromList :: forall f a. (Unfoldable f) => List a -> f a
+fromList = unfoldr uncons
 
 infixr 6 :
 
