@@ -1,7 +1,9 @@
 {
   "name": "purescript-lists",
   "description": "Linked lists",
-  "keywords": ["purescript"],
+  "keywords": [
+    "purescript"
+  ],
   "ignore": [
     "**/.*",
     "bower_components",
@@ -20,7 +22,8 @@
     "purescript-foldable-traversable": "~0.3.0",
     "purescript-unfoldable": "~0.3.0",
     "purescript-monoid": "~0.2.0",
-    "purescript-tuples": "~0.3.0"
+    "purescript-tuples": "~0.3.0",
+    "purescript-lazy": "~0.3.1"
   },
   "devDependencies": {
     "purescript-quickcheck": "~0.5.0"
