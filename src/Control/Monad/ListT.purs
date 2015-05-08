@@ -1,5 +1,6 @@
 module Control.Monad.ListT
   ( ListT()
+  , ZipListT()
   , catMaybes
   , cons'
   , drop
@@ -28,6 +29,7 @@ module Control.Monad.ListT
   , wrapLazy
   , zipWith
   , zipWith'
+  , zipList
   ) where 
 
   import Data.Lazy
@@ -45,7 +47,9 @@ module Control.Monad.ListT
   import Control.Monad.Trans
 
   data ListT f a = ListT (f (Step a (ListT f a)))
-  
+
+  newtype ZipListT f a = ZipListT (ListT f a)
+
   data Step a s =
     Yield a (Lazy s) |
     Skip (Lazy s)    |
@@ -195,11 +199,20 @@ module Control.Monad.ListT
   zipWith f = zipWith' g where
     g a b = pure $ f a b
 
+  zipList :: forall f a. ListT f a -> ZipListT f a
+  zipList = ZipListT
+
   instance semigroupListT :: (Applicative f) => Semigroup (ListT f a) where
     (<>) = concat
 
+  instance semigroupZipListT :: (Applicative f) => Semigroup (ZipListT f a) where
+    (<>) (ZipListT a) (ZipListT b) = ZipListT $ a <> b
+
   instance monoidListT :: (Applicative f) => Monoid (ListT f a) where
     mempty = nil
+
+  instance monoidZipListT :: (Applicative f) => Monoid (ZipListT f a) where
+    mempty = ZipListT mempty
 
   instance functorListT :: (Functor f) => Functor (ListT f) where 
     (<$>) f = stepMap g where
@@ -207,20 +220,29 @@ module Control.Monad.ListT
       g (Skip s)    = Skip ((<$>) f <$> s)
       g Done        = Done
 
+  instance functorZipListT :: (Functor f) => Functor (ZipListT f) where 
+    (<$>) f (ZipListT a) = ZipListT $ f <$> a
+
   instance unfoldableListT :: (Monad f) => Unfoldable (ListT f) where
     -- unfoldr :: forall a b. (b -> Maybe (Tuple a b)) -> b -> ListT f a
     unfoldr f b = go (f b)
       where go Nothing = nil
             go (Just (Tuple a b)) = cons' (pure a) (defer \_ -> (go (f b)))
 
-  instance applyListT :: (Monad f) => Apply (ListT f) where 
+  instance applyListT :: (Monad f) => Apply (ListT f) where
     (<*>) f x = do
       f' <- f
       x' <- x
       return (f' x')
 
+  instance applyZipListT :: (Monad f) => Apply (ZipListT f) where
+    (<*>) (ZipListT a) (ZipListT b) = ZipListT $ zipWith g a b where g f x = f x
+
   instance applicativeListT :: (Monad f) => Applicative (ListT f) where
     pure = singleton
+
+  instance applicativeZipListT :: (Monad f) => Applicative (ZipListT f) where
+    pure = ZipListT <<< pure
 
   instance bindListT :: (Monad f) => Bind (ListT f) where
     (>>=) fa f = stepMap g fa where
@@ -236,9 +258,17 @@ module Control.Monad.ListT
   instance altListT :: (Applicative f) => Alt (ListT f) where
     (<|>) = concat
 
+  instance altZipListT :: (Applicative f) => Alt (ZipListT f) where
+    (<|>) (ZipListT a) (ZipListT b) = ZipListT $ a <|> b
+
   instance plusListT :: (Monad f) => Plus (ListT f) where
     empty = nil
 
+  instance plusZipListT :: (Monad f) => Plus (ZipListT f) where
+    empty = ZipListT empty
+
   instance alternativeListT :: (Monad f) => Alternative (ListT f)
+
+  instance alternativeZipListT :: (Monad f) => Alternative (ZipListT f)
 
   instance monadPlusListT :: (Monad f) => MonadPlus (ListT f)
