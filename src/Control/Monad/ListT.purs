@@ -217,7 +217,7 @@ module Control.Monad.ListT
     (<*>) f x = do
       f' <- f
       x' <- x
-      return (f x)
+      return (f' x')
 
   instance applicativeListT :: (Monad f) => Applicative (ListT f) where
     pure = singleton
