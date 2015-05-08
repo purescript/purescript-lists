@@ -214,7 +214,10 @@ module Control.Monad.ListT
             go (Just (Tuple a b)) = cons' (pure a) (defer \_ -> (go (f b)))
 
   instance applyListT :: (Monad f) => Apply (ListT f) where 
-    (<*>) = zipWith g where g f x = f x
+    (<*>) f x = do
+      f' <- f
+      x' <- x
+      return (f x)
 
   instance applicativeListT :: (Monad f) => Applicative (ListT f) where
     pure = singleton
