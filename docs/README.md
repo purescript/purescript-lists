@@ -9,6 +9,13 @@ data ListT f a
 ```
 
 
+#### `ZipListT`
+
+``` purescript
+newtype ZipListT f a
+```
+
+
 #### `nil`
 
 ``` purescript
@@ -205,10 +212,24 @@ zipWith :: forall f a b c. (Monad f) => (a -> b -> c) -> ListT f a -> ListT f b 
 ```
 
 
+#### `zipList`
+
+``` purescript
+zipList :: forall f a. ListT f a -> ZipListT f a
+```
+
+
 #### `semigroupListT`
 
 ``` purescript
 instance semigroupListT :: (Applicative f) => Semigroup (ListT f a)
+```
+
+
+#### `semigroupZipListT`
+
+``` purescript
+instance semigroupZipListT :: (Applicative f) => Semigroup (ZipListT f a)
 ```
 
 
@@ -219,10 +240,24 @@ instance monoidListT :: (Applicative f) => Monoid (ListT f a)
 ```
 
 
+#### `monoidZipListT`
+
+``` purescript
+instance monoidZipListT :: (Applicative f) => Monoid (ZipListT f a)
+```
+
+
 #### `functorListT`
 
 ``` purescript
 instance functorListT :: (Functor f) => Functor (ListT f)
+```
+
+
+#### `functorZipListT`
+
+``` purescript
+instance functorZipListT :: (Functor f) => Functor (ZipListT f)
 ```
 
 
@@ -240,10 +275,24 @@ instance applyListT :: (Monad f) => Apply (ListT f)
 ```
 
 
+#### `applyZipListT`
+
+``` purescript
+instance applyZipListT :: (Monad f) => Apply (ZipListT f)
+```
+
+
 #### `applicativeListT`
 
 ``` purescript
 instance applicativeListT :: (Monad f) => Applicative (ListT f)
+```
+
+
+#### `applicativeZipListT`
+
+``` purescript
+instance applicativeZipListT :: (Monad f) => Applicative (ZipListT f)
 ```
 
 
@@ -275,6 +324,13 @@ instance altListT :: (Applicative f) => Alt (ListT f)
 ```
 
 
+#### `altZipListT`
+
+``` purescript
+instance altZipListT :: (Applicative f) => Alt (ZipListT f)
+```
+
+
 #### `plusListT`
 
 ``` purescript
@@ -282,10 +338,24 @@ instance plusListT :: (Monad f) => Plus (ListT f)
 ```
 
 
+#### `plusZipListT`
+
+``` purescript
+instance plusZipListT :: (Monad f) => Plus (ZipListT f)
+```
+
+
 #### `alternativeListT`
 
 ``` purescript
 instance alternativeListT :: (Monad f) => Alternative (ListT f)
+```
+
+
+#### `alternativeZipListT`
+
+``` purescript
+instance alternativeZipListT :: (Monad f) => Alternative (ZipListT f)
 ```
 
 
