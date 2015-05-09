@@ -6,11 +6,16 @@
   "private": true,
   "author": "Phil Freeman",
   "license": "MIT",
-  "dependencies": {
+  "devDependencies": {
     "grunt": "~0.4.4",
-    "grunt-contrib-copy": "~0.5.0",
+    "grunt-cli": "^0.1.13",
     "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-copy": "~0.5.0",
     "grunt-execute": "~0.1.5",
-    "grunt-purescript": "~0.6.0"
+    "grunt-purescript": "~0.6.0",
+    "purescript": "^0.6.10"
+  },
+  "scripts": {
+    "test": "grunt test"
   }
 }
