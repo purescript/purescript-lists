@@ -1,4 +1,4 @@
-# purescript-lists
+# purescript-lists [![Build Status](https://travis-ci.org/purescript-contrib/purescript-lists.svg?branch=master)](https://travis-ci.org/purescript-contrib/purescript-lists)
 
 A library for strict linked lists (```Data.List```), lazy linked lists (```Data.List.Lazy```) and for the list monad transformer (```Control.Monad.ListT```).
 
