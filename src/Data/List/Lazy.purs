@@ -62,9 +62,9 @@ module Data.List.Lazy
   , uncons
   , union
   , unionBy
-  ) where
-
-import Prelude hiding (cons, (:))
+  ) where 
+      
+import Prelude
 
 import Data.Lazy
 
@@ -170,7 +170,7 @@ uncons xs = case step xs of
 -- | Get the element at the specified index, or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)` where `n` is the required index.
-index :: forall a. List a -> Number -> Maybe a
+index :: forall a. List a -> Int -> Maybe a
 index xs = go (step xs) 
   where 
   go Nil _ = Nothing
@@ -180,13 +180,13 @@ index xs = go (step xs)
 infix 4 !!
 
 -- | An infix synonym for `index`.
-(!!) :: forall a. List a -> Number -> Maybe a
+(!!) :: forall a. List a -> Int -> Maybe a
 (!!) = index
 
 -- | Drop the specified number of elements from the front of a list.
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to drop.
-drop :: forall a. Number -> List a -> List a
+drop :: forall a. Int -> List a -> List a
 drop n xs = List (go n <$> runList xs)
   where
   go 0 xs = xs
@@ -205,10 +205,10 @@ dropWhile p xs = go (step xs)
 -- | Take the specified number of elements from the front of a list.
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to take.
-take :: forall a. Number -> List a -> List a
+take :: forall a. Int -> List a -> List a
 take n xs = List (go n <$> runList xs)
   where 
-  go :: Number -> Step a -> Step a
+  go :: Int -> Step a -> Step a
   go 0 _ = Nil
   go _ Nil = Nil
   go n (Cons x xs) = Cons x (take (n - 1) xs)
@@ -225,7 +225,7 @@ takeWhile p xs = List (go <$> runList xs)
 -- | Get the length of a list
 -- |
 -- | Running time: `O(n)`
-length :: forall a. List a -> Number
+length :: forall a. List a -> Int
 length xs = go (step xs)
   where
   go Nil = 0
@@ -421,7 +421,7 @@ insertBy cmp x xs = List (go <$> runList xs)
 -- | result in the element being appended at the _end_ of the list.
 -- |
 -- | Running time: `O(n)`
-insertAt :: forall a. Number -> a -> List a -> List a
+insertAt :: forall a. Int -> a -> List a -> List a
 insertAt 0 x xs = cons x xs
 insertAt n x xs = List (go <$> runList xs)
   where
@@ -452,7 +452,7 @@ deleteBy eq x xs = List (go <$> runList xs)
 -- | result in the original list being returned unchanged.
 -- |
 -- | Running time: `O(n)`
-deleteAt :: forall a. Number -> List a -> List a
+deleteAt :: forall a. Int -> List a -> List a
 deleteAt n xs = List (go n <$> runList xs)
   where
   go _ Nil = Nil
@@ -466,7 +466,7 @@ deleteAt n xs = List (go n <$> runList xs)
 -- | result in the original list being returned unchanged.
 -- |
 -- | Running time: `O(n)`
-updateAt :: forall a. Number -> a -> List a -> List a
+updateAt :: forall a. Int -> a -> List a -> List a
 updateAt n x xs = List (go n <$> runList xs)
   where
   go _ Nil = Nil
@@ -481,7 +481,7 @@ updateAt n x xs = List (go n <$> runList xs)
 -- | result in the original list being returned unchanged.
 -- |
 -- | Running time: `O(n)`
-modifyAt :: forall a. Number -> (a -> a) -> List a -> List a
+modifyAt :: forall a. Int -> (a -> a) -> List a -> List a
 modifyAt n f = alterAt n (Just <<< f)
 
 -- | Update or delete the element at the specified index by applying a 
@@ -492,7 +492,7 @@ modifyAt n f = alterAt n (Just <<< f)
 -- | result in the original list being returned unchanged.
 -- |
 -- | Running time: `O(n)`
-alterAt :: forall a. Number -> (a -> Maybe a) -> List a -> List a
+alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> List a
 alterAt n f xs = List (go n <$> runList xs)
   where
   go _ Nil = Nil
@@ -559,13 +559,12 @@ instance showList :: (Show a) => Show (List a) where
     go (Cons x xs) = "Cons (" ++ show x ++ ") (" ++ go (step xs) ++ ")"
 
 instance eqList :: (Eq a) => Eq (List a) where
-  (==) xs ys = go (step xs) (step ys)
+  eq xs ys = go (step xs) (step ys)
     where
     go Nil Nil = true
     go (Cons x xs) (Cons y ys) 
       | x == y = go (step xs) (step ys)
     go _ _ = false
-  (/=) xs ys = not (xs == ys)
 
 instance ordList :: (Ord a) => Ord (List a) where
   compare xs ys = go (step xs) (step ys)
@@ -582,7 +581,7 @@ instance lazyList :: Lazy (List a) where
   defer f = List $ defer (step <<< f)
 
 instance semigroupList :: Semigroup (List a) where
-  (<>) xs ys = List (go <$> runList xs)
+  append xs ys = List (go <$> runList xs)
     where
     go Nil = step ys
     go (Cons x xs) = Cons x (xs <> ys)
@@ -591,7 +590,7 @@ instance monoidList :: Monoid (List a) where
   mempty = nil
 
 instance functorList :: Functor List where
-  (<$>) f xs = List (go <$> runList xs)
+  map f xs = List (go <$> runList xs)
     where
     go Nil = Nil
     go (Cons x xs) = Cons (f x) (f <$> xs)
@@ -636,18 +635,18 @@ instance traversableList :: Traversable List where
     go (Cons x xs) = cons <$> x <*> sequence xs
 
 instance applyList :: Apply List where
-  (<*>) = ap
+  apply = ap
 
 instance applicativeList :: Applicative List where
   pure = singleton
 
 instance bindList :: Bind List where
-  (>>=) = flip concatMap
+  bind = flip concatMap
 
 instance monadList :: Monad List
 
 instance altList :: Alt List where
-  (<|>) = (<>)
+  alt = append
 
 instance plusList :: Plus List where
   empty = nil

@@ -53,9 +53,14 @@ module Data.List
   , uncons
   , union
   , unionBy
-  ) where
-
-import Prelude hiding ((:))
+  , some
+  , many
+  , filterM
+  , foldM
+  , replicateM
+  ) where 
+      
+import Prelude
 
 import Data.Maybe
 import Data.Tuple (Tuple(..))
@@ -65,6 +70,7 @@ import Data.Unfoldable
 import Data.Traversable
 
 import Control.Alt
+import Control.Lazy
 import Control.Plus
 import Control.Alternative
 import Control.MonadPlus
@@ -106,7 +112,7 @@ singleton a = Cons a Nil
 -- | Get the element at the specified index, or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)` where `n` is the required index.
-index :: forall a. List a -> Number -> Maybe a
+index :: forall a. List a -> Int -> Maybe a
 index Nil _ = Nothing
 index (Cons a _) 0 = Just a
 index (Cons _ as) i = index as (i - 1)
@@ -114,13 +120,13 @@ index (Cons _ as) i = index as (i - 1)
 infix 4 !!
 
 -- | An infix synonym for `index`.
-(!!) :: forall a. List a -> Number -> Maybe a
+(!!) :: forall a. List a -> Int -> Maybe a
 (!!) = index
 
 -- | Drop the specified number of elements from the front of a list.
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to drop.
-drop :: forall a. Number -> List a -> List a
+drop :: forall a. Int -> List a -> List a
 drop 0 xs = xs
 drop _ Nil = Nil
 drop n (Cons x xs) = drop (n - 1) xs
@@ -137,7 +143,7 @@ dropWhile p = go
 -- | Take the specified number of elements from the front of a list.
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to take.
-take :: forall a. Number -> List a -> List a
+take :: forall a. Int -> List a -> List a
 take = go Nil
   where 
   go acc 0 _ = reverse acc
@@ -156,7 +162,7 @@ takeWhile p = go Nil
 -- | Get the length of a list
 -- |
 -- | Running time: `O(n)`
-length :: forall a. List a -> Number
+length :: forall a. List a -> Int
 length Nil = 0
 length (Cons _ xs) = 1 + length xs
 
@@ -340,7 +346,7 @@ insertBy cmp x ys@(Cons y ys') =
 -- | list or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
-insertAt :: forall a. Number -> a -> List a -> Maybe (List a)
+insertAt :: forall a. Int -> a -> List a -> Maybe (List a)
 insertAt 0 x xs = Just (Cons x xs)
 insertAt n x (Cons y ys) = Cons y <$> insertAt (n - 1) x ys
 insertAt _ _ _  = Nothing
@@ -364,7 +370,7 @@ deleteBy (==) x (Cons y ys) = Cons y (deleteBy (==) x ys)
 -- | list or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
-deleteAt :: forall a. Number -> List a -> Maybe (List a)
+deleteAt :: forall a. Int -> List a -> Maybe (List a)
 deleteAt 0 (Cons y ys) = Just ys
 deleteAt n (Cons y ys) = Cons y <$> deleteAt (n - 1) ys
 deleteAt _ _  = Nothing
@@ -373,7 +379,7 @@ deleteAt _ _  = Nothing
 -- | list or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
-updateAt :: forall a. Number -> a -> List a -> Maybe (List a)
+updateAt :: forall a. Int -> a -> List a -> Maybe (List a)
 updateAt 0 x (Cons _ xs) = Just (Cons x xs)
 updateAt n x (Cons x1 xs) = Cons x1 <$> updateAt (n - 1) x xs
 updateAt _ _ _ = Nothing
@@ -383,7 +389,7 @@ updateAt _ _ _ = Nothing
 -- | out-of-bounds.
 -- |
 -- | Running time: `O(n)`
-modifyAt :: forall a. Number -> (a -> a) -> List a -> Maybe (List a)
+modifyAt :: forall a. Int -> (a -> a) -> List a -> Maybe (List a)
 modifyAt n f = alterAt n (Just <<< f)
 
 -- | Update or delete the element at the specified index by applying a 
@@ -391,7 +397,7 @@ modifyAt n f = alterAt n (Just <<< f)
 -- | index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
-alterAt :: forall a. Number -> (a -> Maybe a) -> List a -> Maybe (List a)
+alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> Maybe (List a)
 alterAt 0 f (Cons y ys) = Just $
   case f y of
     Nothing -> ys
@@ -450,15 +456,58 @@ union = unionBy (==)
 unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
 unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
 
+-- | Attempt a computation multiple times, requiring at least one success.		
+-- |		
+-- | The `Lazy` constraint is used to generate the result lazily, to ensure		
+-- | termination.		
+some :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
+some v = Cons <$> v <*> defer (\_ -> many v)		
+		
+-- | Attempt a computation multiple times, returning as many successful results		
+-- | as possible (possibly zero).		
+-- |		
+-- | The `Lazy` constraint is used to generate the result lazily, to ensure		
+-- | termination.		
+many :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
+many v = some v <|> pure Nil
+
+-- | Perform a monadic action `n` times collecting all of the results.		
+replicateM :: forall m a. (Monad m) => Int -> m a -> m (List a)
+replicateM n m | n < one   = return Nil	
+               | otherwise = do a <- m		
+                                as <- replicateM (n - one) m		
+                                return (Cons a as)		
+		
+-- | Perform a fold using a monadic step function.		
+foldM :: forall m a b. (Monad m) => (a -> b -> m a) -> a -> List b -> m a		
+foldM _ a Nil = return a		
+foldM f a (Cons b bs) = f a b >>= \a' -> foldM f a' bs
+
+-- | Filter where the predicate returns a monadic `Boolean`.		
+-- |		
+-- | For example:		
+-- |		
+-- | ```purescript		
+-- | powerSet :: forall a. [a] -> [[a]]		
+-- | powerSet = filterM (const [true, false])		
+-- | ```		
+filterM :: forall a m. (Monad m) => (a -> m Boolean) -> List a -> m (List a)	
+filterM _ Nil = return Nil		
+filterM p (Cons x xs) = do		
+  b <- p x		
+  xs' <- filterM p xs		
+  return $ if b		
+           then Cons x xs'		
+           else xs'
+
 instance showList :: (Show a) => Show (List a) where
   show Nil = "Nil"
   show (Cons x xs) = "Cons (" ++ show x ++ ") (" ++ show xs ++ ")"
 
 instance eqList :: (Eq a) => Eq (List a) where
-  (==) Nil Nil = true
-  (==) (Cons x xs) (Cons y ys) = x == y && xs == ys
-  (==) _ _ = false
-  (/=) xs ys = not (xs == ys)
+  eq Nil Nil = true
+  eq (Cons x xs) (Cons y ys) = x == y && xs == ys
+  eq _ _ = false
 
 instance ordList :: (Ord a) => Ord (List a) where
   compare Nil Nil = EQ
@@ -470,15 +519,15 @@ instance ordList :: (Ord a) => Ord (List a) where
       other -> other
 
 instance semigroupList :: Semigroup (List a) where
-  (<>) Nil ys = ys
-  (<>) (Cons x xs) ys = Cons x (xs <> ys)
+  append Nil ys = ys
+  append (Cons x xs) ys = Cons x (xs <> ys)
 
 instance monoidList :: Monoid (List a) where
   mempty = Nil
 
 instance functorList :: Functor List where
-  (<$>) _ Nil = Nil
-  (<$>) f (Cons x xs) = Cons (f x) (f <$> xs)
+  map _ Nil = Nil
+  map f (Cons x xs) = Cons (f x) (f <$> xs)
 
 instance foldableList :: Foldable List where
   -- foldr :: forall a b. (a -> b -> b) -> b -> f a -> b
@@ -510,19 +559,19 @@ instance traversableList :: Traversable List where
   sequence (Cons a as) = Cons <$> a <*> sequence as
 
 instance applyList :: Apply List where
-  (<*>) Nil _ = Nil
-  (<*>) (Cons f fs) xs = (f <$> xs) <> (fs <*> xs)
+  apply Nil _ = Nil
+  apply (Cons f fs) xs = (f <$> xs) <> (fs <*> xs)
 
 instance applicativeList :: Applicative List where
   pure a = Cons a Nil
 
 instance bindList :: Bind List where
-  (>>=) = flip concatMap
+  bind = flip concatMap
 
 instance monadList :: Monad List
 
 instance altList :: Alt List where
-  (<|>) = (<>)
+  alt = append
 
 instance plusList :: Plus List where
   empty = Nil

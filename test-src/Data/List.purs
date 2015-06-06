@@ -1,5 +1,7 @@
 module Test.Data.List where
 
+import Prelude
+
   import Test.QuickCheck
   import Test.QuickCheck.Gen
 

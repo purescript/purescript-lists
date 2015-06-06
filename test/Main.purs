@@ -1,5 +1,7 @@
 module Test.Main where
 
+import Prelude
+
 import Debug.Trace
 
 import Prelude hiding ((:))
