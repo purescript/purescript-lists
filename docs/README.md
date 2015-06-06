@@ -1,373 +1,16 @@
 # Module Documentation
 
-## Module Control.Monad.ListT
-
-#### `ListT`
-
-``` purescript
-data ListT f a
-```
-
-
-#### `ZipListT`
-
-``` purescript
-newtype ZipListT f a
-```
-
-
-#### `nil`
-
-``` purescript
-nil :: forall f a. (Applicative f) => ListT f a
-```
-
-
-#### `cons'`
-
-``` purescript
-cons' :: forall f a. (Applicative f) => Lazy a -> Lazy (ListT f a) -> ListT f a
-```
-
-
-#### `prepend'`
-
-``` purescript
-prepend' :: forall f a. (Applicative f) => a -> Lazy (ListT f a) -> ListT f a
-```
-
-
-#### `prepend`
-
-``` purescript
-prepend :: forall f a. (Applicative f) => a -> ListT f a -> ListT f a
-```
-
-
-#### `singleton`
-
-``` purescript
-singleton :: forall f a. (Applicative f) => a -> ListT f a
-```
-
-
-#### `fromEffect`
-
-``` purescript
-fromEffect :: forall f a. (Applicative f) => f a -> ListT f a
-```
-
-
-#### `wrapEffect`
-
-``` purescript
-wrapEffect :: forall f a. (Monad f) => f (ListT f a) -> ListT f a
-```
-
-
-#### `wrapLazy`
-
-``` purescript
-wrapLazy :: forall f a. (Monad f) => Lazy (ListT f a) -> ListT f a
-```
-
-
-#### `unfold`
-
-``` purescript
-unfold :: forall f a z. (Monad f) => (z -> f (Maybe (Tuple z a))) -> z -> ListT f a
-```
-
-
-#### `iterate`
-
-``` purescript
-iterate :: forall f a. (Monad f) => (a -> a) -> a -> ListT f a
-```
-
-
-#### `repeat`
-
-``` purescript
-repeat :: forall f a. (Monad f) => a -> ListT f a
-```
-
-
-#### `fromArray`
-
-``` purescript
-fromArray :: forall f a. (Monad f) => [a] -> ListT f a
-```
-
-
-#### `toArray`
-
-``` purescript
-toArray :: forall f a. (Monad f) => ListT f a -> f [a]
-```
-
-
-#### `take`
-
-``` purescript
-take :: forall f a. (Applicative f) => Number -> ListT f a -> ListT f a
-```
-
-
-#### `takeWhile`
-
-``` purescript
-takeWhile :: forall f a. (Applicative f) => (a -> Boolean) -> ListT f a -> ListT f a
-```
-
-
-#### `drop`
-
-``` purescript
-drop :: forall f a. (Applicative f) => Number -> ListT f a -> ListT f a
-```
-
-
-#### `dropWhile`
-
-``` purescript
-dropWhile :: forall f a. (Applicative f) => (a -> Boolean) -> ListT f a -> ListT f a
-```
-
-
-#### `filter`
-
-``` purescript
-filter :: forall f a. (Functor f) => (a -> Boolean) -> ListT f a -> ListT f a
-```
-
-
-#### `mapMaybe`
-
-``` purescript
-mapMaybe :: forall f a b. (Functor f) => (a -> Maybe b) -> ListT f a -> ListT f b
-```
-
-
-#### `catMaybes`
-
-``` purescript
-catMaybes :: forall f a. (Functor f) => ListT f (Maybe a) -> ListT f a
-```
-
-
-#### `uncons`
-
-``` purescript
-uncons :: forall f a. (Monad f) => ListT f a -> f (Maybe (Tuple a (ListT f a)))
-```
-
-
-#### `head`
-
-``` purescript
-head :: forall f a. (Monad f) => ListT f a -> f (Maybe a)
-```
-
-
-#### `tail`
-
-``` purescript
-tail :: forall f a. (Monad f) => ListT f a -> f (Maybe (ListT f a))
-```
-
-
-#### `foldl'`
-
-``` purescript
-foldl' :: forall f a b. (Monad f) => (b -> a -> f b) -> b -> ListT f a -> f b
-```
-
-
-#### `foldl`
-
-``` purescript
-foldl :: forall f a b. (Monad f) => (b -> a -> b) -> b -> ListT f a -> f b
-```
-
-
-#### `scanl`
-
-``` purescript
-scanl :: forall f a b. (Monad f) => (b -> a -> b) -> b -> ListT f a -> ListT f b
-```
-
-
-#### `zipWith'`
-
-``` purescript
-zipWith' :: forall f a b c. (Monad f) => (a -> b -> f c) -> ListT f a -> ListT f b -> ListT f c
-```
-
-
-#### `zipWith`
-
-``` purescript
-zipWith :: forall f a b c. (Monad f) => (a -> b -> c) -> ListT f a -> ListT f b -> ListT f c
-```
-
-
-#### `zipList`
-
-``` purescript
-zipList :: forall f a. ListT f a -> ZipListT f a
-```
-
-
-#### `semigroupListT`
-
-``` purescript
-instance semigroupListT :: (Applicative f) => Semigroup (ListT f a)
-```
-
-
-#### `semigroupZipListT`
-
-``` purescript
-instance semigroupZipListT :: (Applicative f) => Semigroup (ZipListT f a)
-```
-
-
-#### `monoidListT`
-
-``` purescript
-instance monoidListT :: (Applicative f) => Monoid (ListT f a)
-```
-
-
-#### `monoidZipListT`
-
-``` purescript
-instance monoidZipListT :: (Applicative f) => Monoid (ZipListT f a)
-```
-
-
-#### `functorListT`
-
-``` purescript
-instance functorListT :: (Functor f) => Functor (ListT f)
-```
-
-
-#### `functorZipListT`
-
-``` purescript
-instance functorZipListT :: (Functor f) => Functor (ZipListT f)
-```
-
-
-#### `unfoldableListT`
-
-``` purescript
-instance unfoldableListT :: (Monad f) => Unfoldable (ListT f)
-```
-
-
-#### `applyListT`
-
-``` purescript
-instance applyListT :: (Monad f) => Apply (ListT f)
-```
-
-
-#### `applyZipListT`
-
-``` purescript
-instance applyZipListT :: (Monad f) => Apply (ZipListT f)
-```
-
-
-#### `applicativeListT`
-
-``` purescript
-instance applicativeListT :: (Monad f) => Applicative (ListT f)
-```
-
-
-#### `applicativeZipListT`
-
-``` purescript
-instance applicativeZipListT :: (Monad f) => Applicative (ZipListT f)
-```
-
-
-#### `bindListT`
-
-``` purescript
-instance bindListT :: (Monad f) => Bind (ListT f)
-```
-
-
-#### `monadListT`
-
-``` purescript
-instance monadListT :: (Monad f) => Monad (ListT f)
-```
-
-
-#### `monadTransListT`
-
-``` purescript
-instance monadTransListT :: MonadTrans ListT
-```
-
-
-#### `altListT`
-
-``` purescript
-instance altListT :: (Applicative f) => Alt (ListT f)
-```
-
-
-#### `altZipListT`
-
-``` purescript
-instance altZipListT :: (Applicative f) => Alt (ZipListT f)
-```
-
-
-#### `plusListT`
-
-``` purescript
-instance plusListT :: (Monad f) => Plus (ListT f)
-```
-
-
-#### `plusZipListT`
-
-``` purescript
-instance plusZipListT :: (Monad f) => Plus (ZipListT f)
-```
-
-
-#### `alternativeListT`
-
-``` purescript
-instance alternativeListT :: (Monad f) => Alternative (ListT f)
-```
-
-
-#### `alternativeZipListT`
-
-``` purescript
-instance alternativeZipListT :: (Monad f) => Alternative (ZipListT f)
-```
-
-
-#### `monadPlusListT`
-
-``` purescript
-instance monadPlusListT :: (Monad f) => MonadPlus (ListT f)
-```
-
-
-
 ## Module Data.List
+
+
+This module defines a type of _strict_ linked lists, and associated helper
+functions and type class instances.
+
+_Note_: Depending on your use-case, you may prefer to use
+`Data.Sequence` instead, which might give better performance for certain
+use cases. This module is an improvement over `Data.Array` when working with 
+immutable lists of data in a purely-functional setting, but does not have 
+good random-access performance.
 
 #### `List`
 
@@ -377,6 +20,543 @@ data List a
   | Cons a (List a)
 ```
 
+A strict linked list.
+
+A list is either empty (represented by the `Nil` constructor) or non-empty, in
+which case it consists of a head element, and another list (represented by the 
+`Cons` constructor).
+
+#### `toList`
+
+``` purescript
+toList :: forall f a. (Foldable f) => f a -> List a
+```
+
+Construct a list from a foldable structure.
+
+Running time: `O(n)`
+
+#### `fromList`
+
+``` purescript
+fromList :: forall f a. (Unfoldable f) => List a -> f a
+```
+
+Convert a list into any unfoldable structure.
+
+Running time: `O(n)`
+
+#### `(:)`
+
+``` purescript
+(:) :: forall a. a -> List a -> List a
+```
+
+An infix alias for `Cons`; attaches an element to the front of 
+a list.
+
+Running time: `O(1)`
+
+#### `singleton`
+
+``` purescript
+singleton :: forall a. a -> List a
+```
+
+Create a list with a single element.
+
+Running time: `O(1)`
+
+#### `index`
+
+``` purescript
+index :: forall a. List a -> Int -> Maybe a
+```
+
+Get the element at the specified index, or `Nothing` if the index is out-of-bounds.
+
+Running time: `O(n)` where `n` is the required index.
+
+#### `(!!)`
+
+``` purescript
+(!!) :: forall a. List a -> Int -> Maybe a
+```
+
+An infix synonym for `index`.
+
+#### `drop`
+
+``` purescript
+drop :: forall a. Int -> List a -> List a
+```
+
+Drop the specified number of elements from the front of a list.
+
+Running time: `O(n)` where `n` is the number of elements to drop.
+
+#### `dropWhile`
+
+``` purescript
+dropWhile :: forall a. (a -> Boolean) -> List a -> List a
+```
+
+Drop those elements from the front of a list which match a predicate.
+
+Running time (worst case): `O(n)`
+
+#### `take`
+
+``` purescript
+take :: forall a. Int -> List a -> List a
+```
+
+Take the specified number of elements from the front of a list.
+
+Running time: `O(n)` where `n` is the number of elements to take.
+
+#### `takeWhile`
+
+``` purescript
+takeWhile :: forall a. (a -> Boolean) -> List a -> List a
+```
+
+Take those elements from the front of a list which match a predicate.
+
+Running time (worst case): `O(n)`
+
+#### `length`
+
+``` purescript
+length :: forall a. List a -> Int
+```
+
+Get the length of a list
+
+Running time: `O(n)`
+
+#### `filter`
+
+``` purescript
+filter :: forall a. (a -> Boolean) -> List a -> List a
+```
+
+Filter a list, keeping the elements which satisfy a predicate function.
+
+Running time: `O(n)`
+
+#### `mapMaybe`
+
+``` purescript
+mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
+```
+
+Apply a function to each element in a list, keeping only the results which
+contain a value.
+
+Running time: `O(n)`
+
+#### `catMaybes`
+
+``` purescript
+catMaybes :: forall a. List (Maybe a) -> List a
+```
+
+Filter a list of optional values, keeping only the elements which contain
+a value.
+
+#### `head`
+
+``` purescript
+head :: forall a. List a -> Maybe a
+```
+
+Get the first element in a list, or `Nothing` if the list is empty.
+
+Running time: `O(1)`.
+
+#### `tail`
+
+``` purescript
+tail :: forall a. List a -> Maybe (List a)
+```
+
+Get all but the first element of a list, or `Nothing` if the list is empty.
+
+Running time: `O(1)`
+
+#### `uncons`
+
+``` purescript
+uncons :: forall a. List a -> Maybe (Tuple a (List a))
+```
+
+Break a list into its first element, and the remaining elements,
+or `Nothing` if the list is empty.
+
+Running time: `O(1)`
+
+#### `last`
+
+``` purescript
+last :: forall a. List a -> Maybe a
+```
+
+Get the last element in a list, or `Nothing` if the list is empty.
+
+Running time: `O(n)`.
+
+#### `init`
+
+``` purescript
+init :: forall a. List a -> Maybe (List a)
+```
+
+Get all but the last element of a list, or `Nothing` if the list is empty.
+
+Running time: `O(n)`
+
+#### `zipWith`
+
+``` purescript
+zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
+```
+
+Apply a function to pairs of elements at the same positions in two lists,
+collecting the results in a new list.
+
+If one list is longer, elements will be discarded from the longer list.
+
+For example
+
+```purescript
+zipWith (*) (1 : 2 : 3 : Nil) (4 : 5 : 6 : 7 Nil) == 4 : 10 : 18 : Nil
+```
+
+Running time: `O(min(m, n))`
+
+#### `zip`
+
+``` purescript
+zip :: forall a b. List a -> List b -> List (Tuple a b)
+```
+
+Collect pairs of elements at the same positions in two lists.
+
+Running time: `O(min(m, n))`
+
+#### `concat`
+
+``` purescript
+concat :: forall a. List (List a) -> List a
+```
+
+Flatten a list of lists.
+
+Running time: `O(n)`, where `n` is the total number of elements.
+
+#### `concatMap`
+
+``` purescript
+concatMap :: forall a b. (a -> List b) -> List a -> List b
+```
+
+Apply a function to each element in a list, and flatten the results
+into a single, new list.
+
+Running time: `O(n)`, where `n` is the total number of elements.
+
+#### `null`
+
+``` purescript
+null :: forall a. List a -> Boolean
+```
+
+Test whether a list is empty.
+
+Running time: `O(1)`
+
+#### `span`
+
+``` purescript
+span :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
+```
+
+Split a list into two parts:
+
+1. the longest initial segment for which all elements satisfy the specified predicate
+2. the remaining elements
+
+For example,
+
+```purescript
+span (\n -> n % 2 == 1) (1 : 3 : 2 : 4 : 5 : Nil) == Tuple (1 : 3 : Nil) (2 : 4 : 5 : Nil)
+```
+
+Running time: `O(n)`
+
+#### `group`
+
+``` purescript
+group :: forall a. (Eq a) => List a -> List (List a)
+```
+
+Group equal, consecutive elements of a list into lists.
+
+For example,
+
+```purescript
+group (1 : 1 : 2 : 2 : 1 : Nil) == (1 : 1 : Nil) : (2 : 2 : Nil) : (1 : Nil) : Nil
+```
+
+Running time: `O(n)`
+
+#### `groupBy`
+
+``` purescript
+groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
+```
+
+Group equal, consecutive elements of a list into lists, using the specified
+equivalence relation to determine equality.
+
+Running time: `O(n)`
+
+#### `(\\)`
+
+``` purescript
+(\\) :: forall a. (Eq a) => List a -> List a -> List a
+```
+
+Delete the first occurrence of each element in the second list from the first list.
+
+Running time: `O(n^2)`
+
+#### `insert`
+
+``` purescript
+insert :: forall a. (Ord a) => a -> List a -> List a
+```
+
+Insert an element into a sorted list.
+
+Running time: `O(n)`
+
+#### `insertBy`
+
+``` purescript
+insertBy :: forall a. (a -> a -> Ordering) -> a -> List a -> List a
+```
+
+Insert an element into a sorted list, using the specified function to determine the ordering
+of elements.
+
+Running time: `O(n)`
+
+#### `insertAt`
+
+``` purescript
+insertAt :: forall a. Int -> a -> List a -> Maybe (List a)
+```
+
+Insert an element into a list at the specified index, returning a new
+list or `Nothing` if the index is out-of-bounds.
+
+Running time: `O(n)`
+
+#### `delete`
+
+``` purescript
+delete :: forall a. (Eq a) => a -> List a -> List a
+```
+
+Delete the first occurrence of an element from a list.
+
+Running time: `O(n)`
+
+#### `deleteBy`
+
+``` purescript
+deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
+```
+
+Delete the first occurrence of an element from a list, using the specified 
+function to determine equality of elements.
+
+Running time: `O(n)`
+
+#### `deleteAt`
+
+``` purescript
+deleteAt :: forall a. Int -> List a -> Maybe (List a)
+```
+
+Delete an element from a list at the specified index, returning a new
+list or `Nothing` if the index is out-of-bounds.
+
+Running time: `O(n)`
+
+#### `updateAt`
+
+``` purescript
+updateAt :: forall a. Int -> a -> List a -> Maybe (List a)
+```
+
+Update the element at the specified index, returning a new
+list or `Nothing` if the index is out-of-bounds.
+
+Running time: `O(n)`
+
+#### `modifyAt`
+
+``` purescript
+modifyAt :: forall a. Int -> (a -> a) -> List a -> Maybe (List a)
+```
+
+Update the element at the specified index by applying a function to
+the current value, returning a new list or `Nothing` if the index is 
+out-of-bounds.
+
+Running time: `O(n)`
+
+#### `alterAt`
+
+``` purescript
+alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> Maybe (List a)
+```
+
+Update or delete the element at the specified index by applying a 
+function to the current value, returning a new list or `Nothing` if the 
+index is out-of-bounds.
+
+Running time: `O(n)`
+
+#### `reverse`
+
+``` purescript
+reverse :: forall a. List a -> List a
+```
+
+Reverse a list.
+
+Running time: `O(n)`
+
+#### `nub`
+
+``` purescript
+nub :: forall a. (Eq a) => List a -> List a
+```
+
+Remove duplicate elements from a list.
+
+Running time: `O(n^2)`
+
+#### `nubBy`
+
+``` purescript
+nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
+```
+
+Remove duplicate elements from a list, using the specified 
+function to determine equality of elements.
+
+Running time: `O(n^2)`
+
+#### `intersect`
+
+``` purescript
+intersect :: forall a. (Eq a) => List a -> List a -> List a
+```
+
+Calculate the intersection of two lists.
+
+Running time: `O(n^2)`
+
+#### `intersectBy`
+
+``` purescript
+intersectBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
+```
+
+Calculate the intersection of two lists, using the specified 
+function to determine equality of elements.
+
+Running time: `O(n^2)`
+
+#### `union`
+
+``` purescript
+union :: forall a. (Eq a) => List a -> List a -> List a
+```
+
+Calculate the union of two lists.
+
+Running time: `O(n^2)`
+
+#### `unionBy`
+
+``` purescript
+unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
+```
+
+Calculate the union of two lists, using the specified 
+function to determine equality of elements.
+
+Running time: `O(n^2)`
+
+#### `some`
+
+``` purescript
+some :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
+```
+
+Attempt a computation multiple times, requiring at least one success.		
+		
+The `Lazy` constraint is used to generate the result lazily, to ensure		
+termination.		
+
+#### `many`
+
+``` purescript
+many :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
+```
+
+Attempt a computation multiple times, returning as many successful results		
+as possible (possibly zero).		
+		
+The `Lazy` constraint is used to generate the result lazily, to ensure		
+termination.		
+
+#### `replicateM`
+
+``` purescript
+replicateM :: forall m a. (Monad m) => Int -> m a -> m (List a)
+```
+
+Perform a monadic action `n` times collecting all of the results.		
+
+#### `foldM`
+
+``` purescript
+foldM :: forall m a b. (Monad m) => (a -> b -> m a) -> a -> List b -> m a
+```
+
+Perform a fold using a monadic step function.		
+
+#### `filterM`
+
+``` purescript
+filterM :: forall a m. (Monad m) => (a -> m Boolean) -> List a -> m (List a)
+```
+
+Filter where the predicate returns a monadic `Boolean`.		
+		
+For example:		
+		
+```purescript		
+powerSet :: forall a. [a] -> [[a]]		
+powerSet = filterM (const [true, false])		
+```		
 
 #### `showList`
 
@@ -497,82 +677,148 @@ instance monadPlusList :: MonadPlus List
 ```
 
 
-#### `fromArray`
+
+## Module Data.List.Lazy
+
+
+This module defines a type of _lazy_ linked lists, and associated helper
+functions and type class instances.
+
+_Note_: Depending on your use-case, you may prefer to use
+`Data.Sequence` instead, which might give better performance for certain
+use cases. This module is an improvement over `Data.Array` when working with 
+immutable lists of data in a purely-functional setting, but does not have 
+good random-access performance.
+
+#### `List`
 
 ``` purescript
-fromArray :: forall a. [a] -> List a
+newtype List a
+  = List (Lazy (Step a))
 ```
 
+A lazy linked list.
 
-#### `toArray`
+#### `runList`
 
 ``` purescript
-toArray :: forall a. List a -> [a]
+runList :: forall a. List a -> Lazy (Step a)
 ```
 
+Unwrap a lazy linked list
 
-#### `(!)`
+#### `step`
 
 ``` purescript
-(!) :: forall a. List a -> Number -> Maybe a
+step :: forall a. List a -> Step a
 ```
 
+Unwrap a lazy linked list
 
-#### `drop`
+#### `Step`
 
 ``` purescript
-drop :: forall a. Number -> List a -> List a
+data Step a
+  = Nil 
+  | Cons a (List a)
 ```
 
+A list is either empty (represented by the `Nil` constructor) or non-empty, in
+which case it consists of a head element, and another list (represented by the 
+`Cons` constructor).
 
-#### `take`
+#### `nil`
 
 ``` purescript
-take :: forall a. Number -> List a -> List a
+nil :: forall a. List a
 ```
 
+The empty list.
 
-#### `length`
+Running time: `O(1)`
+
+#### `cons`
 
 ``` purescript
-length :: forall a. List a -> Number
+cons :: forall a. a -> List a -> List a
 ```
 
+Attach an element to the front of a lazy list.
 
-#### `filter`
+Running time: `O(1)`
+
+#### `toList`
 
 ``` purescript
-filter :: forall a. (a -> Boolean) -> List a -> List a
+toList :: forall f a. (Foldable f) => f a -> List a
 ```
 
+Construct a list from a foldable structure.
 
-#### `mapMaybe`
+Running time: `O(n)`
+
+#### `fromList`
 
 ``` purescript
-mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
+fromList :: forall f a. (Unfoldable f) => List a -> f a
 ```
 
+Convert a list into any unfoldable structure.
 
-#### `catMaybes`
+Running time: `O(n)`
+
+#### `repeat`
 
 ``` purescript
-catMaybes :: forall a. List (Maybe a) -> List a
+repeat :: forall a. a -> List a
 ```
 
+Create a list by repeating an element
 
-#### `head`
+#### `iterate`
 
 ``` purescript
-head :: forall a. List a -> Maybe a
+iterate :: forall a. (a -> a) -> a -> List a
 ```
 
+Create a list by iterating a function
 
-#### `tail`
+#### `cycle`
 
 ``` purescript
-tail :: forall a. List a -> Maybe (List a)
+cycle :: forall a. List a -> List a
 ```
 
+Create a list by repeating another list
+
+#### `unfold`
+
+``` purescript
+unfold :: forall a b. (b -> Maybe (Tuple a b)) -> b -> List a
+```
+
+Unfold a list using a generating function
+
+#### `(:)`
+
+``` purescript
+(:) :: forall a. a -> List a -> List a
+```
+
+An infix alias for `cons`; attaches an element to the front of 
+a list.
+
+Running time: `O(1)`
+
+#### `singleton`
+
+``` purescript
+singleton :: forall a. a -> List a
+```
+
+Create a list with a single element.
+
+Running time: `O(1)`
 
 #### `uncons`
 
@@ -580,6 +826,128 @@ tail :: forall a. List a -> Maybe (List a)
 uncons :: forall a. List a -> Maybe (Tuple a (List a))
 ```
 
+Break a list into its first element, and the remaining elements,
+or `Nothing` if the list is empty.
+
+Running time: `O(1)`
+
+#### `index`
+
+``` purescript
+index :: forall a. List a -> Int -> Maybe a
+```
+
+Get the element at the specified index, or `Nothing` if the index is out-of-bounds.
+
+Running time: `O(n)` where `n` is the required index.
+
+#### `(!!)`
+
+``` purescript
+(!!) :: forall a. List a -> Int -> Maybe a
+```
+
+An infix synonym for `index`.
+
+#### `drop`
+
+``` purescript
+drop :: forall a. Int -> List a -> List a
+```
+
+Drop the specified number of elements from the front of a list.
+
+Running time: `O(n)` where `n` is the number of elements to drop.
+
+#### `dropWhile`
+
+``` purescript
+dropWhile :: forall a. (a -> Boolean) -> List a -> List a
+```
+
+Drop those elements from the front of a list which match a predicate.
+
+Running time (worst case): `O(n)`
+
+#### `take`
+
+``` purescript
+take :: forall a. Int -> List a -> List a
+```
+
+Take the specified number of elements from the front of a list.
+
+Running time: `O(n)` where `n` is the number of elements to take.
+
+#### `takeWhile`
+
+``` purescript
+takeWhile :: forall a. (a -> Boolean) -> List a -> List a
+```
+
+Take those elements from the front of a list which match a predicate.
+
+Running time (worst case): `O(n)`
+
+#### `length`
+
+``` purescript
+length :: forall a. List a -> Int
+```
+
+Get the length of a list
+
+Running time: `O(n)`
+
+#### `filter`
+
+``` purescript
+filter :: forall a. (a -> Boolean) -> List a -> List a
+```
+
+Filter a list, keeping the elements which satisfy a predicate function.
+
+Running time: `O(n)`
+
+#### `mapMaybe`
+
+``` purescript
+mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
+```
+
+Apply a function to each element in a list, keeping only the results which
+contain a value.
+
+Running time: `O(n)`
+
+#### `catMaybes`
+
+``` purescript
+catMaybes :: forall a. List (Maybe a) -> List a
+```
+
+Filter a list of optional values, keeping only the elements which contain
+a value.
+
+#### `head`
+
+``` purescript
+head :: forall a. List a -> Maybe a
+```
+
+Get the first element in a list, or `Nothing` if the list is empty.
+
+Running time: `O(1)`.
+
+#### `tail`
+
+``` purescript
+tail :: forall a. List a -> Maybe (List a)
+```
+
+Get all but the first element of a list, or `Nothing` if the list is empty.
+
+Running time: `O(1)`
 
 #### `last`
 
@@ -587,6 +955,9 @@ uncons :: forall a. List a -> Maybe (Tuple a (List a))
 last :: forall a. List a -> Maybe a
 ```
 
+Get the last element in a list, or `Nothing` if the list is empty.
+
+Running time: `O(n)`.
 
 #### `init`
 
@@ -594,6 +965,9 @@ last :: forall a. List a -> Maybe a
 init :: forall a. List a -> Maybe (List a)
 ```
 
+Get all but the last element of a list, or `Nothing` if the list is empty.
+
+Running time: `O(n)`
 
 #### `zipWith`
 
@@ -601,6 +975,49 @@ init :: forall a. List a -> Maybe (List a)
 zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
 ```
 
+Apply a function to pairs of elements at the same positions in two lists,
+collecting the results in a new list.
+
+If one list is longer, elements will be discarded from the longer list.
+
+For example
+
+```purescript
+zipWith (*) (1 : 2 : 3 : Nil) (4 : 5 : 6 : 7 Nil) == 4 : 10 : 18 : Nil
+```
+
+Running time: `O(min(m, n))`
+
+#### `zip`
+
+``` purescript
+zip :: forall a b. List a -> List b -> List (Tuple a b)
+```
+
+Collect pairs of elements at the same positions in two lists.
+
+Running time: `O(min(m, n))`
+
+#### `concat`
+
+``` purescript
+concat :: forall a. List (List a) -> List a
+```
+
+Flatten a list of lists.
+
+Running time: `O(n)`, where `n` is the total number of elements.
+
+#### `concatMap`
+
+``` purescript
+concatMap :: forall a b. (a -> List b) -> List a -> List b
+```
+
+Apply a function to each element in a list, and flatten the results
+into a single, new list.
+
+Running time: `O(n)`, where `n` is the total number of elements.
 
 #### `null`
 
@@ -608,6 +1025,9 @@ zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
 null :: forall a. List a -> Boolean
 ```
 
+Test whether a list is empty.
+
+Running time: `O(1)`
 
 #### `span`
 
@@ -615,6 +1035,18 @@ null :: forall a. List a -> Boolean
 span :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
 ```
 
+Split a list into two parts:
+
+1. the longest initial segment for which all elements satisfy the specified predicate
+2. the remaining elements
+
+For example,
+
+```purescript
+span (\n -> n % 2 == 1) (1 : 3 : 2 : 4 : 5 : Nil) == Tuple (1 : 3 : Nil) (2 : 4 : 5 : Nil)
+```
+
+Running time: `O(n)`
 
 #### `group`
 
@@ -622,6 +1054,15 @@ span :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
 group :: forall a. (Eq a) => List a -> List (List a)
 ```
 
+Group equal, consecutive elements of a list into lists.
+
+For example,
+
+```purescript
+group (1 : 1 : 2 : 2 : 1 : Nil) == (1 : 1 : Nil) : (2 : 2 : Nil) : (1 : Nil) : Nil
+```
+
+Running time: `O(n)`
 
 #### `groupBy`
 
@@ -629,6 +1070,10 @@ group :: forall a. (Eq a) => List a -> List (List a)
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
 ```
 
+Group equal, consecutive elements of a list into lists, using the specified
+equivalence relation to determine equality.
+
+Running time: `O(n)`
 
 #### `(\\)`
 
@@ -636,6 +1081,9 @@ groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
 (\\) :: forall a. (Eq a) => List a -> List a -> List a
 ```
 
+Delete the first occurrence of each element in the second list from the first list.
+
+Running time: `O(n^2)`
 
 #### `insert`
 
@@ -643,6 +1091,9 @@ groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
 insert :: forall a. (Ord a) => a -> List a -> List a
 ```
 
+Insert an element into a sorted list.
+
+Running time: `O(n)`
 
 #### `insertBy`
 
@@ -650,13 +1101,24 @@ insert :: forall a. (Ord a) => a -> List a -> List a
 insertBy :: forall a. (a -> a -> Ordering) -> a -> List a -> List a
 ```
 
+Insert an element into a sorted list, using the specified function to determine the ordering
+of elements.
+
+Running time: `O(n)`
 
 #### `insertAt`
 
 ``` purescript
-insertAt :: forall a. Number -> a -> List a -> Maybe (List a)
+insertAt :: forall a. Int -> a -> List a -> List a
 ```
 
+Insert an element into a list at the specified index, returning a new
+list or `Nothing` if the index is out-of-bounds.
+
+This function differs from the strict equivalent in that out-of-bounds arguments
+result in the element being appended at the _end_ of the list.
+
+Running time: `O(n)`
 
 #### `delete`
 
@@ -664,6 +1126,9 @@ insertAt :: forall a. Number -> a -> List a -> Maybe (List a)
 delete :: forall a. (Eq a) => a -> List a -> List a
 ```
 
+Delete the first occurrence of an element from a list.
+
+Running time: `O(n)`
 
 #### `deleteBy`
 
@@ -671,20 +1136,68 @@ delete :: forall a. (Eq a) => a -> List a -> List a
 deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
 ```
 
+Delete the first occurrence of an element from a list, using the specified 
+function to determine equality of elements.
+
+Running time: `O(n)`
 
 #### `deleteAt`
 
 ``` purescript
-deleteAt :: forall a. Number -> List a -> Maybe (List a)
+deleteAt :: forall a. Int -> List a -> List a
 ```
 
+Delete an element from a list at the specified index, returning a new
+list or `Nothing` if the index is out-of-bounds.
+
+This function differs from the strict equivalent in that out-of-bounds arguments
+result in the original list being returned unchanged.
+
+Running time: `O(n)`
+
+#### `updateAt`
+
+``` purescript
+updateAt :: forall a. Int -> a -> List a -> List a
+```
+
+Update the element at the specified index, returning a new
+list or `Nothing` if the index is out-of-bounds.
+
+This function differs from the strict equivalent in that out-of-bounds arguments
+result in the original list being returned unchanged.
+
+Running time: `O(n)`
+
+#### `modifyAt`
+
+``` purescript
+modifyAt :: forall a. Int -> (a -> a) -> List a -> List a
+```
+
+Update the element at the specified index by applying a function to
+the current value, returning a new list or `Nothing` if the index is 
+out-of-bounds.
+
+This function differs from the strict equivalent in that out-of-bounds arguments
+result in the original list being returned unchanged.
+
+Running time: `O(n)`
 
 #### `alterAt`
 
 ``` purescript
-alterAt :: forall a. Number -> (a -> Maybe a) -> List a -> Maybe (List a)
+alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> List a
 ```
 
+Update or delete the element at the specified index by applying a 
+function to the current value, returning a new list or `Nothing` if the 
+index is out-of-bounds.
+
+This function differs from the strict equivalent in that out-of-bounds arguments
+result in the original list being returned unchanged.
+
+Running time: `O(n)`
 
 #### `reverse`
 
@@ -692,6 +1205,9 @@ alterAt :: forall a. Number -> (a -> Maybe a) -> List a -> Maybe (List a)
 reverse :: forall a. List a -> List a
 ```
 
+Reverse a list.
+
+Running time: `O(n)`
 
 #### `nub`
 
@@ -699,6 +1215,9 @@ reverse :: forall a. List a -> List a
 nub :: forall a. (Eq a) => List a -> List a
 ```
 
+Remove duplicate elements from a list.
+
+Running time: `O(n^2)`
 
 #### `nubBy`
 
@@ -706,6 +1225,10 @@ nub :: forall a. (Eq a) => List a -> List a
 nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
 ```
 
+Remove duplicate elements from a list, using the specified 
+function to determine equality of elements.
+
+Running time: `O(n^2)`
 
 #### `intersect`
 
@@ -713,6 +1236,9 @@ nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
 intersect :: forall a. (Eq a) => List a -> List a -> List a
 ```
 
+Calculate the intersection of two lists.
+
+Running time: `O(n^2)`
 
 #### `intersectBy`
 
@@ -720,6 +1246,10 @@ intersect :: forall a. (Eq a) => List a -> List a -> List a
 intersectBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
 ```
 
+Calculate the intersection of two lists, using the specified 
+function to determine equality of elements.
+
+Running time: `O(n^2)`
 
 #### `union`
 
@@ -727,6 +1257,9 @@ intersectBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
 union :: forall a. (Eq a) => List a -> List a -> List a
 ```
 
+Calculate the union of two lists.
+
+Running time: `O(n^2)`
 
 #### `unionBy`
 
@@ -734,41 +1267,145 @@ union :: forall a. (Eq a) => List a -> List a -> List a
 unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
 ```
 
+Calculate the union of two lists, using the specified 
+function to determine equality of elements.
 
+Running time: `O(n^2)`
 
-## Module Data.List.Lazy
-
-#### `List`
+#### `showList`
 
 ``` purescript
-type List = L.ListT Lazy
+instance showList :: (Show a) => Show (List a)
 ```
 
 
-#### `LazyList`
+#### `eqList`
 
 ``` purescript
-newtype LazyList a
-  = LazyList (List a)
+instance eqList :: (Eq a) => Eq (List a)
 ```
 
 
-#### `unLazyList`
+#### `ordList`
 
 ``` purescript
-unLazyList :: forall a. LazyList a -> List a
+instance ordList :: (Ord a) => Ord (List a)
 ```
 
 
-#### `foldableLazyList`
+#### `lazyList`
 
 ``` purescript
-instance foldableLazyList :: Foldable LazyList
+instance lazyList :: Lazy (List a)
+```
+
+
+#### `semigroupList`
+
+``` purescript
+instance semigroupList :: Semigroup (List a)
+```
+
+
+#### `monoidList`
+
+``` purescript
+instance monoidList :: Monoid (List a)
+```
+
+
+#### `functorList`
+
+``` purescript
+instance functorList :: Functor List
+```
+
+
+#### `foldableList`
+
+``` purescript
+instance foldableList :: Foldable List
+```
+
+
+#### `unfoldableList`
+
+``` purescript
+instance unfoldableList :: Unfoldable List
+```
+
+
+#### `traversableList`
+
+``` purescript
+instance traversableList :: Traversable List
+```
+
+
+#### `applyList`
+
+``` purescript
+instance applyList :: Apply List
+```
+
+
+#### `applicativeList`
+
+``` purescript
+instance applicativeList :: Applicative List
+```
+
+
+#### `bindList`
+
+``` purescript
+instance bindList :: Bind List
+```
+
+
+#### `monadList`
+
+``` purescript
+instance monadList :: Monad List
+```
+
+
+#### `altList`
+
+``` purescript
+instance altList :: Alt List
+```
+
+
+#### `plusList`
+
+``` purescript
+instance plusList :: Plus List
+```
+
+
+#### `alternativeList`
+
+``` purescript
+instance alternativeList :: Alternative List
+```
+
+
+#### `monadPlusList`
+
+``` purescript
+instance monadPlusList :: MonadPlus List
 ```
 
 
 
 ## Module Data.List.Unsafe
+
+
+Unsafe helper functions for working with strict linked lists.
+
+_Note_: these functions should be used with care, and may result in unspecified
+behavior, including runtime exceptions.
 
 #### `head`
 
@@ -776,6 +1413,9 @@ instance foldableLazyList :: Foldable LazyList
 head :: forall a. List a -> a
 ```
 
+Get the first element of a non-empty list.
+
+Running time: `O(1)`.
 
 #### `tail`
 
@@ -783,6 +1423,9 @@ head :: forall a. List a -> a
 tail :: forall a. List a -> List a
 ```
 
+Get all but the first element of a non-empty list.
+
+Running time: `O(1)`
 
 #### `last`
 
@@ -790,6 +1433,9 @@ tail :: forall a. List a -> List a
 last :: forall a. List a -> a
 ```
 
+Get the last element of a non-empty list.
+
+Running time: `O(n)`
 
 #### `init`
 
@@ -797,22 +1443,9 @@ last :: forall a. List a -> a
 init :: forall a. List a -> List a
 ```
 
+Get all but the last element of a non-empty list.
 
-
-## Module Test.Control.Monad.ListT
-
-#### `arbitraryListT`
-
-``` purescript
-instance arbitraryListT :: (Monad f, Arbitrary a) => Arbitrary (ListT f a)
-```
+Running time: `O(n)`
 
 
 
-## Module Test.Data.List
-
-#### `arbitraryList`
-
-``` purescript
-instance arbitraryList :: (Arbitrary a) => Arbitrary (List a)
-```
