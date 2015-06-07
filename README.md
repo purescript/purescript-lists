@@ -1,15 +1,19 @@
 # purescript-lists
 
-This module provides a data type of _strict_ linked lists.
+[![Build Status](https://travis-ci.org/purescript/purescript-lists.svg?branch=master)](https://travis-ci.org/purescript/purescript-lists)
 
-- [Module Documentation](docs/)
+This library defines strict and lazy linked lists, and associated helper functions and type class instances.
 
-## Building
+_Note_: This module is an improvement over `Data.Array` when working with immutable lists of data in a purely-functional setting, but does not have good random-access performance.
 
-Use `pulp`:
+## Installation
 
 ```
-bower update
-pulp build
-pulp test
+bower install purescript-lists
 ```
+
+## Module documentation
+
+- [Data.List](docs/Data.List.md)
+- [Data.List.Lazy](docs/Data.List.Lazy.md)
+- [Data.List.Unsafe](docs/Data.List.Unsafe.md)

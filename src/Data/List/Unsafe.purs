@@ -6,7 +6,6 @@
 module Data.List.Unsafe where
 
 import Prelude
-
 import Data.List (List(..))
 
 -- | Get the first element of a non-empty list.

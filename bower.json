@@ -17,15 +17,12 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-arrays": "~0.3.0",
-    "purescript-maybe": "~0.2.1",
-    "purescript-foldable-traversable": "~0.3.0",
-    "purescript-unfoldable": "~0.3.0",
-    "purescript-monoid": "~0.2.0",
-    "purescript-tuples": "~0.3.0",
-    "purescript-lazy": "~0.3.1"
+    "purescript-foldable-traversable": "^0.4.0",
+    "purescript-lazy": "^0.4.0",
+    "purescript-tuples": "^0.4.0"
   },
   "devDependencies": {
-    "purescript-quickcheck": "~0.5.0"
+    "purescript-assert": "^0.1.0",
+    "purescript-console": "^0.1.0"
   }
 }
