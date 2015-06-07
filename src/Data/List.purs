@@ -135,10 +135,11 @@ infix 8 ..
 
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
-range start end = go start end Nil
+range start end | start == end = Nil
+                | otherwise = go end start (if start > end then 1 else -1) Nil
   where
-  go s e tail | s >= e = tail
-              | otherwise = go (s + 1) e (Cons s tail)
+  go s e step tail | s == e = (Cons s tail)
+                   | otherwise = go (s + step) e step (Cons s tail)
 
 -- | Create a list with repeated instances of a value.
 replicate :: forall a. Int -> a -> List a
