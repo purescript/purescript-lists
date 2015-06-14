@@ -135,7 +135,7 @@ infix 8 ..
 
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
-range start end | start == end = Nil
+range start end | start == end = singleton start
                 | otherwise = go end start (if start > end then 1 else -1) Nil
   where
   go s e step tail | s == e = (Cons s tail)

@@ -159,7 +159,7 @@ singleton a = cons a nil
 
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
-range start end | start == end = nil
+range start end | start == end = singleton start
                 | otherwise = go end start (if start > end then 1 else -1) nil
   where
   go s e step tail | s == e = (cons s tail)
