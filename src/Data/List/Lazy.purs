@@ -340,7 +340,7 @@ updateAt n x xs = List (go n <$> runList xs)
   where
   go _ Nil = Nil
   go 0 (Cons _ ys) = Cons x ys
-  go n (Cons y ys) = Cons y (deleteAt (n - 1) ys)
+  go n (Cons y ys) = Cons y (updateAt (n - 1) x ys)
 
 -- | Update the element at the specified index by applying a function to
 -- | the current value, returning a new list or `Nothing` if the index is
@@ -368,7 +368,7 @@ alterAt n f xs = List (go n <$> runList xs)
   go 0 (Cons y ys) = case f y of
     Nothing -> step ys
     Just y' -> Cons y' ys
-  go n (Cons y ys) = Cons y (deleteAt (n - 1) ys)
+  go n (Cons y ys) = Cons y (alterAt (n - 1) f ys)
 
 --------------------------------------------------------------------------------
 -- Transformations -------------------------------------------------------------
