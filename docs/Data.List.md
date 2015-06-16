@@ -76,6 +76,8 @@ singleton :: forall a. a -> List a
 (..) :: Int -> Int -> List Int
 ```
 
+_non-associative / precedence 8_
+
 An infix synonym for `range`.
 
 #### `range`
@@ -146,6 +148,8 @@ Running time: `O(n)`
 ``` purescript
 (:) :: forall a. a -> List a -> List a
 ```
+
+_right-associative / precedence 6_
 
 An infix alias for `Cons`; attaches an element to the front of
 a list.
@@ -241,6 +245,8 @@ index :: forall a. List a -> Int -> Maybe a
 ``` purescript
 (!!) :: forall a. List a -> Int -> Maybe a
 ```
+
+_left-associative / precedence 8_
 
 An infix synonym for `index`.
 
@@ -588,6 +594,8 @@ Running time: `O(n)`
 ``` purescript
 (\\) :: forall a. (Eq a) => List a -> List a -> List a
 ```
+
+_non-associative / precedence 5_
 
 Delete the first occurrence of each element in the second list from the first list.
 

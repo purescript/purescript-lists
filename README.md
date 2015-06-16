@@ -17,3 +17,4 @@ bower install purescript-lists
 - [Data.List](docs/Data.List.md)
 - [Data.List.Lazy](docs/Data.List.Lazy.md)
 - [Data.List.Unsafe](docs/Data.List.Unsafe.md)
+- [Data.ZipList](docs/Data.ZipList.md)
