@@ -1,7 +1,7 @@
 -- | This module defines the type of _zip lists_, i.e. linked lists
 -- | with a zippy `Applicative` instance.
 
-module Data.ZipList
+module Data.List.ZipList
   ( ZipList(..)
   , runZipList
   ) where

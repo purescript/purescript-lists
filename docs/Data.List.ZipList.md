@@ -1,4 +1,4 @@
-## Module Data.ZipList
+## Module Data.List.ZipList
 
 This module defines the type of _zip lists_, i.e. linked lists
 with a zippy `Applicative` instance.
