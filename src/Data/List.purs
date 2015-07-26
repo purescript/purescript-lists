@@ -399,7 +399,7 @@ filter p = foldMap (\x -> if p x then singleton x else Nil)
 -- | powerSet = filterM (const [true, false])
 -- | ```
 filterM :: forall a m. (Applicative m) => (a -> m Boolean) -> List a -> m (List a)
-filterM _ Nil = return Nil
+filterM _ Nil = pure Nil
 filterM p (Cons x xs) = consIf <$> p x <*> filterM p xs
   where consIf b xs' = if b then Cons x xs' else xs'
 
