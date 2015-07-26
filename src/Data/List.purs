@@ -86,7 +86,7 @@ module Data.List
 import Prelude
 
 import Data.Maybe
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
 import Data.Monoid
 import Data.Foldable
 import Data.Unfoldable
@@ -134,14 +134,16 @@ infix 8 ..
 (..) = range
 
 -- | Create a list containing a range of integers, including both endpoints.
+-- |
+-- | Running time: `O(n)` where n is the difference of the arguments.
 range :: Int -> Int -> List Int
-range start end | start == end = singleton start
-                | otherwise = go end start (if start > end then 1 else -1) Nil
-  where
-  go s e step tail | s == e = (Cons s tail)
-                   | otherwise = go (s + step) e step (Cons s tail)
+range start end = go end start (if start > end then 1 else -1) Nil
+  where go s e step tail | s == e = (Cons s tail)
+                         | otherwise = go (s + step) e step (Cons s tail)
 
 -- | Create a list with repeated instances of a value.
+-- |
+-- | Running time: `O(n)` where n is first argument.
 replicate :: forall a. Int -> a -> List a
 replicate n value = go n Nil
   where
@@ -149,16 +151,18 @@ replicate n value = go n Nil
             | otherwise = go (n - 1) (Cons value tail)
 
 -- | Perform a monadic action `n` times collecting all of the results.
-replicateM :: forall m a. (Monad m) => Int -> m a -> m (List a)
-replicateM n m | n < one   = return Nil
-               | otherwise = do a <- m
-                                as <- replicateM (n - one) m
-                                return (Cons a as)
+-- |
+-- | Running time: `O(n)` where n is first argument.
+replicateM :: forall m a. (Applicative m) => Int -> m a -> m (List a)
+replicateM n m | n < one   = pure Nil
+               | otherwise = Cons <$> m <*> replicateM (n - one) m
 
 -- | Attempt a computation multiple times, requiring at least one success.
 -- |
 -- | The `Lazy` constraint is used to generate the result lazily, to ensure
 -- | termination.
+-- |
+-- | Running time: Depends on use because of lazy evaluation.
 some :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
 some v = Cons <$> v <*> defer (\_ -> many v)
 
@@ -167,6 +171,8 @@ some v = Cons <$> v <*> defer (\_ -> many v)
 -- |
 -- | The `Lazy` constraint is used to generate the result lazily, to ensure
 -- | termination.
+-- |
+-- | Running time: Depends on use because of lazy evaluation.
 many :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
 many v = some v <|> pure Nil
 
@@ -185,8 +191,7 @@ null _ = false
 -- |
 -- | Running time: `O(n)`
 length :: forall a. List a -> Int
-length Nil = 0
-length (Cons _ xs) = 1 + length xs
+length = foldl (\z _ -> z + 1) 0
 
 --------------------------------------------------------------------------------
 -- Extending arrays ------------------------------------------------------------
@@ -239,9 +244,9 @@ head (Cons x _) = Just x
 -- |
 -- | Running time: `O(n)`.
 last :: forall a. List a -> Maybe a
+last Nil          = Nothing
 last (Cons x Nil) = Just x
-last (Cons _ xs)  = last xs
-last _            = Nothing
+last (Cons x xs)  = last xs
 
 -- | Get all but the first element of a list, or `Nothing` if the list is empty.
 -- |
@@ -285,14 +290,20 @@ infixl 8 !!
 (!!) = index
 
 -- | Find the index of the first element equal to the specified element.
+-- |
+-- | Running time: `O(n)`
 elemIndex :: forall a. (Eq a) => a -> List a -> Maybe Int
 elemIndex x = findIndex (== x)
 
 -- | Find the index of the last element equal to the specified element.
+-- |
+-- | Running time: `O(n)`
 elemLastIndex :: forall a. (Eq a) => a -> List a -> Maybe Int
 elemLastIndex x = findLastIndex (== x)
 
 -- | Find the first index for which a predicate holds.
+-- |
+-- | Running time: `O(n)`
 findIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
 findIndex fn = go 0
   where
@@ -302,8 +313,11 @@ findIndex fn = go 0
   go _ Nil = Nothing
 
 -- | Find the last index for which a predicate holds.
+-- |
+-- | Running time: `O(n)`
 findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
-findLastIndex fn xs = ((length xs - 1) -) <$> findIndex fn (reverse xs)
+findLastIndex fn = fst <<< foldl iter (Tuple Nothing 0)
+  where iter (Tuple _ n) x = Tuple (if fn x then Just n else Nothing) (n + 1)
 
 -- | Insert an element into a list at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
@@ -312,25 +326,21 @@ findLastIndex fn xs = ((length xs - 1) -) <$> findIndex fn (reverse xs)
 insertAt :: forall a. Int -> a -> List a -> Maybe (List a)
 insertAt 0 x xs = Just (Cons x xs)
 insertAt n x (Cons y ys) = Cons y <$> insertAt (n - 1) x ys
-insertAt _ _ _  = Nothing
+insertAt _ _ _ = Nothing
 
 -- | Delete an element from a list at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 deleteAt :: forall a. Int -> List a -> Maybe (List a)
-deleteAt 0 (Cons y ys) = Just ys
-deleteAt n (Cons y ys) = Cons y <$> deleteAt (n - 1) ys
-deleteAt _ _  = Nothing
+deleteAt n = alterAt n (const Nothing)
 
 -- | Update the element at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 updateAt :: forall a. Int -> a -> List a -> Maybe (List a)
-updateAt 0 x (Cons _ xs) = Just (Cons x xs)
-updateAt n x (Cons x1 xs) = Cons x1 <$> updateAt (n - 1) x xs
-updateAt _ _ _ = Nothing
+updateAt n x = alterAt n (const (Just x))
 
 -- | Update the element at the specified index by applying a function to
 -- | the current value, returning a new list or `Nothing` if the index is
@@ -361,35 +371,26 @@ alterAt _ _ _  = Nothing
 -- |
 -- | Running time: `O(n)`
 reverse :: forall a. List a -> List a
-reverse = go Nil
-  where
-  go acc Nil = acc
-  go acc (Cons x xs) = go (Cons x acc) xs
+reverse = foldl (flip Cons) Nil
 
 -- | Flatten a list of lists.
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (>>= id)
+concat = foldMap id
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concatMap :: forall a b. (a -> List b) -> List a -> List b
-concatMap _ Nil = Nil
-concatMap f (Cons x xs) = f x <> concatMap f xs
+concatMap = foldMap
 
 -- | Filter a list, keeping the elements which satisfy a predicate function.
 -- |
 -- | Running time: `O(n)`
 filter :: forall a. (a -> Boolean) -> List a -> List a
-filter p = go Nil
-  where
-  go acc Nil = reverse acc
-  go acc (Cons x xs)
-    | p x = go (Cons x acc) xs
-    | otherwise = go acc xs
+filter p = foldMap (\x -> if p x then singleton x else Nil)
 
 -- | Filter where the predicate returns a monadic `Boolean`.
 -- |
@@ -399,27 +400,17 @@ filter p = go Nil
 -- | powerSet :: forall a. [a] -> [[a]]
 -- | powerSet = filterM (const [true, false])
 -- | ```
-filterM :: forall a m. (Monad m) => (a -> m Boolean) -> List a -> m (List a)
-filterM _ Nil = return Nil
-filterM p (Cons x xs) = do
-  b <- p x
-  xs' <- filterM p xs
-  return $ if b
-           then Cons x xs'
-           else xs'
+filterM :: forall a m. (Applicative m) => (a -> m Boolean) -> List a -> m (List a)
+filterM _ Nil = pure Nil
+filterM p (Cons x xs) = consIf <$> p x <*> filterM p xs
+  where consIf b xs' = if b then Cons x xs' else xs'
 
 -- | Apply a function to each element in a list, keeping only the results which
 -- | contain a value.
 -- |
 -- | Running time: `O(n)`
 mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
-mapMaybe f = go Nil
-  where
-  go acc Nil = reverse acc
-  go acc (Cons x xs) =
-    case f x of
-      Nothing -> go acc xs
-      Just y -> go (Cons y acc) xs
+mapMaybe f = foldMap (maybe Nil singleton <<< f)
 
 -- | Filter a list of optional values, keeping only the elements which contain
 -- | a value.
@@ -476,6 +467,8 @@ sortBy cmp = mergeAll <<< sequences
 --------------------------------------------------------------------------------
 
 -- | Extract a sublist by a start and end index.
+-- |
+-- | Running time: `O(n + m)` where `n` and `m` are the start and end of the range.
 slice :: forall a. Int -> Int -> List a -> List a
 slice start end xs = take (end - start) (drop start xs)
 
@@ -558,8 +551,8 @@ group' = group <<< sort
 -- | Running time: `O(n)`
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
 groupBy _ Nil = Nil
-groupBy eq (Cons x xs) = case span (eq x) xs of
-  { init: ys, rest: zs } -> Cons (Cons x ys) (groupBy eq zs)
+groupBy f (Cons x xs) = case span (f x) xs of
+  { init: ys, rest: zs } -> Cons (Cons x ys) (groupBy f zs)
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
@@ -577,7 +570,7 @@ nub = nubBy (==)
 -- | Running time: `O(n^2)`
 nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
 nubBy _     Nil = Nil
-nubBy (==) (Cons x xs) = Cons x (nubBy (==) (filter (\y -> not (x == y)) xs))
+nubBy f (Cons x xs) = Cons x (nubBy f (filter (\y -> not (f x y)) xs))
 
 -- | Calculate the union of two lists.
 -- |
@@ -604,8 +597,8 @@ delete = deleteBy (==)
 -- | Running time: `O(n)`
 deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
 deleteBy _ _ Nil = Nil
-deleteBy (==) x (Cons y ys) | x == y = ys
-deleteBy (==) x (Cons y ys) = Cons y (deleteBy (==) x ys)
+deleteBy f x (Cons y ys) | f x y = ys
+deleteBy f x (Cons y ys) = Cons y (deleteBy f x ys)
 
 infix 5 \\
 
