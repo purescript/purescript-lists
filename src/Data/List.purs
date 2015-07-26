@@ -244,7 +244,9 @@ head (Cons x _) = Just x
 -- |
 -- | Running time: `O(n)`.
 last :: forall a. List a -> Maybe a
-last = head <<< reverse
+last Nil          = Nothing
+last (Cons x Nil) = Just x
+last (Cons x xs)  = last xs
 
 -- | Get all but the first element of a list, or `Nothing` if the list is empty.
 -- |
