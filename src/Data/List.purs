@@ -472,7 +472,7 @@ slice start end xs = take (end - start) (drop start xs)
 
 -- | Take the specified number of elements from the front of a list.
 -- |
--- | Running time: `O(2n)` where `n` is the number of elements to take.
+-- | Running time: `O(n)` where `n` is the number of elements to take.
 take :: forall a. Int -> List a -> List a
 take = go Nil
   where
