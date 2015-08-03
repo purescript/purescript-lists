@@ -162,8 +162,8 @@ range :: Int -> Int -> List Int
 range start end | start == end = singleton start
                 | otherwise = go end start (if start > end then 1 else -1) nil
   where
-  go s e step tail | s == e = (cons s tail)
-                   | otherwise = go (s + step) e step (cons s tail)
+  go s e step' rest | s == e = (cons s rest)
+                    | otherwise = go (s + step') e step' (cons s rest)
 
 -- | Create a list by repeating an element
 repeat :: forall a. a -> List a
