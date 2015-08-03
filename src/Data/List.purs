@@ -138,15 +138,15 @@ range :: Int -> Int -> List Int
 range start end | start == end = singleton start
                 | otherwise = go end start (if start > end then 1 else -1) Nil
   where
-  go s e step tail | s == e = (Cons s tail)
-                   | otherwise = go (s + step) e step (Cons s tail)
+  go s e step rest | s == e = (Cons s rest)
+                   | otherwise = go (s + step) e step (Cons s rest)
 
 -- | Create a list with repeated instances of a value.
 replicate :: forall a. Int -> a -> List a
 replicate n value = go n Nil
   where
-  go n tail | n <= 0 = tail
-            | otherwise = go (n - 1) (Cons value tail)
+  go n rest | n <= 0 = rest
+            | otherwise = go (n - 1) (Cons value rest)
 
 -- | Perform a monadic action `n` times collecting all of the results.
 replicateM :: forall m a. (Monad m) => Int -> m a -> m (List a)

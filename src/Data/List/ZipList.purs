@@ -65,5 +65,3 @@ instance plusZipList :: Plus ZipList where
   empty = mempty
 
 instance alternativeZipList :: Alternative ZipList
-
-
