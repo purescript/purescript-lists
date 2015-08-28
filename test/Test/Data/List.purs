@@ -283,6 +283,9 @@ testList = do
   log "foldMap should be stack-safe"
   void $ pure $ foldMap Additive $ range 1 100000
 
+  log "foldMap should be left-to-right"
+  assert $ foldMap show (range 1 5) == "12345"
+
   -- log "can find the first 10 primes using lazy lists"
   -- let eratos :: L.List Number -> L.List Number
   --     eratos xs = Control.Lazy.defer \_ ->
