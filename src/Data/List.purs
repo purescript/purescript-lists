@@ -185,8 +185,7 @@ null _ = false
 -- |
 -- | Running time: `O(n)`
 length :: forall a. List a -> Int
-length Nil = 0
-length (Cons _ xs) = 1 + length xs
+length = foldl (\acc _ -> acc + 1) 0
 
 --------------------------------------------------------------------------------
 -- Extending arrays ------------------------------------------------------------
@@ -712,10 +711,10 @@ instance functorList :: Functor List where
 instance foldableList :: Foldable List where
   foldr _ b Nil = b
   foldr o b (Cons a as) = a `o` foldr o b as
-  foldl _ b Nil = b
-  foldl o b (Cons a as) = foldl o (b `o` a) as
-  foldMap _ Nil = mempty
-  foldMap f (Cons x xs) = f x <> foldMap f xs
+  foldl = go
+    where go _ b Nil = b
+          go o b (Cons a as) = go o (b `o` a) as
+  foldMap f = foldl (\acc -> append acc <<< f) mempty
 
 instance unfoldableList :: Unfoldable List where
   unfoldr f b = go (f b)

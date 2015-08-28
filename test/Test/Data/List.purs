@@ -1,7 +1,10 @@
 module Test.Data.List (testList) where
 
 import Prelude
+import Control.Monad
 import Control.Monad.Eff.Console (log)
+import Data.Foldable
+import Data.Monoid.Additive
 import Data.List
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Maybe.Unsafe (fromJust)
@@ -45,6 +48,9 @@ testList = do
   assert $ length nil == 0
   assert $ length (toList [1]) == 1
   assert $ length (toList [1, 2, 3, 4, 5]) == 5
+
+  log "length should be stack-safe"
+  void $ pure $ length (range 1 100000)
 
   log "snoc should add an item to the end of an list"
   assert $ toList [1, 2, 3] `snoc` 4 == toList [1, 2, 3, 4]
@@ -270,6 +276,12 @@ testList = do
   log "foldM should perform a fold using a monadic step function"
   assert $ foldM (\x y -> Just (x + y)) 0 (range 1 10) == Just 55
   assert $ foldM (\_ _ -> Nothing) 0 (range 1 10) == Nothing
+
+  log "foldl should be stack-safe"
+  void $ pure $ foldl (+) 0 $ range 1 100000
+
+  log "foldMap should be stack-safe"
+  void $ pure $ foldMap Additive $ range 1 100000
 
   -- log "can find the first 10 primes using lazy lists"
   -- let eratos :: L.List Number -> L.List Number
