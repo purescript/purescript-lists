@@ -712,6 +712,7 @@ instance foldableList :: Foldable List where
   foldr _ b Nil = b
   foldr o b (Cons a as) = a `o` foldr o b as
   foldl = go
+    -- FIXME: Helper function is needed until purescript/purescript#1413 is fixed
     where go _ b Nil = b
           go o b (Cons a as) = go o (b `o` a) as
   foldMap f = foldl (\acc -> append acc <<< f) mempty
