@@ -24,6 +24,7 @@
   ],
   "dependencies": {
     "purescript-foldable-traversable": "^0.4.0",
+    "purescript-generics": "~0.5.1",
     "purescript-lazy": "^0.4.0",
     "purescript-unfoldable": "^0.4.0"
   },
