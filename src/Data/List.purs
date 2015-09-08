@@ -253,9 +253,11 @@ tail (Cons _ xs) = Just xs
 -- |
 -- | Running time: `O(n)`
 init :: forall a. List a -> Maybe (List a)
-init (Cons x Nil) = Just Nil
-init (Cons x xs)  = Cons x <$> init xs
-init _            = Nothing
+init Nil = Nothing
+init lst = Just $ reverse $ go lst Nil
+  where
+  go (Cons x Nil) acc = acc 
+  go (Cons x xs) acc = go xs $ Cons x acc 
 
 -- | Break a list into its first element, and the remaining elements,
 -- | or `Nothing` if the list is empty.
@@ -522,7 +524,7 @@ dropWhile p = go
 -- | For example,
 -- |
 -- | ```purescript
--- | span (\n -> n % 2 == 1) (1 : 3 : 2 : 4 : 5 : Nil) == Tuple (1 : 3 : Nil) (2 : 4 : 5 : Nil)
+-- | span (\n -> n % 2 == 1) (1 : 3 : 2 : 4 : 5 : Nil) == { init: (1 : 3 : Nil), rest: (2 : 4 : 5 : Nil) }
 -- | ```
 -- |
 -- | Running time: `O(n)`
@@ -646,9 +648,11 @@ intersectBy eq xs  ys  = filter (\x -> any (eq x) ys) xs
 -- |
 -- | Running time: `O(min(m, n))`
 zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
-zipWith _ Nil _ = Nil
-zipWith _ _ Nil = Nil
-zipWith f (Cons a as) (Cons b bs) = Cons (f a b) (zipWith f as bs)
+zipWith f xs ys = reverse $ go xs ys Nil
+  where
+  go Nil _ acc = acc
+  go _ Nil acc = acc
+  go (Cons a as) (Cons b bs) acc = go as bs $ Cons (f a b) acc 
 
 -- | A generalization of `zipWith` which accumulates results in some `Applicative`
 -- | functor.
@@ -684,18 +688,24 @@ instance showList :: (Show a) => Show (List a) where
   show (Cons x xs) = "Cons (" ++ show x ++ ") (" ++ show xs ++ ")"
 
 instance eqList :: (Eq a) => Eq (List a) where
-  eq Nil Nil = true
-  eq (Cons x xs) (Cons y ys) = x == y && xs == ys
-  eq _ _ = false
+  eq xs ys = go xs ys true
+    where
+      go _ _ false = false 
+      go Nil Nil acc = acc
+      go (Cons x xs) (Cons y ys) acc = go xs ys $ acc && (y == x)
+      go _ _ _ = false 
+
 
 instance ordList :: (Ord a) => Ord (List a) where
-  compare Nil Nil = EQ
-  compare Nil _   = LT
-  compare _   Nil = GT
-  compare (Cons x xs) (Cons y ys) =
-    case compare x y of
-      EQ -> compare xs ys
-      other -> other
+  compare xs ys = go xs ys
+    where
+    go Nil Nil = EQ
+    go Nil _ = LT
+    go _ Nil = GT
+    go (Cons x xs) (Cons y ys) =
+      case compare x y of
+        EQ -> go xs ys
+        other -> other 
 
 instance semigroupList :: Semigroup (List a) where
   append Nil ys = ys
@@ -705,8 +715,11 @@ instance monoidList :: Monoid (List a) where
   mempty = Nil
 
 instance functorList :: Functor List where
-  map _ Nil = Nil
-  map f (Cons x xs) = Cons (f x) (f <$> xs)
+  map f lst = reverse $ go lst Nil
+    where
+    go Nil acc = acc
+    go (Cons x xs) acc = go xs $ Cons (f x) acc 
+
 
 instance foldableList :: Foldable List where
   foldr _ b Nil = b
@@ -716,6 +729,7 @@ instance foldableList :: Foldable List where
     where go _ b Nil = b
           go o b (Cons a as) = go o (b `o` a) as
   foldMap f = foldl (\acc -> append acc <<< f) mempty
+
 
 instance unfoldableList :: Unfoldable List where
   unfoldr f b = go (f b)
