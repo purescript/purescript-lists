@@ -85,6 +85,7 @@ module Data.List
 
 import Prelude
 
+import Data.Generic
 import Data.Maybe
 import Data.Tuple (Tuple(..))
 import Data.Monoid
@@ -104,6 +105,8 @@ import Control.MonadPlus
 -- | which case it consists of a head element, and another list (represented by the
 -- | `Cons` constructor).
 data List a = Nil | Cons a (List a)
+
+derive instance genericList :: (Generic a) => Generic (List a)
 
 -- | Convert a list into any unfoldable structure.
 -- |
