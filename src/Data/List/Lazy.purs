@@ -629,10 +629,7 @@ zip = zipWith Tuple
 --------------------------------------------------------------------------------
 
 instance showList :: (Show a) => Show (List a) where
-  show xs = "fromStrict (" ++ go (step xs) ++ ")"
-    where
-    go Nil = "Nil"
-    go (Cons x xs) = "Cons (" ++ show x ++ ") (" ++ go (step xs) ++ ")"
+  show xs = "toList " <> show (fromList xs :: Array a)
 
 instance eqList :: (Eq a) => Eq (List a) where
   eq xs ys = go (step xs) (step ys)
