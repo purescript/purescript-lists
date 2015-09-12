@@ -256,8 +256,8 @@ init :: forall a. List a -> Maybe (List a)
 init Nil = Nothing
 init lst = Just $ reverse $ go lst Nil
   where
-  go (Cons x Nil) acc = acc 
-  go (Cons x xs) acc = go xs $ Cons x acc 
+  go (Cons x Nil) acc = acc
+  go (Cons x xs) acc = go xs $ Cons x acc
 
 -- | Break a list into its first element, and the remaining elements,
 -- | or `Nothing` if the list is empty.
@@ -652,7 +652,7 @@ zipWith f xs ys = reverse $ go xs ys Nil
   where
   go Nil _ acc = acc
   go _ Nil acc = acc
-  go (Cons a as) (Cons b bs) acc = go as bs $ Cons (f a b) acc 
+  go (Cons a as) (Cons b bs) acc = go as bs $ Cons (f a b) acc
 
 -- | A generalization of `zipWith` which accumulates results in some `Applicative`
 -- | functor.
@@ -684,16 +684,15 @@ foldM f a (Cons b bs) = f a b >>= \a' -> foldM f a' bs
 --------------------------------------------------------------------------------
 
 instance showList :: (Show a) => Show (List a) where
-  show Nil = "Nil"
-  show (Cons x xs) = "Cons (" ++ show x ++ ") (" ++ show xs ++ ")"
+  show xs = "toList " <> show (fromList xs :: Array a)
 
 instance eqList :: (Eq a) => Eq (List a) where
   eq xs ys = go xs ys true
     where
-      go _ _ false = false 
+      go _ _ false = false
       go Nil Nil acc = acc
       go (Cons x xs) (Cons y ys) acc = go xs ys $ acc && (y == x)
-      go _ _ _ = false 
+      go _ _ _ = false
 
 
 instance ordList :: (Ord a) => Ord (List a) where
@@ -705,7 +704,7 @@ instance ordList :: (Ord a) => Ord (List a) where
     go (Cons x xs) (Cons y ys) =
       case compare x y of
         EQ -> go xs ys
-        other -> other 
+        other -> other
 
 instance semigroupList :: Semigroup (List a) where
   append Nil ys = ys
@@ -718,7 +717,7 @@ instance functorList :: Functor List where
   map f lst = reverse $ go lst Nil
     where
     go Nil acc = acc
-    go (Cons x xs) acc = go xs $ Cons (f x) acc 
+    go (Cons x xs) acc = go xs $ Cons (f x) acc
 
 
 instance foldableList :: Foldable List where
