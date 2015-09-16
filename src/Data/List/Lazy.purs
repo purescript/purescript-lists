@@ -527,7 +527,7 @@ groupBy eq xs = List (go <$> runList xs)
 -- |
 -- | Running time: `O(n^2)`
 nub :: forall a. (Eq a) => List a -> List a
-nub = nubBy (==)
+nub = nubBy eq
 
 -- | Remove duplicate elements from a list, using the specified
 -- | function to determine equality of elements.

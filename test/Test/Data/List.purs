@@ -230,7 +230,7 @@ testList = do
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
   assert $ groupBy (\x y -> odd x && odd y) (toList [1, 1, 2, 2, 3, 3]) == toList [toList [1, 1], toList [2], toList [2], toList [3, 3]]
 
-  log "nub should remove duplicate items from the list"
+  log "nub should remove duplicate elements from the list, keeping the first occurence"
   assert $ nub (toList [1, 2, 2, 3, 4, 1]) == toList [1, 2, 3, 4]
 
   log "nubBy should remove duplicate items from the list using a supplied predicate"
