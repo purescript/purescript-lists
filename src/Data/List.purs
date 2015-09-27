@@ -89,7 +89,7 @@ import Data.Maybe
 import Data.Tuple (Tuple(..))
 import Data.Monoid
 import Data.Foldable
-import Data.Unfoldable
+import Data.Unfoldable (Unfoldable, unfoldr)
 import Data.Traversable
 
 import Control.Alt
