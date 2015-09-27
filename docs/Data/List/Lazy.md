@@ -482,17 +482,14 @@ Running time: `O(n)`
 nub :: forall a. (Eq a) => List a -> List a
 ```
 
-Special case of `nubBy`: `nubBy eq`
-
 #### `nubBy`
 
 ``` purescript
 nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
 ```
 
-Remove duplicate elements from a list, using the specified function to
-determine equality of elements. The first occurence of an element is always
-the one that is kept.
+Remove duplicate elements from a list, using the specified
+function to determine equality of elements.
 
 Running time: `O(n^2)`
 
@@ -586,3 +583,5 @@ zip :: forall a b. List a -> List b -> List (Tuple a b)
 Collect pairs of elements at the same positions in two lists.
 
 Running time: `O(min(m, n))`
+
+
