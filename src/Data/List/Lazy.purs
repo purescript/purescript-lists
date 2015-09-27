@@ -102,7 +102,7 @@ import Data.Maybe
 import Data.Monoid
 import Data.Traversable
 import Data.Tuple (Tuple(..), fst, snd)
-import Data.Unfoldable
+import Data.Unfoldable (Unfoldable, unfoldr)
 
 import qualified Control.Lazy as Z
 
