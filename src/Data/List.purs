@@ -684,8 +684,7 @@ foldM f a (Cons b bs) = f a b >>= \a' -> foldM f a' bs
 --------------------------------------------------------------------------------
 
 instance showList :: (Show a) => Show (List a) where
-  show Nil = "Nil"
-  show (Cons x xs) = "Cons (" ++ show x ++ ") (" ++ show xs ++ ")"
+  show xs = "toList " <> show (fromList xs :: Array a)
 
 instance eqList :: (Eq a) => Eq (List a) where
   eq xs ys = go xs ys true

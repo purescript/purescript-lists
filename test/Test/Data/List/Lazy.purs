@@ -268,6 +268,15 @@ testListLazy = do
   --     primes = eratos $ upFrom 2
   -- assert $ L.fromList (L.take 10 primes) == [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 
+  log "show should work on short finite lists"
+  assert $ show (toList [1, 2, 3]) == "toList [1,2,3]"
+
+  log "show should work on long finite lists"
+  assert $ show (toList [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) == "toList [1,2,3,4,5] <> ..."
+
+  log "show should work on infinite lists"
+  assert $ show (iterate (+ 1) 1) == "toList [1,2,3,4,5] <> ..."
+
 nil' :: List Int
 nil' = nil
 
