@@ -258,6 +258,7 @@ init lst = Just $ reverse $ go lst Nil
   where
   go (Cons x Nil) acc = acc
   go (Cons x xs) acc = go xs $ Cons x acc
+  go _ acc = acc
 
 -- | Break a list into its first element, and the remaining elements,
 -- | or `Nothing` if the list is empty.
