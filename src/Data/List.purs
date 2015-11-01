@@ -85,6 +85,7 @@ module Data.List
 
 import Prelude
 
+import Data.Generic
 import Data.Maybe
 import Data.Tuple (Tuple(..))
 import Data.Monoid
@@ -683,6 +684,8 @@ foldM f a (Cons b bs) = f a b >>= \a' -> foldM f a' bs
 --------------------------------------------------------------------------------
 -- Instances -------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+derive instance genericList :: (Generic a) => Generic (List a)
 
 instance showList :: (Show a) => Show (List a) where
   show Nil = "Nil"
