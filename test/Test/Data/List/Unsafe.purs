@@ -1,12 +1,13 @@
 module Test.Data.List.Unsafe (testListUnsafe) where
 
 import Prelude
-import Control.Monad.Eff.Console (log)
+import Control.Monad.Eff (Eff())
+import Control.Monad.Eff.Console (CONSOLE(), log)
 import Data.List (List(..), toList)
 import Data.List.Unsafe
-import Data.Maybe (Maybe(..))
-import Test.Assert (assert, assertThrows)
+import Test.Assert (ASSERT(), assert, assertThrows)
 
+testListUnsafe :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
 testListUnsafe = do
 
   log "head should return a Just-wrapped first value of a non-empty list"

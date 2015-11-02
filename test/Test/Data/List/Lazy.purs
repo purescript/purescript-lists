@@ -1,13 +1,15 @@
 module Test.Data.List.Lazy (testListLazy) where
 
 import Prelude
-import Control.Monad.Eff.Console (log)
+import Control.Monad.Eff (Eff())
+import Control.Monad.Eff.Console (CONSOLE(), log)
 import Data.List.Lazy
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Maybe.Unsafe (fromJust)
 import Data.Tuple (Tuple(..))
-import Test.Assert (assert)
+import Test.Assert (ASSERT(), assert)
 
+testListLazy :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
 testListLazy = do
 
   log "singleton should construct an list with a single value"

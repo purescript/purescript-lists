@@ -85,18 +85,18 @@ module Data.List
 
 import Prelude
 
-import Data.Maybe
-import Data.Tuple (Tuple(..))
-import Data.Monoid
-import Data.Foldable
-import Data.Unfoldable (Unfoldable, unfoldr)
-import Data.Traversable
+import Control.Alt (Alt, (<|>))
+import Control.Alternative (Alternative)
+import Control.Lazy (Lazy, defer)
+import Control.MonadPlus (MonadPlus)
+import Control.Plus (Plus)
 
-import Control.Alt
-import Control.Lazy
-import Control.Plus
-import Control.Alternative
-import Control.MonadPlus
+import Data.Foldable (Foldable, foldl, foldr, any)
+import Data.Maybe (Maybe(..))
+import Data.Monoid (Monoid, mempty)
+import Data.Traversable (Traversable, traverse, sequence)
+import Data.Tuple (Tuple(..))
+import Data.Unfoldable (Unfoldable, unfoldr)
 
 -- | A strict linked list.
 -- |

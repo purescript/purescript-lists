@@ -1,16 +1,17 @@
 module Test.Data.List (testList) where
 
 import Prelude
-import Control.Monad
-import Control.Monad.Eff.Console (log)
+import Control.Monad.Eff (Eff())
+import Control.Monad.Eff.Console (CONSOLE(), log)
 import Data.Foldable
 import Data.Monoid.Additive
 import Data.List
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Maybe.Unsafe (fromJust)
 import Data.Tuple (Tuple(..))
-import Test.Assert (assert)
+import Test.Assert (ASSERT(), assert)
 
+testList :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
 testList = do
 
   log "singleton should construct an list with a single value"

@@ -8,14 +8,14 @@ module Data.List.ZipList
 
 import Prelude
 
-import Data.Monoid
-import Data.List.Lazy
-import Data.Foldable
-import Data.Traversable
+import Control.Alt (Alt)
+import Control.Alternative (Alternative)
+import Control.Plus (Plus)
 
-import Control.Alt
-import Control.Plus
-import Control.Alternative
+import Data.Foldable (Foldable, foldMap, foldl, foldr)
+import Data.List.Lazy (List(), repeat, zipWith)
+import Data.Monoid (Monoid, mempty)
+import Data.Traversable (Traversable, traverse, sequence)
 
 -- | `ZipList` is a newtype around `List` which provides a zippy
 -- | `Applicative` instance.

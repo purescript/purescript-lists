@@ -92,19 +92,20 @@ module Data.List.Lazy
 
 import Prelude
 
-import Control.Alt
-import Control.Alternative
-import Control.MonadPlus
-import Control.Plus
-import Data.Foldable
-import Data.Lazy
-import Data.Maybe
-import Data.Monoid
-import Data.Traversable
-import Data.Tuple (Tuple(..), fst, snd)
+import Control.Alt (Alt)
+import Control.Alternative (Alternative)
+import Control.MonadPlus (MonadPlus)
+import Control.Plus (Plus)
+import qualified Control.Lazy as Z
+
+import Data.Foldable (Foldable, foldMap, foldl, foldr, any)
+import Data.Lazy (Lazy(), defer, force)
+import Data.Maybe (Maybe(..), isNothing)
+import Data.Monoid (Monoid, mempty)
+import Data.Traversable (Traversable, traverse, sequence)
+import Data.Tuple (Tuple(..))
 import Data.Unfoldable (Unfoldable, unfoldr)
 
-import qualified Control.Lazy as Z
 
 -- | A lazy linked list.
 newtype List a = List (Lazy (Step a))
