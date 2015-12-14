@@ -9,8 +9,8 @@
 
 module Data.List
   ( List(..)
-  , fromList
-  , toList
+  , toUnfoldable
+  , fromFoldable
 
   , singleton
   , (..), range
@@ -81,6 +81,9 @@ module Data.List
   , unzip
 
   , foldM
+
+  , toList
+  , fromList
   ) where
 
 import Prelude
@@ -108,14 +111,14 @@ data List a = Nil | Cons a (List a)
 -- | Convert a list into any unfoldable structure.
 -- |
 -- | Running time: `O(n)`
-fromList :: forall f a. (Unfoldable f) => List a -> f a
-fromList = unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> uncons xs)
+toUnfoldable :: forall f a. (Unfoldable f) => List a -> f a
+toUnfoldable = unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> uncons xs)
 
 -- | Construct a list from a foldable structure.
 -- |
 -- | Running time: `O(n)`
-toList :: forall f a. (Foldable f) => f a -> List a
-toList = foldr Cons Nil
+fromFoldable :: forall f a. (Foldable f) => f a -> List a
+fromFoldable = foldr Cons Nil
 
 --------------------------------------------------------------------------------
 -- List creation ---------------------------------------------------------------
@@ -679,6 +682,16 @@ unzip = foldr (\(Tuple a b) (Tuple as bs) -> Tuple (Cons a as) (Cons b bs)) (Tup
 foldM :: forall m a b. (Monad m) => (a -> b -> m a) -> a -> List b -> m a
 foldM _ a Nil = return a
 foldM f a (Cons b bs) = f a b >>= \a' -> foldM f a' bs
+
+-- | *Deprecated.* Use `fromFoldable` instead. `toList` will be removed in a
+-- | later version.
+toList :: forall f a. (Foldable f) => f a -> List a
+toList = fromFoldable
+
+-- | *Deprecated.* Use `toUnfoldable` instead. `fromList` will be removed in a
+-- | later version.
+fromList :: forall f a. (Unfoldable f) => List a -> f a
+fromList = toUnfoldable
 
 --------------------------------------------------------------------------------
 -- Instances -------------------------------------------------------------------

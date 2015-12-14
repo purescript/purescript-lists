@@ -20,24 +20,24 @@ A lazy linked list.
 
 ##### Instances
 ``` purescript
-instance showList :: (Show a) => Show (List a)
-instance eqList :: (Eq a) => Eq (List a)
-instance ordList :: (Ord a) => Ord (List a)
-instance lazyList :: Lazy (List a)
-instance semigroupList :: Semigroup (List a)
-instance monoidList :: Monoid (List a)
-instance functorList :: Functor List
-instance foldableList :: Foldable List
-instance unfoldableList :: Unfoldable List
-instance traversableList :: Traversable List
-instance applyList :: Apply List
-instance applicativeList :: Applicative List
-instance bindList :: Bind List
-instance monadList :: Monad List
-instance altList :: Alt List
-instance plusList :: Plus List
-instance alternativeList :: Alternative List
-instance monadPlusList :: MonadPlus List
+(Show a) => Show (List a)
+(Eq a) => Eq (List a)
+(Ord a) => Ord (List a)
+Lazy (List a)
+Semigroup (List a)
+Monoid (List a)
+Functor List
+Foldable List
+Unfoldable List
+Traversable List
+Apply List
+Applicative List
+Bind List
+Monad List
+Alt List
+Plus List
+Alternative List
+MonadPlus List
 ```
 
 #### `runList`
@@ -48,20 +48,20 @@ runList :: forall a. List a -> Lazy (Step a)
 
 Unwrap a lazy linked list
 
-#### `fromList`
+#### `toUnfoldable`
 
 ``` purescript
-fromList :: forall f a. (Unfoldable f) => List a -> f a
+toUnfoldable :: forall f a. (Unfoldable f) => List a -> f a
 ```
 
 Convert a list into any unfoldable structure.
 
 Running time: `O(n)`
 
-#### `toList`
+#### `fromFoldable`
 
 ``` purescript
-toList :: forall f a. (Foldable f) => f a -> List a
+fromFoldable :: forall f a. (Foldable f) => f a -> List a
 ```
 
 Construct a list from a foldable structure.
@@ -583,5 +583,23 @@ zip :: forall a b. List a -> List b -> List (Tuple a b)
 Collect pairs of elements at the same positions in two lists.
 
 Running time: `O(min(m, n))`
+
+#### `toList`
+
+``` purescript
+toList :: forall f a. (Foldable f) => f a -> List a
+```
+
+*Deprecated.* Use `fromFoldable` instead. `toList` will be removed in a
+later version.
+
+#### `fromList`
+
+``` purescript
+fromList :: forall f a. (Unfoldable f) => List a -> f a
+```
+
+*Deprecated.* Use `toUnfoldable` instead. `fromList` will be removed in a
+later version.
 
 
