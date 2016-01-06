@@ -733,10 +733,11 @@ instance foldableList :: Foldable List where
 
 
 instance unfoldableList :: Unfoldable List where
-  unfoldr f b = go (f b)
+  unfoldr f b = go b Nil
     where
-    go Nothing = Nil
-    go (Just (Tuple a b)) = Cons a (go (f b))
+      go source memo = case f source of
+        Nothing -> reverse memo
+        Just (Tuple one rest) -> go rest (Cons one memo)
 
 instance traversableList :: Traversable List where
   traverse _ Nil = pure Nil

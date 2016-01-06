@@ -287,6 +287,12 @@ testList = do
   log "foldMap should be left-to-right"
   assert $ foldMap show (range 1 5) == "12345"
 
+  log "unfoldr should be stack-safe"
+  void $ pure $ length $ Data.Unfoldable.replicate 100000 1
+
+  log "unfoldr should maintain order"
+  assert $ (1..5) == Data.Unfoldable.unfoldr step 1
+
   -- log "can find the first 10 primes using lazy lists"
   -- let eratos :: L.List Number -> L.List Number
   --     eratos xs = Control.Lazy.defer \_ ->
@@ -298,6 +304,10 @@ testList = do
 
   --     primes = eratos $ upFrom 2
   -- assert $ L.fromList (L.take 10 primes) == [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+
+step :: Int -> Maybe (Tuple Int Int)
+step 6 = Nothing
+step n = Just (Tuple n (n + 1))
 
 nil :: List Int
 nil = Nil
