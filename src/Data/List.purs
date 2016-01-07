@@ -51,6 +51,7 @@ module Data.List
   , filterM
   , mapMaybe
   , catMaybes
+  , mapWithIndex
 
   , sort
   , sortBy
@@ -427,6 +428,14 @@ mapMaybe f = go Nil
 -- | a value.
 catMaybes :: forall a. List (Maybe a) -> List a
 catMaybes = mapMaybe id
+
+
+-- | Apply a function to each element and its index in a list starting at 0.
+mapWithIndex :: forall a b. (a -> Int -> b) -> List a -> List b
+mapWithIndex f lst = reverse $ go 0 lst Nil
+  where
+  go _ Nil acc = acc
+  go n (Cons x xs) acc = go (n+1) xs $ Cons (f x n) acc
 
 --------------------------------------------------------------------------------
 -- Sorting ---------------------------------------------------------------------

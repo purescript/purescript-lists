@@ -25,23 +25,23 @@ which case it consists of a head element, and another list (represented by the
 
 ##### Instances
 ``` purescript
-instance showList :: (Show a) => Show (List a)
-instance eqList :: (Eq a) => Eq (List a)
-instance ordList :: (Ord a) => Ord (List a)
-instance semigroupList :: Semigroup (List a)
-instance monoidList :: Monoid (List a)
-instance functorList :: Functor List
-instance foldableList :: Foldable List
-instance unfoldableList :: Unfoldable List
-instance traversableList :: Traversable List
-instance applyList :: Apply List
-instance applicativeList :: Applicative List
-instance bindList :: Bind List
-instance monadList :: Monad List
-instance altList :: Alt List
-instance plusList :: Plus List
-instance alternativeList :: Alternative List
-instance monadPlusList :: MonadPlus List
+(Show a) => Show (List a)
+(Eq a) => Eq (List a)
+(Ord a) => Ord (List a)
+Semigroup (List a)
+Monoid (List a)
+Functor List
+Foldable List
+Unfoldable List
+Traversable List
+Apply List
+Applicative List
+Bind List
+Monad List
+Alt List
+Plus List
+Alternative List
+MonadPlus List
 ```
 
 #### `fromList`
@@ -410,6 +410,14 @@ catMaybes :: forall a. List (Maybe a) -> List a
 
 Filter a list of optional values, keeping only the elements which contain
 a value.
+
+#### `mapWithIndex`
+
+``` purescript
+mapWithIndex :: forall a b. (a -> Int -> b) -> List a -> List b
+```
+
+Apply a function to each element and its index in a list starting at 0.
 
 #### `sort`
 
