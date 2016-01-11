@@ -15,19 +15,19 @@ newtype ZipList a
 
 ##### Instances
 ``` purescript
-instance showZipList :: (Show a) => Show (ZipList a)
-instance eqZipList :: (Eq a) => Eq (ZipList a)
-instance ordZipList :: (Ord a) => Ord (ZipList a)
-instance semigroupZipList :: Semigroup (ZipList a)
-instance monoidZipList :: Monoid (ZipList a)
-instance foldableZipList :: Foldable ZipList
-instance traversableZipList :: Traversable ZipList
-instance functorZipList :: Functor ZipList
-instance applyZipList :: Apply ZipList
-instance applicativeZipList :: Applicative ZipList
-instance altZipList :: Alt ZipList
-instance plusZipList :: Plus ZipList
-instance alternativeZipList :: Alternative ZipList
+(Show a) => Show (ZipList a)
+(Eq a) => Eq (ZipList a)
+(Ord a) => Ord (ZipList a)
+Semigroup (ZipList a)
+Monoid (ZipList a)
+Foldable ZipList
+Traversable ZipList
+Functor ZipList
+Apply ZipList
+Applicative ZipList
+Alt ZipList
+Plus ZipList
+Alternative ZipList
 ```
 
 #### `runZipList`

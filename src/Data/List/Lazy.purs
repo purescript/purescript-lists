@@ -10,8 +10,8 @@
 module Data.List.Lazy
   ( List(..)
   , runList
-  , fromList
-  , toList
+  , toUnfoldable
+  , fromFoldable
   , Step(..)
   , step
   , nil
@@ -88,6 +88,8 @@ module Data.List.Lazy
   -- , unzip
 
   -- , foldM
+  , toList
+  , fromList
   ) where
 
 import Prelude
@@ -117,14 +119,14 @@ runList (List l) = l
 -- | Convert a list into any unfoldable structure.
 -- |
 -- | Running time: `O(n)`
-fromList :: forall f a. (Unfoldable f) => List a -> f a
-fromList = unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> uncons xs)
+toUnfoldable :: forall f a. (Unfoldable f) => List a -> f a
+toUnfoldable = unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> uncons xs)
 
 -- | Construct a list from a foldable structure.
 -- |
 -- | Running time: `O(n)`
-toList :: forall f a. (Foldable f) => f a -> List a
-toList = foldr cons nil
+fromFoldable :: forall f a. (Foldable f) => f a -> List a
+fromFoldable = foldr cons nil
 
 -- | A list is either empty (represented by the `Nil` constructor) or non-empty, in
 -- | which case it consists of a head element, and another list (represented by the
@@ -621,9 +623,15 @@ zipWith f xs ys = List (go <$> runList xs <*> runList ys)
 zip :: forall a b. List a -> List b -> List (Tuple a b)
 zip = zipWith Tuple
 
---------------------------------------------------------------------------------
--- Folding ---------------------------------------------------------------------
---------------------------------------------------------------------------------
+-- | *Deprecated.* Use `fromFoldable` instead. `toList` will be removed in a
+-- | later version.
+toList :: forall f a. (Foldable f) => f a -> List a
+toList = fromFoldable
+
+-- | *Deprecated.* Use `toUnfoldable` instead. `fromList` will be removed in a
+-- | later version.
+fromList :: forall f a. (Unfoldable f) => List a -> f a
+fromList = toUnfoldable
 
 --------------------------------------------------------------------------------
 -- Instances -------------------------------------------------------------------
