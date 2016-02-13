@@ -22,7 +22,7 @@ module Data.List
   , null
   , length
 
-  , (:)
+  , (:), cons
   , snoc
   , insert
   , insertBy
@@ -71,7 +71,7 @@ module Data.List
   , unionBy
   , delete
   , deleteBy
-  , (\\)
+  , (\\), difference
   , intersect
   , intersectBy
 
@@ -88,20 +88,20 @@ module Data.List
   , fromList
   ) where
 
-import Prelude
+import Prelude (class Monad, class Bind, class Applicative, class Apply, class Functor, class Semigroup, class Ord, class Eq, class Show, Ordering(EQ, GT, LT), append, flip, (<*>), (<$>), (<>), pure, (<<<), ($), compare, (==), (&&), show, (++), (>>=), return, not, eq, (-), otherwise, (/=), id, bind, (+), one, (<), (<=), negate, (>))
 
-import Control.Alt (Alt, (<|>))
-import Control.Alternative (Alternative)
-import Control.Lazy (Lazy, defer)
-import Control.MonadPlus (MonadPlus)
-import Control.Plus (Plus)
+import Control.Alt (class Alt, (<|>))
+import Control.Alternative (class Alternative)
+import Control.Lazy (class Lazy, defer)
+import Control.MonadPlus (class MonadPlus)
+import Control.Plus (class Plus)
 
-import Data.Foldable (Foldable, foldl, foldr, any)
+import Data.Foldable (class Foldable, foldl, foldr, any)
 import Data.Maybe (Maybe(..))
-import Data.Monoid (Monoid, mempty)
-import Data.Traversable (Traversable, traverse, sequence)
+import Data.Monoid (class Monoid, mempty)
+import Data.Traversable (class Traversable, traverse, sequence)
 import Data.Tuple (Tuple(..))
-import Data.Unfoldable (Unfoldable, unfoldr)
+import Data.Unfoldable (class Unfoldable, unfoldr)
 
 -- | A strict linked list.
 -- |
@@ -132,11 +132,8 @@ fromFoldable = foldr Cons Nil
 singleton :: forall a. a -> List a
 singleton a = Cons a Nil
 
-infix 8 ..
-
 -- | An infix synonym for `range`.
-(..) :: Int -> Int -> List Int
-(..) = range
+infix 8 range as ..
 
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
@@ -196,14 +193,13 @@ length = foldl (\acc _ -> acc + 1) 0
 -- Extending arrays ------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-infixr 6 :
-
 -- | An infix alias for `Cons`; attaches an element to the front of
 -- | a list.
 -- |
 -- | Running time: `O(1)`
-(:) :: forall a. a -> List a -> List a
-(:) = Cons
+cons :: forall a. a -> List a -> List a
+cons = Cons
+infixr 6 cons as :
 
 -- | Append an element to the end of an array, creating a new array.
 -- |
@@ -285,11 +281,8 @@ index Nil _ = Nothing
 index (Cons a _) 0 = Just a
 index (Cons _ as) i = index as (i - 1)
 
-infixl 8 !!
-
 -- | An infix synonym for `index`.
-(!!) :: forall a. List a -> Int -> Maybe a
-(!!) = index
+infixl 8 index as !!
 
 -- | Find the index of the first element equal to the specified element.
 elemIndex :: forall a. (Eq a) => a -> List a -> Maybe Int
@@ -614,13 +607,13 @@ deleteBy _ _ Nil = Nil
 deleteBy (==) x (Cons y ys) | x == y = ys
 deleteBy (==) x (Cons y ys) = Cons y (deleteBy (==) x ys)
 
-infix 5 \\
+infix 5 difference as \\
 
 -- | Delete the first occurrence of each element in the second list from the first list.
 -- |
 -- | Running time: `O(n^2)`
-(\\) :: forall a. (Eq a) => List a -> List a -> List a
-(\\) = foldl (flip delete)
+difference :: forall a. (Eq a) => List a -> List a -> List a
+difference = foldl (flip delete)
 
 -- | Calculate the intersection of two lists.
 -- |
