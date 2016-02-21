@@ -4,6 +4,7 @@
 module Data.List.ZipList
   ( ZipList(..)
   , runZipList
+  , transpose
   ) where
 
 import Prelude
@@ -13,9 +14,11 @@ import Control.Alternative (Alternative)
 import Control.Plus (Plus)
 
 import Data.Foldable (Foldable, foldMap, foldl, foldr)
-import Data.List.Lazy (List(), repeat, zipWith)
+import Data.List.Lazy (List(), repeat, zipWith, fromFoldable, toUnfoldable)
 import Data.Monoid (Monoid, mempty)
 import Data.Traversable (Traversable, traverse, sequence)
+import Data.Foldable (Foldable)
+import Data.Unfoldable (Unfoldable)
 
 -- | `ZipList` is a newtype around `List` which provides a zippy
 -- | `Applicative` instance.
@@ -24,6 +27,24 @@ newtype ZipList a = ZipList (List a)
 -- | Unpack a `ZipList` to obtain the underlying list.
 runZipList :: forall a. ZipList a -> List a
 runZipList (ZipList xs) = xs
+
+-- | Transpose any structure which is both `Foldable` and `Unfoldable`,
+-- | via `ZipList`; note that `sequence` for `ZipList` is the same as
+-- | `transpose`.
+transpose :: forall f a. (Foldable f, Unfoldable f) => f (f a) -> f (f a)
+transpose =
+  toZipList
+   >>> map toZipList
+   >>> sequence
+   >>> map fromZipList
+   >>> fromZipList
+
+  where
+  toZipList :: forall a'. f a' -> ZipList a'
+  toZipList = ZipList <<< fromFoldable
+
+  fromZipList :: forall a'. ZipList a' -> f a'
+  fromZipList = toUnfoldable <<< runZipList
 
 instance showZipList :: (Show a) => Show (ZipList a) where
   show (ZipList xs) = "(ZipList " ++ show xs ++ ")"
