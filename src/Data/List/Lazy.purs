@@ -87,6 +87,8 @@ module Data.List.Lazy
   , zip
   -- , unzip
 
+  , transpose
+
   -- , foldM
   , toList
   , fromList
@@ -622,6 +624,36 @@ zipWith f xs ys = List (go <$> runList xs <*> runList ys)
 -- | Running time: `O(min(m, n))`
 zip :: forall a b. List a -> List b -> List (Tuple a b)
 zip = zipWith Tuple
+
+--------------------------------------------------------------------------------
+-- Transpose -------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+-- | The 'transpose' function transposes the rows and columns of its argument.
+-- | For example,
+-- |
+-- |     transpose ((1:2:3:nil) : (4:5:6:nil) : nil) ==
+-- |       ((1:4:nil) : (2:5:nil) : (3:6:nil) : nil)
+-- |
+-- | If some of the rows are shorter than the following rows, their elements are skipped:
+-- |
+-- |     transpose ((10:11:nil) : (20:nil) : nil : (30:31:32:nil) : nil) ==
+-- |       ((10:20:30:nil) : (11:31:nil) : (32:nil) : nil)
+transpose :: forall a. List (List a) -> List (List a)
+transpose xs =
+  case uncons xs of
+    Nothing ->
+      xs
+    Just { head: h, tail: xss } ->
+      case uncons h of
+        Nothing ->
+          transpose xss
+        Just { head: x, tail: xs } ->
+          (x : mapMaybe head xss) : transpose (xs : mapMaybe tail xss)
+
+--------------------------------------------------------------------------------
+-- Deprecated functions --------------------------------------------------------
+--------------------------------------------------------------------------------
 
 -- | *Deprecated.* Use `fromFoldable` instead. `toList` will be removed in a
 -- | later version.

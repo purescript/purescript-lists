@@ -629,6 +629,23 @@ Collect pairs of elements at the same positions in two lists.
 
 Running time: `O(min(m, n))`
 
+#### `transpose`
+
+``` purescript
+transpose :: forall a. List (List a) -> List (List a)
+```
+
+The 'transpose' function transposes the rows and columns of its argument.
+For example,
+
+    transpose ((1:2:3:nil) : (4:5:6:nil) : nil) ==
+      ((1:4:nil) : (2:5:nil) : (3:6:nil) : nil)
+
+If some of the rows are shorter than the following rows, their elements are skipped:
+
+    transpose ((10:11:nil) : (20:nil) : nil : (30:31:32:nil) : nil) ==
+      ((10:20:30:nil) : (11:31:nil) : (32:nil) : nil)
+
 #### `toList`
 
 ``` purescript

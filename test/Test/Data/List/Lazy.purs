@@ -270,6 +270,19 @@ testListLazy = do
 
   --     primes = eratos $ upFrom 2
   -- assert $ L.fromList (L.take 10 primes) == [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+  --
+  --
+  --
+  log "transpose"
+  assert $ transpose (l [l [1,2,3], l[4,5,6], l [7,8,9]]) ==
+                     (l [l [1,4,7], l[2,5,8], l [3,6,9]])
+  log "transpose skips elements when rows don't match"
+  assert $ transpose ((10:11:nil) : (20:nil) : nil : (30:31:32:nil) : nil) ==
+                     ((10:20:30:nil) : (11:31:nil) : (32:nil) : nil)
+  log "transpose nil == nil"
+  assert $ transpose nil == (nil :: List (List Int))
+  log "transpose (singleton nil) == nil"
+  assert $ transpose (singleton nil) == (nil :: List (List Int))
 
 nil' :: List Int
 nil' = nil
