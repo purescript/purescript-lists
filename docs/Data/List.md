@@ -70,6 +70,10 @@ Running time: `O(n)`
 singleton :: forall a. a -> List a
 ```
 
+Create a list with a single element.
+
+Running time: `O(1)`
+
 #### `(..)`
 
 ``` purescript
@@ -133,6 +137,10 @@ termination.
 null :: forall a. List a -> Boolean
 ```
 
+Test whether a list is empty.
+
+Running time: `O(1)`
+
 #### `length`
 
 ``` purescript
@@ -193,6 +201,10 @@ Running time: `O(n)`
 head :: forall a. List a -> Maybe a
 ```
 
+Get the first element in a list, or `Nothing` if the list is empty.
+
+Running time: `O(1)`.
+
 #### `last`
 
 ``` purescript
@@ -239,6 +251,10 @@ Running time: `O(1)`
 ``` purescript
 index :: forall a. List a -> Int -> Maybe a
 ```
+
+Get the element at the specified index, or `Nothing` if the index is out-of-bounds.
+
+Running time: `O(n)` where `n` is the required index.
 
 #### `(!!)`
 
@@ -345,6 +361,10 @@ Running time: `O(n)`
 reverse :: forall a. List a -> List a
 ```
 
+Reverse a list.
+
+Running time: `O(n)`
+
 #### `concat`
 
 ``` purescript
@@ -417,6 +437,8 @@ a value.
 sort :: forall a. (Ord a) => List a -> List a
 ```
 
+Sort the elements of an list in increasing order.
+
 #### `sortBy`
 
 ``` purescript
@@ -431,6 +453,8 @@ compared using the specified ordering.
 ``` purescript
 slice :: forall a. Int -> Int -> List a -> List a
 ```
+
+Extract a sublist by a start and end index.
 
 #### `take`
 
@@ -536,6 +560,10 @@ Running time: `O(n)`
 nub :: forall a. (Eq a) => List a -> List a
 ```
 
+Remove duplicate elements from a list.
+
+Running time: `O(n^2)`
+
 #### `nubBy`
 
 ``` purescript
@@ -628,6 +656,19 @@ Running time: `O(n^2)`
 zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
 ```
 
+Apply a function to pairs of elements at the same positions in two lists,
+collecting the results in a new list.
+
+If one list is longer, elements will be discarded from the longer list.
+
+For example
+
+```purescript
+zipWith (*) (1 : 2 : 3 : Nil) (4 : 5 : 6 : 7 Nil) == 4 : 10 : 18 : Nil
+```
+
+Running time: `O(min(m, n))`
+
 #### `zipWithA`
 
 ``` purescript
@@ -656,11 +697,30 @@ unzip :: forall a b. List (Tuple a b) -> Tuple (List a) (List b)
 Transforms a list of pairs into a list of first components and a list of
 second components.
 
+#### `transpose`
+
+``` purescript
+transpose :: forall a. List (List a) -> List (List a)
+```
+
+The 'transpose' function transposes the rows and columns of its argument.
+For example,
+
+    transpose ((1:2:3:Nil) : (4:5:6:Nil) : Nil) ==
+      ((1:4:Nil) : (2:5:Nil) : (3:6:Nil) : Nil)
+
+If some of the rows are shorter than the following rows, their elements are skipped:
+
+    transpose ((10:11:Nil) : (20:Nil) : Nil : (30:31:32:Nil) : Nil) ==
+      ((10:20:30:Nil) : (11:31:Nil) : (32:Nil) : Nil)
+
 #### `foldM`
 
 ``` purescript
 foldM :: forall m a b. (Monad m) => (a -> b -> m a) -> a -> List b -> m a
 ```
+
+Perform a fold using a monadic step function.
 
 #### `toList`
 
