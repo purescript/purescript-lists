@@ -14,6 +14,12 @@ _Note_: This module is an improvement over `Data.Array` when working with immuta
 bower install purescript-lists
 ```
 
+## Licensing
+
+Some of this code is derived from GHC's standard libraries (`base`);
+according to its terms, we have included GHC's license in the file
+`LICENSE-GHC.md`.
+
 ## Module documentation
 
 - [Data.List](docs/Data/List.md)
