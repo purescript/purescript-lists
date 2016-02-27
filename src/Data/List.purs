@@ -80,6 +80,8 @@ module Data.List
   , zip
   , unzip
 
+  , transpose
+
   , foldM
 
   , toList
@@ -675,6 +677,26 @@ unzip :: forall a b. List (Tuple a b) -> Tuple (List a) (List b)
 unzip = foldr (\(Tuple a b) (Tuple as bs) -> Tuple (Cons a as) (Cons b bs)) (Tuple Nil Nil)
 
 --------------------------------------------------------------------------------
+-- Transpose -------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+-- | The 'transpose' function transposes the rows and columns of its argument.
+-- | For example,
+-- |
+-- |     transpose ((1:2:3:Nil) : (4:5:6:Nil) : Nil) ==
+-- |       ((1:4:Nil) : (2:5:Nil) : (3:6:Nil) : Nil)
+-- |
+-- | If some of the rows are shorter than the following rows, their elements are skipped:
+-- |
+-- |     transpose ((10:11:Nil) : (20:Nil) : Nil : (30:31:32:Nil) : Nil) ==
+-- |       ((10:20:30:Nil) : (11:31:Nil) : (32:Nil) : Nil)
+transpose :: forall a. List (List a) -> List (List a)
+transpose Nil = Nil
+transpose (Cons Nil xss) = transpose xss
+transpose (Cons (Cons x xs) xss) =
+  (x : mapMaybe head xss) : transpose (xs : mapMaybe tail xss)
+
+--------------------------------------------------------------------------------
 -- Folding ---------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -682,6 +704,10 @@ unzip = foldr (\(Tuple a b) (Tuple as bs) -> Tuple (Cons a as) (Cons b bs)) (Tup
 foldM :: forall m a b. (Monad m) => (a -> b -> m a) -> a -> List b -> m a
 foldM _ a Nil = return a
 foldM f a (Cons b bs) = f a b >>= \a' -> foldM f a' bs
+
+--------------------------------------------------------------------------------
+-- Deprecated functions --------------------------------------------------------
+--------------------------------------------------------------------------------
 
 -- | *Deprecated.* Use `fromFoldable` instead. `toList` will be removed in a
 -- | later version.

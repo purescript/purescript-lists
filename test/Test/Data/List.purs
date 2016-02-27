@@ -306,6 +306,17 @@ testList = do
   --     primes = eratos $ upFrom 2
   -- assert $ L.fromList (L.take 10 primes) == [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 
+  log "transpose"
+  assert $ transpose (l [l [1,2,3], l[4,5,6], l [7,8,9]]) ==
+                     (l [l [1,4,7], l[2,5,8], l [3,6,9]])
+  log "transpose skips elements when rows don't match"
+  assert $ transpose ((10:11:Nil) : (20:Nil) : Nil : (30:31:32:Nil) : Nil) ==
+                     ((10:20:30:Nil) : (11:31:Nil) : (32:Nil) : Nil)
+  log "transpose Nil == Nil"
+  assert $ transpose Nil == (Nil :: List (List Int))
+  log "transpose (singleton Nil) == Nil"
+  assert $ transpose (singleton Nil) == (Nil :: List (List Int))
+
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing
 step n = Just (Tuple n (n + 1))

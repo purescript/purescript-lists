@@ -104,6 +104,10 @@ Running time: `O(1)`
 singleton :: forall a. a -> List a
 ```
 
+Create a list with a single element.
+
+Running time: `O(1)`
+
 #### `(..)`
 
 ``` purescript
@@ -152,6 +156,10 @@ Create a list by repeating another list
 null :: forall a. List a -> Boolean
 ```
 
+Test whether a list is empty.
+
+Running time: `O(1)`
+
 #### `length`
 
 ``` purescript
@@ -167,6 +175,10 @@ Running time: `O(n)`
 ``` purescript
 cons :: forall a. a -> List a -> List a
 ```
+
+Attach an element to the front of a lazy list.
+
+Running time: `O(1)`
 
 #### `(:)`
 
@@ -207,6 +219,10 @@ Running time: `O(n)`
 ``` purescript
 head :: forall a. List a -> Maybe a
 ```
+
+Get the first element in a list, or `Nothing` if the list is empty.
+
+Running time: `O(1)`.
 
 #### `last`
 
@@ -254,6 +270,10 @@ Running time: `O(1)`
 ``` purescript
 index :: forall a. List a -> Int -> Maybe a
 ```
+
+Get the element at the specified index, or `Nothing` if the index is out-of-bounds.
+
+Running time: `O(n)` where `n` is the required index.
 
 #### `(!!)`
 
@@ -343,6 +363,10 @@ Running time: `O(n)`
 reverse :: forall a. List a -> List a
 ```
 
+Reverse a list.
+
+Running time: `O(n)`
+
 #### `concat`
 
 ``` purescript
@@ -399,6 +423,10 @@ a value.
 ``` purescript
 take :: forall a. Int -> List a -> List a
 ```
+
+Take the specified number of elements from the front of a list.
+
+Running time: `O(n)` where `n` is the number of elements to take.
 
 #### `takeWhile`
 
@@ -481,6 +509,10 @@ Running time: `O(n)`
 ``` purescript
 nub :: forall a. (Eq a) => List a -> List a
 ```
+
+Remove duplicate elements from a list.
+
+Running time: `O(n^2)`
 
 #### `nubBy`
 
@@ -574,6 +606,19 @@ Running time: `O(n^2)`
 zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
 ```
 
+Apply a function to pairs of elements at the same positions in two lists,
+collecting the results in a new list.
+
+If one list is longer, elements will be discarded from the longer list.
+
+For example
+
+```purescript
+zipWith (*) (1 : 2 : 3 : Nil) (4 : 5 : 6 : 7 Nil) == 4 : 10 : 18 : Nil
+```
+
+Running time: `O(min(m, n))`
+
 #### `zip`
 
 ``` purescript
@@ -583,6 +628,23 @@ zip :: forall a b. List a -> List b -> List (Tuple a b)
 Collect pairs of elements at the same positions in two lists.
 
 Running time: `O(min(m, n))`
+
+#### `transpose`
+
+``` purescript
+transpose :: forall a. List (List a) -> List (List a)
+```
+
+The 'transpose' function transposes the rows and columns of its argument.
+For example,
+
+    transpose ((1:2:3:nil) : (4:5:6:nil) : nil) ==
+      ((1:4:nil) : (2:5:nil) : (3:6:nil) : nil)
+
+If some of the rows are shorter than the following rows, their elements are skipped:
+
+    transpose ((10:11:nil) : (20:nil) : nil : (30:31:32:nil) : nil) ==
+      ((10:20:30:nil) : (11:31:nil) : (32:nil) : nil)
 
 #### `toList`
 
