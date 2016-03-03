@@ -22,7 +22,7 @@ module Data.List
   , null
   , length
 
-  , (:), cons
+  , (:)
   , snoc
   , insert
   , insertBy
@@ -197,9 +197,7 @@ length = foldl (\acc _ -> acc + 1) 0
 -- | a list.
 -- |
 -- | Running time: `O(1)`
-cons :: forall a. a -> List a -> List a
-cons = Cons
-infixr 6 cons as :
+infixr 6 Cons as :
 
 -- | Append an element to the end of an array, creating a new array.
 -- |
@@ -286,11 +284,11 @@ infixl 8 index as !!
 
 -- | Find the index of the first element equal to the specified element.
 elemIndex :: forall a. (Eq a) => a -> List a -> Maybe Int
-elemIndex x = findIndex (== x)
+elemIndex x = findIndex (_ == x)
 
 -- | Find the index of the last element equal to the specified element.
 elemLastIndex :: forall a. (Eq a) => a -> List a -> Maybe Int
-elemLastIndex x = findLastIndex (== x)
+elemLastIndex x = findLastIndex (_ == x)
 
 -- | Find the first index for which a predicate holds.
 findIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
@@ -370,7 +368,7 @@ reverse = go Nil
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (>>= id)
+concat = (_ >>= id)
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.

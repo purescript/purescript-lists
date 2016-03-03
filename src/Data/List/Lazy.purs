@@ -385,7 +385,7 @@ reverse xs = go nil (step xs)
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (>>= id)
+concat = (_ >>= id)
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.

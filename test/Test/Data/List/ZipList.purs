@@ -1,15 +1,10 @@
 module Test.Data.List.ZipList (testZipList) where
 
-import Prelude
+import Prelude (class Eq, Unit, (<<<), (<*>), (<$>), (==), ($), const, (*), bind, (+))
 import Control.Monad.Eff (Eff())
 import Control.Monad.Eff.Console (CONSOLE(), log)
-import Data.Foldable
-import Data.Monoid.Additive
 import Data.List.Lazy as LazyList
 import Data.List.ZipList (ZipList(..))
-import Data.Maybe (Maybe(..), isNothing)
-import Data.Maybe.Unsafe (fromJust)
-import Data.Tuple (Tuple(..))
 import Data.Array as Array
 import Test.Assert (ASSERT(), assert)
 
