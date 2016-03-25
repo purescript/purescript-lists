@@ -1,10 +1,10 @@
 module Test.Data.List.Unsafe (testListUnsafe) where
 
-import Prelude
+import Prelude (Unit, bind, (==), ($))
 import Control.Monad.Eff (Eff())
 import Control.Monad.Eff.Console (CONSOLE(), log)
 import Data.List (List(..), fromFoldable)
-import Data.List.Unsafe
+import Data.List.Unsafe (init, tail, last, head)
 import Test.Assert (ASSERT(), assert, assertThrows)
 
 testListUnsafe :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit

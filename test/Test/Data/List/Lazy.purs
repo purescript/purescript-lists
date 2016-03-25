@@ -1,9 +1,9 @@
 module Test.Data.List.Lazy (testListLazy) where
 
-import Prelude
+import Prelude (Unit, (*), zero, (/=), mod, (==), ($), bind, show, (<), (&&), map, const, (+), (<<<), negate, compare, flip)
 import Control.Monad.Eff (Eff())
 import Control.Monad.Eff.Console (CONSOLE(), log)
-import Data.List.Lazy
+import Data.List.Lazy (List, nil, cons, zip, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, span, dropWhile, drop, takeWhile, take, catMaybes, mapMaybe, range, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, (!!), uncons, init, tail, last, head, insertBy, insert, length, null, singleton, fromFoldable, transpose, (:))
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Maybe.Unsafe (fromJust)
 import Data.Tuple (Tuple(..))
@@ -136,12 +136,12 @@ testListLazy = do
   assert $ (updateAt 1 9 (l [1, 2, 3])) == (l [1, 9, 3])
 
   log "modifyAt should update an item at the specified index"
-  assert $ (modifyAt 0 (+ 1) (l [1, 2, 3])) == (l [2, 2, 3])
-  assert $ (modifyAt 1 (+ 1) (l [1, 2, 3])) == (l [1, 3, 3])
+  assert $ (modifyAt 0 (_ + 1) (l [1, 2, 3])) == (l [2, 2, 3])
+  assert $ (modifyAt 1 (_ + 1) (l [1, 2, 3])) == (l [1, 3, 3])
 
   log "alterAt should update an item at the specified index when the function returns Just"
-  assert $ (alterAt 0 (Just <<< (+ 1)) (l [1, 2, 3])) == (l [2, 2, 3])
-  assert $ (alterAt 1 (Just <<< (+ 1)) (l [1, 2, 3])) == (l [1, 3, 3])
+  assert $ (alterAt 0 (Just <<< (_ + 1)) (l [1, 2, 3])) == (l [2, 2, 3])
+  assert $ (alterAt 1 (Just <<< (_ + 1)) (l [1, 2, 3])) == (l [1, 3, 3])
 
   log "alterAt should drop an item at the specified index when the function returns Nothing"
   assert $ (alterAt 0 (const Nothing) (l [1, 2, 3])) == (l [2, 3])
@@ -184,9 +184,9 @@ testListLazy = do
   assert $ (take 1 nil') == nil'
 
   log "takeWhile should keep all values that match a predicate from the front of an list"
-  assert $ (takeWhile (/= 2) (l [1, 2, 3])) == l [1]
-  assert $ (takeWhile (/= 3) (l [1, 2, 3])) == l [1, 2]
-  assert $ (takeWhile (/= 1) nil') == nil'
+  assert $ (takeWhile (_ /= 2) (l [1, 2, 3])) == l [1]
+  assert $ (takeWhile (_ /= 3) (l [1, 2, 3])) == l [1, 2]
+  assert $ (takeWhile (_ /= 1) nil') == nil'
 
   log "drop should remove the specified number of items from the front of an list"
   assert $ (drop 1 (l [1, 2, 3])) == l [2, 3]
@@ -194,12 +194,12 @@ testListLazy = do
   assert $ (drop 1 nil') == nil'
 
   log "dropWhile should remove all values that match a predicate from the front of an list"
-  assert $ (dropWhile (/= 1) (l [1, 2, 3])) == l [1, 2, 3]
-  assert $ (dropWhile (/= 2) (l [1, 2, 3])) == l [2, 3]
-  assert $ (dropWhile (/= 1) nil') == nil'
+  assert $ (dropWhile (_ /= 1) (l [1, 2, 3])) == l [1, 2, 3]
+  assert $ (dropWhile (_ /= 2) (l [1, 2, 3])) == l [2, 3]
+  assert $ (dropWhile (_ /= 1) nil') == nil'
 
   log "span should split an list in two based on a predicate"
-  let spanResult = span (< 4) (l [1, 2, 3, 4, 5, 6, 7])
+  let spanResult = span (_ < 4) (l [1, 2, 3, 4, 5, 6, 7])
   assert $ spanResult.init == l [1, 2, 3]
   assert $ spanResult.rest == l [4, 5, 6, 7]
 

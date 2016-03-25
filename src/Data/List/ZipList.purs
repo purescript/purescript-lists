@@ -6,16 +6,16 @@ module Data.List.ZipList
   , runZipList
   ) where
 
-import Prelude
+import Prelude (class Applicative, class Apply, class Functor, class Semigroup, class Ord, class Eq, class Show, append, (<<<), ($), map, (<$>), (++), compare, eq, show)
 
-import Control.Alt (Alt)
-import Control.Alternative (Alternative)
-import Control.Plus (Plus)
+import Control.Alt (class Alt)
+import Control.Alternative (class Alternative)
+import Control.Plus (class Plus)
 
-import Data.Foldable (Foldable, foldMap, foldl, foldr)
+import Data.Foldable (class Foldable, foldMap, foldl, foldr)
 import Data.List.Lazy (List(), repeat, zipWith)
-import Data.Monoid (Monoid, mempty)
-import Data.Traversable (Traversable, traverse, sequence)
+import Data.Monoid (class Monoid, mempty)
+import Data.Traversable (class Traversable, traverse, sequence)
 
 -- | `ZipList` is a newtype around `List` which provides a zippy
 -- | `Applicative` instance.

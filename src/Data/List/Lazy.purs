@@ -78,7 +78,7 @@ module Data.List.Lazy
   , unionBy
   , delete
   , deleteBy
-  , (\\)
+  , (\\), difference
   , intersect
   , intersectBy
 
@@ -94,21 +94,21 @@ module Data.List.Lazy
   , fromList
   ) where
 
-import Prelude
+import Prelude (class Monad, class Bind, class Applicative, class Apply, class Functor, class Semigroup, class Ord, class Eq, class Show, Ordering(EQ, GT, LT), append, flip, ap, (<*>), (<$>), pure, (<>), (<<<), ($), compare, (==), (++), show, otherwise, not, eq, (-), id, (>>=), (+), negate, (>))
 
-import Control.Alt (Alt)
-import Control.Alternative (Alternative)
-import Control.MonadPlus (MonadPlus)
-import Control.Plus (Plus)
-import qualified Control.Lazy as Z
+import Control.Alt (class Alt)
+import Control.Alternative (class Alternative)
+import Control.MonadPlus (class MonadPlus)
+import Control.Plus (class Plus)
+import Control.Lazy as Z
 
-import Data.Foldable (Foldable, foldMap, foldl, foldr, any)
+import Data.Foldable (class Foldable, foldMap, foldl, foldr, any)
 import Data.Lazy (Lazy(), defer, force)
 import Data.Maybe (Maybe(..), isNothing)
-import Data.Monoid (Monoid, mempty)
-import Data.Traversable (Traversable, traverse, sequence)
+import Data.Monoid (class Monoid, mempty)
+import Data.Traversable (class Traversable, traverse, sequence)
 import Data.Tuple (Tuple(..))
-import Data.Unfoldable (Unfoldable, unfoldr)
+import Data.Unfoldable (class Unfoldable, unfoldr)
 
 
 -- | A lazy linked list.
@@ -159,8 +159,7 @@ singleton :: forall a. a -> List a
 singleton a = cons a nil
 
 -- | An infix synonym for `range`.
-(..) :: Int -> Int -> List Int
-(..) = range
+infix 8 range as ..
 
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
@@ -211,14 +210,11 @@ length xs = go (step xs)
 cons :: forall a. a -> List a -> List a
 cons x xs = List $ defer \_ -> Cons x xs
 
-infixr 6 :
-
 -- | An infix alias for `cons`; attaches an element to the front of
 -- | a list.
 -- |
 -- | Running time: `O(1)`
-(:) :: forall a. a -> List a -> List a
-(:) = cons
+infixr 6 cons as :
 
 -- | Insert an element into a sorted list.
 -- |
@@ -299,11 +295,8 @@ index xs = go (step xs)
   go (Cons a _) 0 = Just a
   go (Cons _ as) i = go (step as) (i - 1)
 
-infixl 8 !!
-
 -- | An infix synonym for `index`.
-(!!) :: forall a. List a -> Int -> Maybe a
-(!!) = index
+infixl 8 index as !!
 
 -- | Insert an element into a list at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
@@ -392,7 +385,7 @@ reverse xs = go nil (step xs)
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (>>= id)
+concat = (_ >>= id)
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.
@@ -574,13 +567,12 @@ deleteBy eq x xs = List (go <$> runList xs)
   go (Cons y ys) | eq x y = step ys
                  | otherwise = Cons y (deleteBy eq x ys)
 
-infix 5 \\
-
 -- | Delete the first occurrence of each element in the second list from the first list.
 -- |
 -- | Running time: `O(n^2)`
-(\\) :: forall a. (Eq a) => List a -> List a -> List a
-(\\) = foldl (flip delete)
+difference :: forall a. (Eq a) => List a -> List a -> List a
+difference = foldl (flip delete)
+infix 5 difference as \\
 
 -- | Calculate the intersection of two lists.
 -- |

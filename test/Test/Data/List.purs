@@ -1,11 +1,11 @@
 module Test.Data.List (testList) where
 
-import Prelude
+import Prelude (Unit, (*), zero, (/=), mod, (+), (==), ($), bind, pure, void, show, (<), (&&), compare, flip, const, (<<<), map, negate)
 import Control.Monad.Eff (Eff())
 import Control.Monad.Eff.Console (CONSOLE(), log)
-import Data.Foldable
-import Data.Monoid.Additive
-import Data.List
+import Data.Foldable (foldMap, foldl)
+import Data.Monoid.Additive (Additive(Additive))
+import Data.List (List(Nil, Cons), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, init, tail, last, head, insertBy, insert, snoc, null, replicateM, replicate, singleton, fromFoldable, transpose, (:))
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Maybe.Unsafe (fromJust)
 import Data.Tuple (Tuple(..))
@@ -120,12 +120,12 @@ testList = do
   assert $ elemLastIndex 4 (l [1, 2, 1]) == Nothing
 
   log "findIndex should return the index of an item that a predicate returns true for in an list"
-  assert $ findIndex (/= 1) (l [1, 2, 1]) == Just 1
-  assert $ findIndex (== 3) (l [1, 2, 1]) == Nothing
+  assert $ findIndex (_ /= 1) (l [1, 2, 1]) == Just 1
+  assert $ findIndex (_ == 3) (l [1, 2, 1]) == Nothing
 
   log "findLastIndex should return the last index of an item in an list"
-  assert $ findLastIndex (/= 1) (l [2, 1, 2]) == Just 2
-  assert $ findLastIndex (== 3) (l [2, 1, 2]) == Nothing
+  assert $ findLastIndex (_ /= 1) (l [2, 1, 2]) == Just 2
+  assert $ findLastIndex (_ == 3) (l [2, 1, 2]) == Nothing
 
   log "insertAt should add an item at the specified index"
   assert $ (insertAt 0 1 (l [2, 3])) == Just (l [1, 2, 3])
@@ -150,22 +150,22 @@ testList = do
   assert $ (updateAt 1 9 nil) == Nothing
 
   log "modifyAt should update an item at the specified index"
-  assert $ (modifyAt 0 (+ 1) (l [1, 2, 3])) == Just (l [2, 2, 3])
-  assert $ (modifyAt 1 (+ 1) (l [1, 2, 3])) == Just (l [1, 3, 3])
+  assert $ (modifyAt 0 (_ + 1) (l [1, 2, 3])) == Just (l [2, 2, 3])
+  assert $ (modifyAt 1 (_ + 1) (l [1, 2, 3])) == Just (l [1, 3, 3])
 
   log "modifyAt should return Nothing if the index is out of range"
-  assert $ (modifyAt 1 (+ 1) nil) == Nothing
+  assert $ (modifyAt 1 (_ + 1) nil) == Nothing
 
   log "alterAt should update an item at the specified index when the function returns Just"
-  assert $ (alterAt 0 (Just <<< (+ 1)) (l [1, 2, 3])) == Just (l [2, 2, 3])
-  assert $ (alterAt 1 (Just <<< (+ 1)) (l [1, 2, 3])) == Just (l [1, 3, 3])
+  assert $ (alterAt 0 (Just <<< (_ + 1)) (l [1, 2, 3])) == Just (l [2, 2, 3])
+  assert $ (alterAt 1 (Just <<< (_ + 1)) (l [1, 2, 3])) == Just (l [1, 3, 3])
 
   log "alterAt should drop an item at the specified index when the function returns Nothing"
   assert $ (alterAt 0 (const Nothing) (l [1, 2, 3])) == Just (l [2, 3])
   assert $ (alterAt 1 (const Nothing) (l [1, 2, 3])) == Just (l [1, 3])
 
   log "alterAt should return Nothing if the index is out of range"
-  assert $ (alterAt 1 (Just <<< (+ 1)) nil) == Nothing
+  assert $ (alterAt 1 (Just <<< (_ + 1)) nil) == Nothing
 
   log "reverse should reverse the order of items in an list"
   assert $ (reverse (l [1, 2, 3])) == l [3, 2, 1]
@@ -207,9 +207,9 @@ testList = do
   assert $ (take 1 nil) == nil
 
   log "takeWhile should keep all values that match a predicate from the front of an list"
-  assert $ (takeWhile (/= 2) (l [1, 2, 3])) == l [1]
-  assert $ (takeWhile (/= 3) (l [1, 2, 3])) == l [1, 2]
-  assert $ (takeWhile (/= 1) nil) == nil
+  assert $ (takeWhile (_ /= 2) (l [1, 2, 3])) == l [1]
+  assert $ (takeWhile (_ /= 3) (l [1, 2, 3])) == l [1, 2]
+  assert $ (takeWhile (_ /= 1) nil) == nil
 
   log "drop should remove the specified number of items from the front of an list"
   assert $ (drop 1 (l [1, 2, 3])) == l [2, 3]
@@ -217,12 +217,12 @@ testList = do
   assert $ (drop 1 nil) == nil
 
   log "dropWhile should remove all values that match a predicate from the front of an list"
-  assert $ (dropWhile (/= 1) (l [1, 2, 3])) == l [1, 2, 3]
-  assert $ (dropWhile (/= 2) (l [1, 2, 3])) == l [2, 3]
-  assert $ (dropWhile (/= 1) nil) == nil
+  assert $ (dropWhile (_ /= 1) (l [1, 2, 3])) == l [1, 2, 3]
+  assert $ (dropWhile (_ /= 2) (l [1, 2, 3])) == l [2, 3]
+  assert $ (dropWhile (_ /= 1) nil) == nil
 
   log "span should split an list in two based on a predicate"
-  let spanResult = span (< 4) (l [1, 2, 3, 4, 5, 6, 7])
+  let spanResult = span (_ < 4) (l [1, 2, 3, 4, 5, 6, 7])
   assert $ spanResult.init == l [1, 2, 3]
   assert $ spanResult.rest == l [4, 5, 6, 7]
 
