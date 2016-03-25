@@ -20,9 +20,6 @@ Some of this code is derived from GHC's standard libraries (`base`);
 according to its terms, we have included GHC's license in the file
 `LICENSE-GHC.md`.
 
-## Module documentation
+## Documentation
 
-- [Data.List](docs/Data/List.md)
-- [Data.List.Lazy](docs/Data/List/Lazy.md)
-- [Data.List.Unsafe](docs/Data/List/Unsafe.md)
-- [Data.List.ZipList](docs/Data/List/ZipList.md)
+Module documentation is [published on Pursuit](http://pursuit.purescript.org/packages/purescript-lists).

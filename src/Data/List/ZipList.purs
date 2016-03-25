@@ -6,14 +6,14 @@ module Data.List.ZipList
   , runZipList
   ) where
 
-import Prelude (class Applicative, class Apply, class Functor, class Semigroup, class Ord, class Eq, class Show, append, (<<<), ($), map, (<$>), (++), compare, eq, show)
+import Prelude
 
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
 import Control.Plus (class Plus)
 
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
-import Data.List.Lazy (List(), repeat, zipWith)
+import Data.List.Lazy (List, repeat, zipWith)
 import Data.Monoid (class Monoid, mempty)
 import Data.Traversable (class Traversable, traverse, sequence)
 
@@ -25,17 +25,17 @@ newtype ZipList a = ZipList (List a)
 runZipList :: forall a. ZipList a -> List a
 runZipList (ZipList xs) = xs
 
-instance showZipList :: (Show a) => Show (ZipList a) where
-  show (ZipList xs) = "(ZipList " ++ show xs ++ ")"
+instance showZipList :: Show a => Show (ZipList a) where
+  show (ZipList xs) = "(ZipList " <> show xs <> ")"
 
-instance eqZipList :: (Eq a) => Eq (ZipList a) where
+instance eqZipList :: Eq a => Eq (ZipList a) where
   eq z1 z2 = runZipList z1 `eq` runZipList z2
 
-instance ordZipList :: (Ord a) => Ord (ZipList a) where
+instance ordZipList :: Ord a => Ord (ZipList a) where
   compare z1 z2 = runZipList z1 `compare` runZipList z2
 
 instance semigroupZipList :: Semigroup (ZipList a) where
-  append z1 z2 = ZipList (runZipList z1 ++ runZipList z2)
+  append z1 z2 = ZipList (runZipList z1 <> runZipList z2)
 
 instance monoidZipList :: Monoid (ZipList a) where
   mempty = ZipList mempty
