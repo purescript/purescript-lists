@@ -1,15 +1,19 @@
 module Test.Data.List (testList) where
 
-import Prelude (Unit, (*), zero, (/=), mod, (+), (==), ($), bind, pure, void, show, (<), (&&), compare, flip, const, (<<<), map, negate)
-import Control.Monad.Eff (Eff())
-import Control.Monad.Eff.Console (CONSOLE(), log)
+import Prelude
+
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE, log)
+
 import Data.Foldable (foldMap, foldl)
+import Data.List (List(Nil, Cons), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, init, tail, last, head, insertBy, insert, snoc, null, replicateM, replicate, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(Additive))
-import Data.List (List(Nil, Cons), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, init, tail, last, head, insertBy, insert, snoc, null, replicateM, replicate, singleton, fromFoldable, transpose, (:))
-import Data.Maybe (Maybe(..), isNothing)
-import Data.Maybe.Unsafe (fromJust)
 import Data.Tuple (Tuple(..))
-import Test.Assert (ASSERT(), assert)
+
+import Partial.Unsafe (unsafePartial)
+
+import Test.Assert (ASSERT, assert)
 
 testList :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
 testList = do
@@ -96,11 +100,11 @@ testList = do
 
   log "uncons should split an list into a head and tail record when there is at least one item"
   let u1 = uncons (l [1])
-  assert $ (fromJust u1).head == 1
-  assert $ (fromJust u1).tail == l []
+  assert $ unsafePartial (fromJust u1).head == 1
+  assert $ unsafePartial (fromJust u1).tail == l []
   let u2 = uncons (l [1, 2, 3])
-  assert $ (fromJust u2).head == 1
-  assert $ (fromJust u2).tail == l [2, 3]
+  assert $ unsafePartial (fromJust u2).head == 1
+  assert $ unsafePartial (fromJust u2).tail == l [2, 3]
 
   log "(!!) should return Just x when the index is within the bounds of the list"
   assert $ l [1, 2, 3] !! 0 == (Just 1)
@@ -193,7 +197,7 @@ testList = do
   assert $ catMaybes (l [Nothing, Just 2, Nothing, Just 4]) == l [2, 4]
 
   log "mapWithIndex should take a list of values and apply a function which also takes the index into account"
-  assert $ mapWithIndex (\x ix -> x + ix) (toList [0, 1, 2, 3]) == toList [0, 2, 4, 6]
+  assert $ mapWithIndex (\x ix -> x + ix) (fromFoldable [0, 1, 2, 3]) == fromFoldable [0, 2, 4, 6]
 
   log "sort should reorder a list into ascending order based on the result of compare"
   assert $ sort (l [1, 3, 2, 5, 6, 4]) == l [1, 2, 3, 4, 5, 6]

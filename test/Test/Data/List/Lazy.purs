@@ -1,13 +1,17 @@
 module Test.Data.List.Lazy (testListLazy) where
 
-import Prelude (Unit, (*), zero, (/=), mod, (==), ($), bind, show, (<), (&&), map, const, (+), (<<<), negate, compare, flip)
-import Control.Monad.Eff (Eff())
-import Control.Monad.Eff.Console (CONSOLE(), log)
+import Prelude
+
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE, log)
+
 import Data.List.Lazy (List, nil, cons, zip, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, span, dropWhile, drop, takeWhile, take, catMaybes, mapMaybe, range, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, (!!), uncons, init, tail, last, head, insertBy, insert, length, null, singleton, fromFoldable, transpose, (:))
-import Data.Maybe (Maybe(..), isNothing)
-import Data.Maybe.Unsafe (fromJust)
+import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Tuple (Tuple(..))
-import Test.Assert (ASSERT(), assert)
+
+import Partial.Unsafe (unsafePartial)
+
+import Test.Assert (ASSERT, assert)
 
 testListLazy :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
 testListLazy = do
@@ -91,11 +95,11 @@ testListLazy = do
 
   log "uncons should split an list into a head and tail record when there is at least one item"
   let u1 = uncons (l [1])
-  assert $ (fromJust u1).head == 1
-  assert $ (fromJust u1).tail == l []
+  assert $ unsafePartial (fromJust u1).head == 1
+  assert $ unsafePartial(fromJust u1).tail == l []
   let u2 = uncons (l [1, 2, 3])
-  assert $ (fromJust u2).head == 1
-  assert $ (fromJust u2).tail == l [2, 3]
+  assert $ unsafePartial (fromJust u2).head == 1
+  assert $ unsafePartial (fromJust u2).tail == l [2, 3]
 
   log "(!!) should return Just x when the index is within the bounds of the list"
   assert $ l [1, 2, 3] !! 0 == (Just 1)

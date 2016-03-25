@@ -90,20 +90,19 @@ module Data.List.Lazy
   , transpose
 
   -- , foldM
-  , toList
-  , fromList
   ) where
 
-import Prelude (class Monad, class Bind, class Applicative, class Apply, class Functor, class Semigroup, class Ord, class Eq, class Show, Ordering(EQ, GT, LT), append, flip, ap, (<*>), (<$>), pure, (<>), (<<<), ($), compare, (==), (++), show, otherwise, not, eq, (-), id, (>>=), (+), negate, (>))
+import Prelude
 
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
-import Control.MonadPlus (class MonadPlus)
-import Control.Plus (class Plus)
 import Control.Lazy as Z
+import Control.MonadPlus (class MonadPlus)
+import Control.MonadZero (class MonadZero)
+import Control.Plus (class Plus)
 
 import Data.Foldable (class Foldable, foldMap, foldl, foldr, any)
-import Data.Lazy (Lazy(), defer, force)
+import Data.Lazy (Lazy, defer, force)
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Monoid (class Monoid, mempty)
 import Data.Traversable (class Traversable, traverse, sequence)
@@ -121,13 +120,13 @@ runList (List l) = l
 -- | Convert a list into any unfoldable structure.
 -- |
 -- | Running time: `O(n)`
-toUnfoldable :: forall f a. (Unfoldable f) => List a -> f a
+toUnfoldable :: forall f a. Unfoldable f => List a -> f a
 toUnfoldable = unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> uncons xs)
 
 -- | Construct a list from a foldable structure.
 -- |
 -- | Running time: `O(n)`
-fromFoldable :: forall f a. (Foldable f) => f a -> List a
+fromFoldable :: forall f a. Foldable f => f a -> List a
 fromFoldable = foldr cons nil
 
 -- | A list is either empty (represented by the `Nil` constructor) or non-empty, in
@@ -219,7 +218,7 @@ infixr 6 cons as :
 -- | Insert an element into a sorted list.
 -- |
 -- | Running time: `O(n)`
-insert :: forall a. (Ord a) => a -> List a -> List a
+insert :: forall a. Ord a => a -> List a -> List a
 insert = insertBy compare
 
 -- | Insert an element into a sorted list, using the specified function to determine the ordering
@@ -502,7 +501,7 @@ span p xs =
 -- | ```
 -- |
 -- | Running time: `O(n)`
-group :: forall a. (Eq a) => List a -> List (List a)
+group :: forall a. Eq a => List a -> List (List a)
 group = groupBy (==)
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
@@ -524,7 +523,7 @@ groupBy eq xs = List (go <$> runList xs)
 -- | Remove duplicate elements from a list.
 -- |
 -- | Running time: `O(n^2)`
-nub :: forall a. (Eq a) => List a -> List a
+nub :: forall a. Eq a => List a -> List a
 nub = nubBy eq
 
 -- | Remove duplicate elements from a list, using the specified
@@ -540,7 +539,7 @@ nubBy eq xs = List (go <$> runList xs)
 -- | Calculate the union of two lists.
 -- |
 -- | Running time: `O(n^2)`
-union :: forall a. (Eq a) => List a -> List a -> List a
+union :: forall a. Eq a => List a -> List a -> List a
 union = unionBy (==)
 
 -- | Calculate the union of two lists, using the specified
@@ -553,7 +552,7 @@ unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
 -- | Delete the first occurrence of an element from a list.
 -- |
 -- | Running time: `O(n)`
-delete :: forall a. (Eq a) => a -> List a -> List a
+delete :: forall a. Eq a => a -> List a -> List a
 delete = deleteBy (==)
 
 -- | Delete the first occurrence of an element from a list, using the specified
@@ -570,14 +569,14 @@ deleteBy eq x xs = List (go <$> runList xs)
 -- | Delete the first occurrence of each element in the second list from the first list.
 -- |
 -- | Running time: `O(n^2)`
-difference :: forall a. (Eq a) => List a -> List a -> List a
+difference :: forall a. Eq a => List a -> List a -> List a
 difference = foldl (flip delete)
 infix 5 difference as \\
 
 -- | Calculate the intersection of two lists.
 -- |
 -- | Running time: `O(n^2)`
-intersect :: forall a. (Eq a) => List a -> List a -> List a
+intersect :: forall a. Eq a => List a -> List a -> List a
 intersect = intersectBy (==)
 
 -- | Calculate the intersection of two lists, using the specified
@@ -644,30 +643,16 @@ transpose xs =
           (x : mapMaybe head xss) : transpose (xs : mapMaybe tail xss)
 
 --------------------------------------------------------------------------------
--- Deprecated functions --------------------------------------------------------
---------------------------------------------------------------------------------
-
--- | *Deprecated.* Use `fromFoldable` instead. `toList` will be removed in a
--- | later version.
-toList :: forall f a. (Foldable f) => f a -> List a
-toList = fromFoldable
-
--- | *Deprecated.* Use `toUnfoldable` instead. `fromList` will be removed in a
--- | later version.
-fromList :: forall f a. (Unfoldable f) => List a -> f a
-fromList = toUnfoldable
-
---------------------------------------------------------------------------------
 -- Instances -------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-instance showList :: (Show a) => Show (List a) where
-  show xs = "fromStrict (" ++ go (step xs) ++ ")"
+instance showList :: Show a => Show (List a) where
+  show xs = "fromStrict (" <> go (step xs) <> ")"
     where
     go Nil = "Nil"
-    go (Cons x xs) = "Cons (" ++ show x ++ ") (" ++ go (step xs) ++ ")"
+    go (Cons x xs) = "(Cons " <> show x <> " " <> go (step xs) <> ")"
 
-instance eqList :: (Eq a) => Eq (List a) where
+instance eqList :: Eq a => Eq (List a) where
   eq xs ys = go (step xs) (step ys)
     where
     go Nil Nil = true
@@ -675,7 +660,7 @@ instance eqList :: (Eq a) => Eq (List a) where
       | x == y = go (step xs) (step ys)
     go _ _ = false
 
-instance ordList :: (Ord a) => Ord (List a) where
+instance ordList :: Ord a => Ord (List a) where
   compare xs ys = go (step xs) (step ys)
     where
     go Nil Nil = EQ
@@ -717,7 +702,7 @@ instance foldableList :: Foldable List where
     go Nil = b
     go (Cons a as) = foldl o (b `o` a) as
 
-  -- foldMap :: forall a m. (Monoid m) => (a -> m) -> f a -> m
+  -- foldMap :: forall a m. Monoid m => (a -> m) -> f a -> m
   foldMap f xs = go (step xs)
     where
     go Nil = mempty
@@ -732,13 +717,13 @@ instance unfoldableList :: Unfoldable List where
     go (Just (Tuple a b)) = a : Z.defer \_ -> go (f b)
 
 instance traversableList :: Traversable List where
-  -- traverse :: forall a b m. (Applicative m) => (a -> m b) -> t a -> m (t b)
+  -- traverse :: forall a b m. Applicative m => (a -> m b) -> t a -> m (t b)
   traverse f xs = go (step xs)
     where
     go Nil = pure nil
     go (Cons x xs) = cons <$> f x <*> traverse f xs
 
-  -- sequence :: forall a m. (Applicative m) => t (m a) -> m (t a)
+  -- sequence :: forall a m. Applicative m => t (m a) -> m (t a)
   sequence xs = go (step xs)
     where
     go Nil = pure nil
@@ -762,5 +747,7 @@ instance plusList :: Plus List where
   empty = nil
 
 instance alternativeList :: Alternative List
+
+instance monadZeroList :: MonadZero List
 
 instance monadPlusList :: MonadPlus List
