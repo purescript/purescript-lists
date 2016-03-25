@@ -431,6 +431,14 @@ catMaybes :: forall a. List (Maybe a) -> List a
 Filter a list of optional values, keeping only the elements which contain
 a value.
 
+#### `mapWithIndex`
+
+``` purescript
+mapWithIndex :: forall a b. (a -> Int -> b) -> List a -> List b
+```
+
+Apply a function to each element and its index in a list starting at 0.
+
 #### `sort`
 
 ``` purescript
