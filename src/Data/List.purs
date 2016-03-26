@@ -200,7 +200,7 @@ length = foldl (\acc _ -> acc + 1) 0
 -- | Running time: `O(1)`
 infixr 6 Cons as :
 
--- | Append an element to the end of an array, creating a new array.
+-- | Append an element to the end of a list, creating a new list.
 -- |
 -- | Running time: `O(2n)`
 snoc :: forall a. List a -> a -> List a
