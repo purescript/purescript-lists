@@ -302,7 +302,7 @@ findIndex fn = go 0
 
 -- | Find the last index for which a predicate holds.
 findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
-findLastIndex fn xs = ((length xs - 1) -) <$> findIndex fn (reverse xs)
+findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 
 -- | Insert an element into a list at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
