@@ -288,6 +288,11 @@ testListLazy = do
   log "transpose (singleton nil) == nil"
   assert $ transpose (singleton nil) == (nil :: List (List Int))
 
+  log "show should generate correct output for finite lists"
+  assert $ show (nil :: List Int) == "fromFoldable []"
+  assert $ show (cons 1 nil) == "fromFoldable [1]"
+  assert $ show (cons 1 (cons 2 nil)) == "fromFoldable [1,2]"
+
 nil' :: List Int
 nil' = nil
 
