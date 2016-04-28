@@ -324,6 +324,11 @@ testList = do
   log "transpose (singleton Nil) == Nil"
   assert $ transpose (singleton Nil) == (Nil :: List (List Int))
 
+  log "show should generate correct output"
+  assert $ show (Nil :: List Int) == "fromFoldable []"
+  assert $ show (Cons 1 Nil) == "fromFoldable [1]"
+  assert $ show (Cons 1 (Cons 2 Nil)) == "fromFoldable [1,2]"
+
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing
 step n = Just (Tuple n (n + 1))
