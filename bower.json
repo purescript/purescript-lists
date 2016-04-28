@@ -20,12 +20,17 @@
     "package.json"
   ],
   "dependencies": {
+    "purescript-prelude": "^1.0.0-rc.1",
     "purescript-foldable-traversable": "^1.0.0-rc.1",
     "purescript-lazy": "^1.0.0-rc.1",
+    "purescript-tuples": "^1.0.0-rc.1",
     "purescript-unfoldable": "^1.0.0-rc.1"
   },
   "devDependencies": {
+    "purescript-arrays": "^1.0.0-rc.1",
     "purescript-assert": "^1.0.0-rc.1",
+    "purescript-partial": "^1.0.0-rc.1",
+    "purescript-eff": "^1.0.0-rc.1",
     "purescript-console": "^1.0.0-rc.1"
   }
 }
