@@ -582,7 +582,7 @@ nub = nubBy eq
 -- | Running time: `O(n^2)`
 nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
 nubBy _     Nil = Nil
-nubBy (==) (Cons x xs) = Cons x (nubBy (==) (filter (\y -> not (x == y)) xs))
+nubBy eq' (Cons x xs) = Cons x (nubBy eq' (filter (\y -> not (eq' x y)) xs))
 
 -- | Calculate the union of two lists.
 -- |
@@ -609,8 +609,8 @@ delete = deleteBy (==)
 -- | Running time: `O(n)`
 deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
 deleteBy _ _ Nil = Nil
-deleteBy (==) x (Cons y ys) | x == y = ys
-deleteBy (==) x (Cons y ys) = Cons y (deleteBy (==) x ys)
+deleteBy eq' x (Cons y ys) | eq' x y = ys
+deleteBy eq' x (Cons y ys) = Cons y (deleteBy eq' x ys)
 
 infix 5 difference as \\
 
