@@ -25,6 +25,7 @@
     "purescript-unfoldable": "^1.0.0-rc.1"
   },
   "devDependencies": {
+    "purescript-arrays": "^1.0.0-rc.5",
     "purescript-assert": "^1.0.0-rc.1",
     "purescript-console": "^1.0.0-rc.1"
   }

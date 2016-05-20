@@ -18,8 +18,6 @@ module Data.List.Lazy
 
   , singleton
   , (..), range
-  -- , replicate
-  -- , replicateM
   -- , some
   -- , many
   , repeat

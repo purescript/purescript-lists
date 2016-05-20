@@ -14,8 +14,6 @@ module Data.List
 
   , singleton
   , (..), range
-  , replicate
-  , replicateM
   , some
   , many
 
@@ -141,22 +139,6 @@ range start end | start == end = singleton start
   where
   go s e step rest | s == e = (Cons s rest)
                    | otherwise = go (s + step) e step (Cons s rest)
-
--- | Create a list with repeated instances of a value.
-replicate :: forall a. Int -> a -> List a
-replicate n value = go n Nil
-  where
-  go n rest | n <= 0 = rest
-            | otherwise = go (n - 1) (Cons value rest)
-
--- | Perform a monadic action `n` times collecting all of the results.
-replicateM :: forall m a. Monad m => Int -> m a -> m (List a)
-replicateM n m
-  | n < one = pure Nil
-  | otherwise = do
-      a <- m
-      as <- replicateM (n - one) m
-      pure (Cons a as)
 
 -- | Attempt a computation multiple times, requiring at least one success.
 -- |
@@ -302,7 +284,7 @@ findIndex fn = go 0
 
 -- | Find the last index for which a predicate holds.
 findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
-findLastIndex fn xs = ((length xs - 1) -) <$> findIndex fn (reverse xs)
+findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 
 -- | Insert an element into a list at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.

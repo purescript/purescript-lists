@@ -6,10 +6,11 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 
 import Data.Foldable (foldMap, foldl)
-import Data.List (List(Nil, Cons), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, init, tail, last, head, insertBy, insert, snoc, null, replicateM, replicate, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List (List(Nil, Cons), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(Additive))
 import Data.Tuple (Tuple(..))
+import Data.Unfoldable (replicate, replicateA, unfoldr)
 
 import Partial.Unsafe (unsafePartial)
 
@@ -34,11 +35,11 @@ testList = do
   assert $ replicate 0 "foo" == l []
   assert $ replicate (-1) "foo" == l []
 
-  log "replicateM should perform the monadic action the correct number of times"
-  assert $ replicateM 3 (Just 1) == Just (l [1, 1, 1])
-  assert $ replicateM 1 (Just 1) == Just (l [1])
-  assert $ replicateM 0 (Just 1) == Just (l [])
-  assert $ replicateM (-1) (Just 1) == Just (l [])
+  log "replicatA should perform the monadic action the correct number of times"
+  assert $ replicateA 3 (Just 1) == Just (l [1, 1, 1])
+  assert $ replicateA 1 (Just 1) == Just (l [1])
+  assert $ replicateA 0 (Just 1) == Just (l [])
+  assert $ replicateA (-1) (Just 1) == Just (l [])
 
   -- some
   -- many
@@ -295,11 +296,11 @@ testList = do
   log "foldMap should be left-to-right"
   assert $ foldMap show (range 1 5) == "12345"
 
-  log "unfoldr should be stack-safe"
-  void $ pure $ length $ Data.Unfoldable.replicate 100000 1
+  log "unfoldable replicate should be stack-safe"
+  void $ pure $ length $ replicate 100000 1
 
   log "unfoldr should maintain order"
-  assert $ (1..5) == Data.Unfoldable.unfoldr step 1
+  assert $ (1..5) == unfoldr step 1
 
   -- log "can find the first 10 primes using lazy lists"
   -- let eratos :: L.List Number -> L.List Number
