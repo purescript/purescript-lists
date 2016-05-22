@@ -94,6 +94,7 @@ import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 
 import Data.Foldable (class Foldable, foldl, foldr, any)
+import Data.Generic (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Traversable (class Traversable, traverse, sequence)
@@ -688,6 +689,8 @@ foldM f a (Cons b bs) = f a b >>= \a' -> foldM f a' bs
 --------------------------------------------------------------------------------
 -- Instances -------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+derive instance genericList :: Generic a => Generic (List a)
 
 instance showList :: Show a => Show (List a) where
   show Nil = "Nil"
