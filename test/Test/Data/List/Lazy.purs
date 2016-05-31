@@ -3,12 +3,13 @@ module Test.Data.List.Lazy (testListLazy) where
 import Prelude
 
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log, logShow)
+import Control.Monad.Eff.Console (CONSOLE, log)
 
 import Math ((%))
-import Data.List.Lazy
+import Data.List.Lazy (List, nil, cons, singleton, transpose, take, iterate, filter, uncons, foldM, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Tuple (Tuple(..))
+import Control.Lazy (defer)
 
 import Partial.Unsafe (unsafePartial)
 
@@ -123,15 +124,15 @@ testListLazy = do
   assert $ elemLastIndex 4 (l [1, 2, 1]) == Nothing
 
   log "findIndex should return the index of an item that a predicate returns true for in an list"
-  assert $ findIndex (/= 1) (l [1, 2, 1]) == Just 1
-  assert $ findIndex (== 3) (l [1, 2, 1]) == Nothing
+  assert $ findIndex (_ /= 1) (l [1, 2, 1]) == Just 1
+  assert $ findIndex (_ == 3) (l [1, 2, 1]) == Nothing
 
   log "findIndex should work on huge lists"
-  assert $ findIndex (== 3) (range 0 100000000) == Just 3
+  assert $ findIndex (_ == 3) (range 0 100000000) == Just 3
 
   log "findLastIndex should return the last index of an item in an list"
-  assert $ findLastIndex (/= 1) (l [2, 1, 2]) == Just 2
-  assert $ findLastIndex (== 3) (l [2, 1, 2]) == Nothing
+  assert $ findLastIndex (_ /= 1) (l [2, 1, 2]) == Just 2
+  assert $ findLastIndex (_ == 3) (l [2, 1, 2]) == Nothing
 
   log "insertAt should add an item at the specified index"
   assert $ (insertAt 0 1 (l [2, 3])) == (l [1, 2, 3])
@@ -290,7 +291,7 @@ testListLazy = do
 
   log "can find the first 10 primes using lazy lists"
   let eratos :: List Int -> List Int
-      eratos xs = Control.Lazy.defer \_ ->
+      eratos xs = defer \_ ->
         case uncons xs of
           Nothing -> nil
           Just { head: p, tail: xs } -> p `cons` eratos (filter (\x -> x `mod` p /= 0) xs)
