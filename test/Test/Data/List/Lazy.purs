@@ -5,9 +5,11 @@ import Prelude
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 
-import Data.List.Lazy (List, nil, cons, zip, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, span, dropWhile, drop, takeWhile, take, catMaybes, mapMaybe, range, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, (!!), uncons, init, tail, last, head, insertBy, insert, length, null, singleton, fromFoldable, transpose, (:))
+import Math ((%))
+import Data.List.Lazy (List, nil, cons, singleton, transpose, take, iterate, filter, uncons, foldM, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Tuple (Tuple(..))
+import Control.Lazy (defer)
 
 import Partial.Unsafe (unsafePartial)
 
@@ -26,17 +28,20 @@ testListLazy = do
   assert $ (range 0 5) == l [0, 1, 2, 3, 4, 5]
   assert $ (range 2 (-3)) == l [2, 1, 0, -1, -2, -3]
 
-  -- log "replicate should produce an list containg an item a specified number of times"
-  -- assert $ replicate 3 true == l [true, true, true]
-  -- assert $ replicate 1 "foo" == l ["foo"]
-  -- assert $ replicate 0 "foo" == l []
-  -- assert $ replicate (-1) "foo" == l []
+  log "range should be lazy"
+  assert $ head (range 0 100000000) == Just 0
 
-  -- log "replicateM should perform the monadic action the correct number of times"
-  -- assert $ replicateM 3 (Just 1) == Just (l [1, 1, 1])
-  -- assert $ replicateM 1 (Just 1) == Just (l [1])
-  -- assert $ replicateM 0 (Just 1) == Just (l [])
-  -- assert $ replicateM (-1) (Just 1) == Just (l [])
+  log "replicate should produce an list containg an item a specified number of times"
+  assert $ replicate 3 true == l [true, true, true]
+  assert $ replicate 1 "foo" == l ["foo"]
+  assert $ replicate 0 "foo" == l []
+  assert $ replicate (-1) "foo" == l []
+
+  log "replicateM should perform the monadic action the correct number of times"
+  assert $ replicateM 3 (Just 1) == Just (l [1, 1, 1])
+  assert $ replicateM 1 (Just 1) == Just (l [1])
+  assert $ replicateM 0 (Just 1) == Just (l [])
+  assert $ replicateM (-1) (Just 1) == Just (l [])
 
   -- some
   -- many
@@ -53,9 +58,9 @@ testListLazy = do
   assert $ length (l [1]) == 1
   assert $ length (l [1, 2, 3, 4, 5]) == 5
 
-  -- log "snoc should add an item to the end of an list"
-  -- assert $ l [1, 2, 3] `snoc` 4 == l [1, 2, 3, 4]
-  -- assert $ nil' `snoc` 1 == l [1]
+  log "snoc should add an item to the end of an list"
+  assert $ l [1, 2, 3] `snoc` 4 == l [1, 2, 3, 4]
+  assert $ nil' `snoc` 1 == l [1]
 
   log "insert should add an item at the appropriate place in a sorted list"
   assert $ insert 1.5 (l [1.0, 2.0, 3.0]) == l [1.0, 1.5, 2.0, 3.0]
@@ -110,21 +115,24 @@ testListLazy = do
   assert $ l [1, 2, 3] !! 6 == Nothing
   assert $ l [1, 2, 3] !! (-1) == Nothing
 
-  -- log "elemIndex should return the index of an item that a predicate returns true for in an list"
-  -- assert $ elemIndex 1 (l [1, 2, 1]) == Just 0
-  -- assert $ elemIndex 4 (l [1, 2, 1]) == Nothing
+  log "elemIndex should return the index of an item that a predicate returns true for in an list"
+  assert $ elemIndex 1 (l [1, 2, 1]) == Just 0
+  assert $ elemIndex 4 (l [1, 2, 1]) == Nothing
 
-  -- log "elemLastIndex should return the last index of an item in an list"
-  -- assert $ elemLastIndex 1 (l [1, 2, 1]) == Just 2
-  -- assert $ elemLastIndex 4 (l [1, 2, 1]) == Nothing
+  log "elemLastIndex should return the last index of an item in an list"
+  assert $ elemLastIndex 1 (l [1, 2, 1]) == Just 2
+  assert $ elemLastIndex 4 (l [1, 2, 1]) == Nothing
 
-  -- log "findIndex should return the index of an item that a predicate returns true for in an list"
-  -- assert $ findIndex (/= 1) (l [1, 2, 1]) == Just 1
-  -- assert $ findIndex (== 3) (l [1, 2, 1]) == Nothing
+  log "findIndex should return the index of an item that a predicate returns true for in an list"
+  assert $ findIndex (_ /= 1) (l [1, 2, 1]) == Just 1
+  assert $ findIndex (_ == 3) (l [1, 2, 1]) == Nothing
 
-  -- log "findLastIndex should return the last index of an item in an list"
-  -- assert $ findLastIndex (/= 1) (l [2, 1, 2]) == Just 2
-  -- assert $ findLastIndex (== 3) (l [2, 1, 2]) == Nothing
+  log "findIndex should work on huge lists"
+  assert $ findIndex (_ == 3) (range 0 100000000) == Just 3
+
+  log "findLastIndex should return the last index of an item in an list"
+  assert $ findLastIndex (_ /= 1) (l [2, 1, 2]) == Just 2
+  assert $ findLastIndex (_ == 3) (l [2, 1, 2]) == Nothing
 
   log "insertAt should add an item at the specified index"
   assert $ (insertAt 0 1 (l [2, 3])) == (l [1, 2, 3])
@@ -166,9 +174,9 @@ testListLazy = do
   log "filter should remove items that don't match a predicate"
   assert $ filter odd (range 0 10) == l [1, 3, 5, 7, 9]
 
-  -- log "filterM should remove items that don't match a predicate while using a monadic behaviour"
-  -- assert $ filterM (Just <<< odd) (range 0 10) == Just (l [1, 3, 5, 7, 9])
-  -- assert $ filterM (const Nothing) (range 0 10) == Nothing
+  log "filterM should remove items that don't match a predicate while using a monadic behaviour"
+  assert $ filterM (Just <<< odd) (range 0 10) == Just (l [1, 3, 5, 7, 9])
+  assert $ filterM (const Nothing) (repeat 0) == Nothing
 
   log "mapMaybe should transform every item in an list, throwing out Nothing values"
   assert $ mapMaybe (\x -> if x /= 0 then Just x else Nothing) (l [0, 1, 0, 0, 2, 3]) == l [1, 2, 3]
@@ -182,6 +190,9 @@ testListLazy = do
   -- log "sortBy should reorder a list into ascending order based on the result of a comparison function"
   -- assert $ sortBy (flip compare) (l [1, 3, 2, 5, 6, 4]) == l [6, 5, 4, 3, 2, 1]
 
+  log "slice should work on infinite lists"
+  assert $ (slice 3 5 (repeat 0)) == l [0, 0]
+
   log "take should keep the specified number of items from the front of an list, discarding the rest"
   assert $ (take 1 (l [1, 2, 3])) == l [1]
   assert $ (take 2 (l [1, 2, 3])) == l [1, 2]
@@ -191,6 +202,9 @@ testListLazy = do
   assert $ (takeWhile (_ /= 2) (l [1, 2, 3])) == l [1]
   assert $ (takeWhile (_ /= 3) (l [1, 2, 3])) == l [1, 2]
   assert $ (takeWhile (_ /= 1) nil') == nil'
+
+  log "takeWhile should work on huge lists"
+  assert $ (takeWhile (_ /= 3) (range 0 100000000)) == l [0, 1, 2]
 
   log "drop should remove the specified number of items from the front of an list"
   assert $ (drop 1 (l [1, 2, 3])) == l [2, 3]
@@ -250,33 +264,43 @@ testListLazy = do
   log "zipWith should use the specified function to zip two lists together"
   assert $ zipWith (\x y -> l [show x, y]) (l [1, 2, 3]) (l ["a", "b", "c"]) == l [l ["1", "a"], l ["2", "b"], l ["3", "c"]]
 
-  -- log "zipWithA should use the specified function to zip two lists together"
-  -- assert $ zipWithA (\x y -> Just $ Tuple x y) (l [1, 2, 3]) (l ["a", "b", "c"]) == Just (l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"])
+  log "zipWithA should use the specified function to zip two lists together"
+  assert $ zipWithA (\x y -> Just $ Tuple x y) (l [1, 2, 3]) (l ["a", "b", "c"]) == Just (l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"])
 
+  log "zipWithA should work with infinite lists"
+  assert $
+    let inf = repeat 1
+        ints = replicate 10 3
+        zipped = zipWithA (\x y -> Just (x + y)) inf ints
+     in map length zipped == pure (length ints)
   log "zip should use the specified function to zip two lists together"
   assert $ zip (l [1, 2, 3]) (l ["a", "b", "c"]) == l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"]
 
-  -- log "unzip should deconstruct a list of tuples into a tuple of lists"
-  -- assert $ unzip (l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"]) == Tuple (l [1, 2, 3]) (l ["a", "b", "c"])
+  log "unzip should deconstruct a list of tuples into a tuple of lists"
+  assert $ unzip (l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"]) == Tuple (l [1, 2, 3]) (l ["a", "b", "c"])
 
-  -- log "foldM should perform a fold using a monadic step function"
-  -- assert $ foldM (\x y -> Just (x + y)) 0 (range 1 10) == Just 55
-  -- assert $ foldM (\_ _ -> Nothing) 0 (range 1 10) == Nothing
+  log "foldM should perform a fold using a monadic step function"
+  assert $ foldM (\x y -> Just (x + y)) 0 (range 1 10) == Just 55
+  assert $ foldM (\_ _ -> Nothing) 0 (range 1 10) == Nothing
 
-  -- log "can find the first 10 primes using lazy lists"
-  -- let eratos :: L.List Number -> L.List Number
-  --     eratos xs = Control.Lazy.defer \_ ->
-  --       case L.uncons xs of
-  --         Nothing -> L.nil'
-  --         Just (Tuple p xs) -> p `L.cons` eratos (L.filter (\x -> x % p /= 0) xs)
+  log "foldM should work ok on infinite lists"
+  assert let infs = iterate (_ + 1) 1
+             f acc x = if x >= 10 then Nothing else Just (cons 0 acc)
+          in foldM f nil infs == Nothing
 
-  --     upFrom = L.iterate (1 +)
 
-  --     primes = eratos $ upFrom 2
-  -- assert $ L.fromList (L.take 10 primes) == [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-  --
-  --
-  --
+  log "can find the first 10 primes using lazy lists"
+  let eratos :: List Int -> List Int
+      eratos xs = defer \_ ->
+        case uncons xs of
+          Nothing -> nil
+          Just { head: p, tail: xs } -> p `cons` eratos (filter (\x -> x `mod` p /= 0) xs)
+
+      upFrom = iterate (1 + _)
+
+      primes = eratos $ upFrom 2
+  assert $ take 10 primes == l [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+
   log "transpose"
   assert $ transpose (l [l [1,2,3], l[4,5,6], l [7,8,9]]) ==
                      (l [l [1,4,7], l[2,5,8], l [3,6,9]])

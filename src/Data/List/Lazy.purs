@@ -18,6 +18,8 @@ module Data.List.Lazy
 
   , singleton
   , (..), range
+  , replicate
+  , replicateM
   -- , some
   -- , many
   , repeat
@@ -28,7 +30,7 @@ module Data.List.Lazy
   , length
 
   , (:), cons
-  -- , snoc
+  , snoc
   , insert
   , insertBy
 
@@ -39,10 +41,10 @@ module Data.List.Lazy
   , uncons
 
   , (!!), index
-  -- , elemIndex
-  -- , elemLastIndex
-  -- , findIndex
-  -- , findLastIndex
+  , elemIndex
+  , elemLastIndex
+  , findIndex
+  , findLastIndex
   , insertAt
   , deleteAt
   , updateAt
@@ -53,14 +55,14 @@ module Data.List.Lazy
   , concat
   , concatMap
   , filter
-  -- , filterM
+  , filterM
   , mapMaybe
   , catMaybes
 
   -- , sort
   -- , sortBy
 
-  -- , slice
+  , slice
   , take
   , takeWhile
   , drop
@@ -81,13 +83,13 @@ module Data.List.Lazy
   , intersectBy
 
   , zipWith
-  -- , zipWithA
+  , zipWithA
   , zip
-  -- , unzip
+  , unzip
 
   , transpose
 
-  -- , foldM
+  , foldM
   ) where
 
 import Prelude
@@ -160,11 +162,28 @@ infix 8 range as ..
 
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
-range start end | start == end = singleton start
-                | otherwise = go end start (if start > end then 1 else -1) nil
+range start end
+    | start > end =
+        let g x | x >= end  = Just (Tuple x (x - 1))
+                | otherwise = Nothing
+         in unfoldr g start
+    | otherwise = unfoldr f start
   where
-  go s e step' rest | s == e = (cons s rest)
-                    | otherwise = go (s + step') e step' (cons s rest)
+    f x | x <= end  = Just (Tuple x (x + 1))
+        | otherwise = Nothing
+
+-- | Create a list with repeated instances of a value.
+replicate :: forall a. Int -> a -> List a
+replicate i xs = take i (repeat xs)
+
+-- | Perform a monadic action `n` times collecting all of the results.
+replicateM :: forall m a. Monad m => Int -> m a -> m (List a)
+replicateM n m
+  | n < one = pure nil
+  | otherwise = do
+      a <- m
+      as <- replicateM (n - one) m
+      pure (cons a as)
 
 -- | Create a list by repeating an element
 repeat :: forall a. a -> List a
@@ -212,6 +231,12 @@ cons x xs = List $ defer \_ -> Cons x xs
 -- |
 -- | Running time: `O(1)`
 infixr 6 cons as :
+
+-- | Append an element to the end of a list, creating a new list.
+-- |
+-- | Running time: `O(n)`
+snoc :: forall a. List a -> a -> List a
+snoc xs x = foldr cons (cons x nil) xs
 
 -- | Insert an element into a sorted list.
 -- |
@@ -294,6 +319,29 @@ index xs = go (step xs)
 
 -- | An infix synonym for `index`.
 infixl 8 index as !!
+
+-- | Find the index of the first element equal to the specified element.
+elemIndex :: forall a. Eq a => a -> List a -> Maybe Int
+elemIndex x = findIndex (_ == x)
+
+-- | Find the index of the last element equal to the specified element.
+elemLastIndex :: forall a. Eq a => a -> List a -> Maybe Int
+elemLastIndex x = findLastIndex (_ == x)
+
+-- | Find the first index for which a predicate holds.
+findIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
+findIndex fn = go 0
+  where
+  go :: Int -> List a -> Maybe Int
+  go n list = do
+      o <- uncons list
+      if fn o.head
+         then pure n
+         else go (n + 1) o.tail
+
+-- | Find the last index for which a predicate holds.
+findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
+findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 
 -- | Insert an element into a list at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
@@ -405,6 +453,24 @@ filter p xs = List (go <$> runList xs)
     | p x = Cons x (filter p xs)
     | otherwise = go (step xs)
 
+-- | Filter where the predicate returns a monadic `Boolean`.
+-- |
+-- | For example:
+-- |
+-- | ```purescript
+-- | powerSet :: forall a. [a] -> [[a]]
+-- | powerSet = filterM (const [true, false])
+-- | ```
+filterM :: forall a m. Monad m => (a -> m Boolean) -> List a -> m (List a)
+filterM p list =
+    case uncons list of
+         Nothing -> pure nil
+         Just { head: x, tail: xs } -> do
+             b <- p x
+             xs' <- filterM p xs
+             pure if b then cons x xs' else xs'
+
+
 -- | Apply a function to each element in a list, keeping only the results which
 -- | contain a value.
 -- |
@@ -431,6 +497,10 @@ catMaybes = mapMaybe id
 -- Sublists --------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+-- | Extract a sublist by a start and end index.
+slice :: forall a. Int -> Int -> List a -> List a
+slice start end xs = take (end - start) (drop start xs)
+
 -- | Take the specified number of elements from the front of a list.
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to take.
@@ -438,7 +508,7 @@ take :: forall a. Int -> List a -> List a
 take n xs = List (go n <$> runList xs)
   where
   go :: Int -> Step a -> Step a
-  go 0 _ = Nil
+  go i _ | i <= 0 = Nil
   go _ Nil = Nil
   go n (Cons x xs) = Cons x (take (n - 1) xs)
 
@@ -608,11 +678,21 @@ zipWith f xs ys = List (go <$> runList xs <*> runList ys)
   go _ Nil = Nil
   go (Cons a as) (Cons b bs) = Cons (f a b) (zipWith f as bs)
 
+-- | A generalization of `zipWith` which accumulates results in some `Applicative`
+-- | functor.
+zipWithA :: forall m a b c. Applicative m => (a -> b -> m c) -> List a -> List b -> m (List c)
+zipWithA f xs ys = sequence (zipWith f xs ys)
+
 -- | Collect pairs of elements at the same positions in two lists.
 -- |
 -- | Running time: `O(min(m, n))`
 zip :: forall a b. List a -> List b -> List (Tuple a b)
 zip = zipWith Tuple
+
+-- | Transforms a list of pairs into a list of first components and a list of
+-- | second components.
+unzip :: forall a b. List (Tuple a b) -> Tuple (List a) (List b)
+unzip = foldr (\(Tuple a b) (Tuple as bs) -> Tuple (cons a as) (cons b bs)) (Tuple nil nil)
 
 --------------------------------------------------------------------------------
 -- Transpose -------------------------------------------------------------------
@@ -639,6 +719,18 @@ transpose xs =
           transpose xss
         Just { head: x, tail: xs } ->
           (x : mapMaybe head xss) : transpose (xs : mapMaybe tail xss)
+
+--------------------------------------------------------------------------------
+-- Folding ---------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+-- | Perform a fold using a monadic step function.
+foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> List b -> m a
+foldM f a xs =
+    case uncons xs of
+         Nothing -> pure a
+         Just { head: b, tail: bs } ->
+                       f a b >>= \a' -> foldM f a' bs
 
 --------------------------------------------------------------------------------
 -- Instances -------------------------------------------------------------------
