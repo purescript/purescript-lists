@@ -65,3 +65,8 @@ instance plusZipList :: Plus ZipList where
   empty = mempty
 
 instance alternativeZipList :: Alternative ZipList
+
+instance zipListIsNotBind
+  :: Fail "ZipList is not Bind. Any implementation would break the associativity law"
+  => Bind ZipList where
+    bind _ _ = mempty
