@@ -7,15 +7,14 @@ module Data.List.ZipList
   ) where
 
 import Prelude
-
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
 import Control.Plus (class Plus)
-
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
 import Data.List.Lazy (List, repeat, zipWith)
 import Data.Monoid (class Monoid, mempty)
 import Data.Traversable (class Traversable, traverse, sequence)
+import Partial.Unsafe (unsafeCrashWith)
 
 -- | `ZipList` is a newtype around `List` which provides a zippy
 -- | `Applicative` instance.
@@ -65,3 +64,14 @@ instance plusZipList :: Plus ZipList where
   empty = mempty
 
 instance alternativeZipList :: Alternative ZipList
+
+instance zipListIsNotBind
+  :: Fail """
+    ZipList is not Bind. Any implementation would break the associativity law.
+
+    Possible alternatives:
+        Data.List.List
+        Data.List.Lazy.List
+    """
+  => Bind ZipList where
+    bind = unsafeCrashWith "bind: unreachable"
