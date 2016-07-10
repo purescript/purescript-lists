@@ -93,7 +93,7 @@ import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 
-import Data.Foldable (class Foldable, foldl, foldr, any)
+import Data.Foldable (class Foldable, foldl, foldr, any, intercalate)
 import Data.Generic (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
@@ -694,7 +694,7 @@ derive instance genericList :: Generic a => Generic (List a)
 
 instance showList :: Show a => Show (List a) where
   show Nil = "Nil"
-  show (x : xs) = "(" <> show x <> " : " <> show xs <> ")"
+  show xs = "(" <> intercalate " : " (show <$> xs) <> " : Nil)"
 
 instance eqList :: Eq a => Eq (List a) where
   eq xs ys = go xs ys true
