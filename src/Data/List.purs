@@ -14,6 +14,8 @@ module Data.List
 
   , singleton
   , (..), range
+  , replicate
+  , replicateM
   , some
   , many
 
@@ -140,6 +142,21 @@ range start end | start == end = singleton start
   where
   go s e step rest | s == e = (Cons s rest)
                    | otherwise = go (s + step) e step (Cons s rest)
+
+-- | Create a list with repeated instances of a value.
+replicate :: forall a. Int -> a -> List a
+replicate i e
+  | i < 1 = Nil
+  | otherwise = Cons e (replicate (i-1) e)
+
+-- | Perform a monadic action `n` times collecting all of the results.
+replicateM :: forall m a. Monad m => Int -> m a -> m (List a)
+replicateM n m
+  | n < one = pure Nil
+  | otherwise = do
+      a <- m
+      as <- replicateM (n - one) m
+      pure (Cons a as)
 
 -- | Attempt a computation multiple times, requiring at least one success.
 -- |
