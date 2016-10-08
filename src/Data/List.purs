@@ -93,7 +93,7 @@ import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 
-import Data.Foldable (class Foldable, foldl, foldr, any)
+import Data.Foldable (class Foldable, foldl, foldr, any, intercalate)
 import Data.Generic (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
@@ -128,7 +128,7 @@ fromFoldable = foldr Cons Nil
 -- |
 -- | Running time: `O(1)`
 singleton :: forall a. a -> List a
-singleton a = Cons a Nil
+singleton a = a : Nil
 
 -- | An infix synonym for `range`.
 infix 8 range as ..
@@ -138,8 +138,8 @@ range :: Int -> Int -> List Int
 range start end | start == end = singleton start
                 | otherwise = go end start (if start > end then 1 else -1) Nil
   where
-  go s e step rest | s == e = (Cons s rest)
-                   | otherwise = go (s + step) e step (Cons s rest)
+  go s e step rest | s == e = s : rest
+                   | otherwise = go (s + step) e step (s : rest)
 
 -- | Attempt a computation multiple times, requiring at least one success.
 -- |
@@ -187,7 +187,7 @@ infixr 6 Cons as :
 -- |
 -- | Running time: `O(2n)`
 snoc :: forall a. List a -> a -> List a
-snoc xs x = reverse (Cons x (reverse xs))
+snoc xs x = reverse (x : reverse xs)
 
 -- | Insert an element into a sorted list.
 -- |
@@ -200,11 +200,11 @@ insert = insertBy compare
 -- |
 -- | Running time: `O(n)`
 insertBy :: forall a. (a -> a -> Ordering) -> a -> List a -> List a
-insertBy _ x Nil = Cons x Nil
-insertBy cmp x ys@(Cons y ys') =
+insertBy _ x Nil = singleton x
+insertBy cmp x ys@(y : ys') =
   case cmp x y of
-    GT -> Cons y (insertBy cmp x ys')
-    _  -> Cons x ys
+    GT -> y : (insertBy cmp x ys')
+    _  -> x : ys
 
 --------------------------------------------------------------------------------
 -- Non-indexed reads -----------------------------------------------------------
@@ -215,22 +215,22 @@ insertBy cmp x ys@(Cons y ys') =
 -- | Running time: `O(1)`.
 head :: forall a. List a -> Maybe a
 head Nil = Nothing
-head (Cons x _) = Just x
+head (x : _) = Just x
 
 -- | Get the last element in a list, or `Nothing` if the list is empty.
 -- |
 -- | Running time: `O(n)`.
 last :: forall a. List a -> Maybe a
-last (Cons x Nil) = Just x
-last (Cons _ xs)  = last xs
-last _            = Nothing
+last (x : Nil) = Just x
+last (_ : xs)  = last xs
+last _         = Nothing
 
 -- | Get all but the first element of a list, or `Nothing` if the list is empty.
 -- |
 -- | Running time: `O(1)`
 tail :: forall a. List a -> Maybe (List a)
 tail Nil = Nothing
-tail (Cons _ xs) = Just xs
+tail (_ : xs) = Just xs
 
 -- | Get all but the last element of a list, or `Nothing` if the list is empty.
 -- |
@@ -239,8 +239,8 @@ init :: forall a. List a -> Maybe (List a)
 init Nil = Nothing
 init lst = Just $ reverse $ go lst Nil
   where
-  go (Cons x Nil) acc = acc
-  go (Cons x xs) acc = go xs $ Cons x acc
+  go (x : Nil) acc = acc
+  go (x : xs) acc = go xs (x : acc)
   go _ acc = acc
 
 -- | Break a list into its first element, and the remaining elements,
@@ -249,7 +249,7 @@ init lst = Just $ reverse $ go lst Nil
 -- | Running time: `O(1)`
 uncons :: forall a. List a -> Maybe { head :: a, tail :: List a }
 uncons Nil = Nothing
-uncons (Cons x xs) = Just { head: x, tail: xs }
+uncons (x : xs) = Just { head: x, tail: xs }
 
 --------------------------------------------------------------------------------
 -- Indexed operations ----------------------------------------------------------
@@ -260,8 +260,8 @@ uncons (Cons x xs) = Just { head: x, tail: xs }
 -- | Running time: `O(n)` where `n` is the required index.
 index :: forall a. List a -> Int -> Maybe a
 index Nil _ = Nothing
-index (Cons a _) 0 = Just a
-index (Cons _ as) i = index as (i - 1)
+index (a : _) 0 = Just a
+index (_ : as) i = index as (i - 1)
 
 -- | An infix synonym for `index`.
 infixl 8 index as !!
@@ -279,8 +279,8 @@ findIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
 findIndex fn = go 0
   where
   go :: Int -> List a -> Maybe Int
-  go n (Cons x xs) | fn x = Just n
-                   | otherwise = go (n + 1) xs
+  go n (x : xs) | fn x = Just n
+                | otherwise = go (n + 1) xs
   go _ Nil = Nothing
 
 -- | Find the last index for which a predicate holds.
@@ -292,8 +292,8 @@ findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 -- |
 -- | Running time: `O(n)`
 insertAt :: forall a. Int -> a -> List a -> Maybe (List a)
-insertAt 0 x xs = Just (Cons x xs)
-insertAt n x (Cons y ys) = Cons y <$> insertAt (n - 1) x ys
+insertAt 0 x xs = Just (x : xs)
+insertAt n x (y : ys) = (y : _) <$> insertAt (n - 1) x ys
 insertAt _ _ _  = Nothing
 
 -- | Delete an element from a list at the specified index, returning a new
@@ -301,8 +301,8 @@ insertAt _ _ _  = Nothing
 -- |
 -- | Running time: `O(n)`
 deleteAt :: forall a. Int -> List a -> Maybe (List a)
-deleteAt 0 (Cons y ys) = Just ys
-deleteAt n (Cons y ys) = Cons y <$> deleteAt (n - 1) ys
+deleteAt 0 (y : ys) = Just ys
+deleteAt n (y : ys) = (y : _) <$> deleteAt (n - 1) ys
 deleteAt _ _  = Nothing
 
 -- | Update the element at the specified index, returning a new
@@ -310,8 +310,8 @@ deleteAt _ _  = Nothing
 -- |
 -- | Running time: `O(n)`
 updateAt :: forall a. Int -> a -> List a -> Maybe (List a)
-updateAt 0 x (Cons _ xs) = Just (Cons x xs)
-updateAt n x (Cons x1 xs) = Cons x1 <$> updateAt (n - 1) x xs
+updateAt 0 x ( _ : xs) = Just (x : xs)
+updateAt n x (x1 : xs) = (x1 : _) <$> updateAt (n - 1) x xs
 updateAt _ _ _ = Nothing
 
 -- | Update the element at the specified index by applying a function to
@@ -328,11 +328,11 @@ modifyAt n f = alterAt n (Just <<< f)
 -- |
 -- | Running time: `O(n)`
 alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> Maybe (List a)
-alterAt 0 f (Cons y ys) = Just $
+alterAt 0 f (y : ys) = Just $
   case f y of
     Nothing -> ys
-    Just y' -> Cons y' ys
-alterAt n f (Cons y ys) = Cons y <$> alterAt (n - 1) f ys
+    Just y' -> y' : ys
+alterAt n f (y : ys) = (y : _) <$> alterAt (n - 1) f ys
 alterAt _ _ _  = Nothing
 
 --------------------------------------------------------------------------------
@@ -346,7 +346,7 @@ reverse :: forall a. List a -> List a
 reverse = go Nil
   where
   go acc Nil = acc
-  go acc (Cons x xs) = go (Cons x acc) xs
+  go acc (x : xs) = go (x : acc) xs
 
 -- | Flatten a list of lists.
 -- |
@@ -360,7 +360,7 @@ concat = (_ >>= id)
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concatMap :: forall a b. (a -> List b) -> List a -> List b
 concatMap _ Nil = Nil
-concatMap f (Cons x xs) = f x <> concatMap f xs
+concatMap f (x : xs) = f x <> concatMap f xs
 
 -- | Filter a list, keeping the elements which satisfy a predicate function.
 -- |
@@ -369,8 +369,8 @@ filter :: forall a. (a -> Boolean) -> List a -> List a
 filter p = go Nil
   where
   go acc Nil = reverse acc
-  go acc (Cons x xs)
-    | p x = go (Cons x acc) xs
+  go acc (x : xs)
+    | p x = go (x : acc) xs
     | otherwise = go acc xs
 
 -- | Filter where the predicate returns a monadic `Boolean`.
@@ -383,10 +383,10 @@ filter p = go Nil
 -- | ```
 filterM :: forall a m. Monad m => (a -> m Boolean) -> List a -> m (List a)
 filterM _ Nil = pure Nil
-filterM p (Cons x xs) = do
+filterM p (x : xs) = do
   b <- p x
   xs' <- filterM p xs
-  pure if b then Cons x xs' else xs'
+  pure if b then x : xs' else xs'
 
 -- | Apply a function to each element in a list, keeping only the results which
 -- | contain a value.
@@ -396,10 +396,10 @@ mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
 mapMaybe f = go Nil
   where
   go acc Nil = reverse acc
-  go acc (Cons x xs) =
+  go acc (x : xs) =
     case f x of
       Nothing -> go acc xs
-      Just y -> go (Cons y acc) xs
+      Just y -> go (y : acc) xs
 
 -- | Filter a list of optional values, keeping only the elements which contain
 -- | a value.
@@ -412,7 +412,7 @@ mapWithIndex :: forall a b. (a -> Int -> b) -> List a -> List b
 mapWithIndex f lst = reverse $ go 0 lst Nil
   where
   go _ Nil acc = acc
-  go n (Cons x xs) acc = go (n+1) xs $ Cons (f x n) acc
+  go n (x : xs) acc = go (n+1) xs (f x n : acc)
 
 --------------------------------------------------------------------------------
 -- Sorting ---------------------------------------------------------------------
@@ -429,33 +429,33 @@ sortBy cmp = mergeAll <<< sequences
   -- implementation lifted from http://hackage.haskell.org/package/base-4.8.0.0/docs/src/Data-OldList.html#sort
   where
   sequences :: List a -> List (List a)
-  sequences (Cons a (Cons b xs))
+  sequences (a : b : xs)
     | a `cmp` b == GT = descending b (singleton a) xs
-    | otherwise = ascending b (Cons a) xs
+    | otherwise = ascending b (a : _) xs
   sequences xs = singleton xs
 
   descending :: a -> List a -> List a -> List (List a)
-  descending a as (Cons b bs)
-    | a `cmp` b == GT = descending b (Cons a as) bs
-  descending a as bs = Cons (Cons a as) (sequences bs)
+  descending a as (b : bs)
+    | a `cmp` b == GT = descending b (a : as) bs
+  descending a as bs = (a : as) : sequences bs
 
   ascending :: a -> (List a -> List a) -> List a -> List (List a)
-  ascending a as (Cons b bs)
-    | a `cmp` b /= GT = ascending b (\ys -> as (Cons a ys)) bs
-  ascending a as bs = (Cons (as $ singleton a) (sequences bs))
+  ascending a as (b : bs)
+    | a `cmp` b /= GT = ascending b (\ys -> as (a : ys)) bs
+  ascending a as bs = ((as $ singleton a) : sequences bs)
 
   mergeAll :: List (List a) -> List a
-  mergeAll (Cons x Nil) = x
+  mergeAll (x : Nil) = x
   mergeAll xs = mergeAll (mergePairs xs)
 
   mergePairs :: List (List a) -> List (List a)
-  mergePairs (Cons a (Cons b xs)) = Cons (merge a b) (mergePairs xs)
+  mergePairs (a : b : xs) = merge a b : mergePairs xs
   mergePairs xs = xs
 
   merge :: List a -> List a -> List a
-  merge as@(Cons a as') bs@(Cons b bs')
-    | a `cmp` b == GT = Cons b (merge as bs')
-    | otherwise = Cons a (merge as' bs)
+  merge as@(a : as') bs@(b : bs')
+    | a `cmp` b == GT = b : merge as bs'
+    | otherwise       = a : merge as' bs
   merge Nil bs = bs
   merge as Nil = as
 
@@ -475,7 +475,7 @@ take = go Nil
   where
   go acc 0 _ = reverse acc
   go acc _ Nil = reverse acc
-  go acc n (Cons x xs) = go (Cons x acc) (n - 1) xs
+  go acc n (x : xs) = go (x : acc) (n - 1) xs
 
 -- | Take those elements from the front of a list which match a predicate.
 -- |
@@ -483,7 +483,7 @@ take = go Nil
 takeWhile :: forall a. (a -> Boolean) -> List a -> List a
 takeWhile p = go Nil
   where
-  go acc (Cons x xs) | p x = go (Cons x acc) xs
+  go acc (x : xs) | p x = go (x : acc) xs
   go acc _ = reverse acc
 
 -- | Drop the specified number of elements from the front of a list.
@@ -492,7 +492,7 @@ takeWhile p = go Nil
 drop :: forall a. Int -> List a -> List a
 drop 0 xs = xs
 drop _ Nil = Nil
-drop n (Cons x xs) = drop (n - 1) xs
+drop n (x : xs) = drop (n - 1) xs
 
 -- | Drop those elements from the front of a list which match a predicate.
 -- |
@@ -500,7 +500,7 @@ drop n (Cons x xs) = drop (n - 1) xs
 dropWhile :: forall a. (a -> Boolean) -> List a -> List a
 dropWhile p = go
   where
-  go (Cons x xs) | p x = go xs
+  go (x : xs) | p x = go xs
   go xs = xs
 
 -- | Split a list into two parts:
@@ -516,8 +516,8 @@ dropWhile p = go
 -- |
 -- | Running time: `O(n)`
 span :: forall a. (a -> Boolean) -> List a -> { init :: List a, rest :: List a }
-span p (Cons x xs') | p x = case span p xs' of
-  { init: ys, rest: zs } -> { init: Cons x ys, rest: zs }
+span p (x : xs') | p x = case span p xs' of
+  { init: ys, rest: zs } -> { init: x : ys, rest: zs }
 span _ xs = { init: Nil, rest: xs }
 
 -- | Group equal, consecutive elements of a list into lists.
@@ -546,8 +546,8 @@ group' = group <<< sort
 -- | Running time: `O(n)`
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
 groupBy _ Nil = Nil
-groupBy eq (Cons x xs) = case span (eq x) xs of
-  { init: ys, rest: zs } -> Cons (Cons x ys) (groupBy eq zs)
+groupBy eq (x : xs) = case span (eq x) xs of
+  { init: ys, rest: zs } -> (x : ys) : groupBy eq zs
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
@@ -565,7 +565,7 @@ nub = nubBy eq
 -- | Running time: `O(n^2)`
 nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
 nubBy _     Nil = Nil
-nubBy eq' (Cons x xs) = Cons x (nubBy eq' (filter (\y -> not (eq' x y)) xs))
+nubBy eq' (x : xs) = x : nubBy eq' (filter (\y -> not (eq' x y)) xs)
 
 -- | Calculate the union of two lists.
 -- |
@@ -592,8 +592,8 @@ delete = deleteBy (==)
 -- | Running time: `O(n)`
 deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
 deleteBy _ _ Nil = Nil
-deleteBy eq' x (Cons y ys) | eq' x y = ys
-deleteBy eq' x (Cons y ys) = Cons y (deleteBy eq' x ys)
+deleteBy eq' x (y : ys) | eq' x y = ys
+deleteBy eq' x (y : ys) = y : deleteBy eq' x ys
 
 infix 5 difference as \\
 
@@ -639,7 +639,7 @@ zipWith f xs ys = reverse $ go xs ys Nil
   where
   go Nil _ acc = acc
   go _ Nil acc = acc
-  go (Cons a as) (Cons b bs) acc = go as bs $ Cons (f a b) acc
+  go (a : as) (b : bs) acc = go as bs $ f a b : acc
 
 -- | A generalization of `zipWith` which accumulates results in some `Applicative`
 -- | functor.
@@ -655,7 +655,7 @@ zip = zipWith Tuple
 -- | Transforms a list of pairs into a list of first components and a list of
 -- | second components.
 unzip :: forall a b. List (Tuple a b) -> Tuple (List a) (List b)
-unzip = foldr (\(Tuple a b) (Tuple as bs) -> Tuple (Cons a as) (Cons b bs)) (Tuple Nil Nil)
+unzip = foldr (\(Tuple a b) (Tuple as bs) -> Tuple (a : as) (b : bs)) (Tuple Nil Nil)
 
 --------------------------------------------------------------------------------
 -- Transpose -------------------------------------------------------------------
@@ -673,8 +673,8 @@ unzip = foldr (\(Tuple a b) (Tuple as bs) -> Tuple (Cons a as) (Cons b bs)) (Tup
 -- |       ((10:20:30:Nil) : (11:31:Nil) : (32:Nil) : Nil)
 transpose :: forall a. List (List a) -> List (List a)
 transpose Nil = Nil
-transpose (Cons Nil xss) = transpose xss
-transpose (Cons (Cons x xs) xss) =
+transpose (Nil : xss) = transpose xss
+transpose ((x : xs) : xss) =
   (x : mapMaybe head xss) : transpose (xs : mapMaybe tail xss)
 
 --------------------------------------------------------------------------------
@@ -684,7 +684,7 @@ transpose (Cons (Cons x xs) xss) =
 -- | Perform a fold using a monadic step function.
 foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> List b -> m a
 foldM _ a Nil = pure a
-foldM f a (Cons b bs) = f a b >>= \a' -> foldM f a' bs
+foldM f a (b : bs) = f a b >>= \a' -> foldM f a' bs
 
 --------------------------------------------------------------------------------
 -- Instances -------------------------------------------------------------------
@@ -694,14 +694,14 @@ derive instance genericList :: Generic a => Generic (List a)
 
 instance showList :: Show a => Show (List a) where
   show Nil = "Nil"
-  show (Cons x xs) = "(Cons " <> show x <> " " <> show xs <> ")"
+  show xs = "(" <> intercalate " : " (show <$> xs) <> " : Nil)"
 
 instance eqList :: Eq a => Eq (List a) where
   eq xs ys = go xs ys true
     where
       go _ _ false = false
       go Nil Nil acc = acc
-      go (Cons x xs) (Cons y ys) acc = go xs ys $ acc && (y == x)
+      go (x : xs) (y : ys) acc = go xs ys $ acc && (y == x)
       go _ _ _ = false
 
 instance ordList :: Ord a => Ord (List a) where
@@ -710,14 +710,14 @@ instance ordList :: Ord a => Ord (List a) where
     go Nil Nil = EQ
     go Nil _ = LT
     go _ Nil = GT
-    go (Cons x xs) (Cons y ys) =
+    go (x : xs) (y : ys) =
       case compare x y of
         EQ -> go xs ys
         other -> other
 
 instance semigroupList :: Semigroup (List a) where
   append Nil ys = ys
-  append (Cons x xs) ys = Cons x (xs <> ys)
+  append (x : xs) ys = x : (xs <> ys)
 
 instance monoidList :: Monoid (List a) where
   mempty = Nil
@@ -726,15 +726,15 @@ instance functorList :: Functor List where
   map f lst = reverse $ go lst Nil
     where
     go Nil acc = acc
-    go (Cons x xs) acc = go xs $ Cons (f x) acc
+    go (x : xs) acc = go xs (f x : acc)
 
 instance foldableList :: Foldable List where
   foldr _ b Nil = b
-  foldr o b (Cons a as) = a `o` foldr o b as
+  foldr o b (a : as) = a `o` foldr o b as
   foldl = go
     -- FIXME: Helper function is needed until purescript/purescript#1413 is fixed
     where go _ b Nil = b
-          go o b (Cons a as) = go o (b `o` a) as
+          go o b (a : as) = go o (b `o` a) as
   foldMap f = foldl (\acc -> append acc <<< f) mempty
 
 instance unfoldableList :: Unfoldable List where
@@ -742,20 +742,20 @@ instance unfoldableList :: Unfoldable List where
     where
       go source memo = case f source of
         Nothing -> reverse memo
-        Just (Tuple one rest) -> go rest (Cons one memo)
+        Just (Tuple one rest) -> go rest (one : memo)
 
 instance traversableList :: Traversable List where
   traverse _ Nil = pure Nil
-  traverse f (Cons a as) = Cons <$> f a <*> traverse f as
+  traverse f (a : as) = Cons <$> f a <*> traverse f as
   sequence Nil = pure Nil
-  sequence (Cons a as) = Cons <$> a <*> sequence as
+  sequence (a : as) = Cons <$> a <*> sequence as
 
 instance applyList :: Apply List where
   apply Nil _ = Nil
-  apply (Cons f fs) xs = (f <$> xs) <> (fs <*> xs)
+  apply (f : fs) xs = (f <$> xs) <> (fs <*> xs)
 
 instance applicativeList :: Applicative List where
-  pure a = Cons a Nil
+  pure a = singleton a
 
 instance bindList :: Bind List where
   bind = flip concatMap
