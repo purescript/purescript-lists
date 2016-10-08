@@ -3,7 +3,6 @@
 
 module Data.List.ZipList
   ( ZipList(..)
-  , runZipList
   ) where
 
 import Prelude
@@ -13,6 +12,7 @@ import Control.Plus (class Plus)
 import Data.Foldable (class Foldable)
 import Data.List.Lazy (List, repeat, zipWith)
 import Data.Monoid (class Monoid, mempty)
+import Data.Newtype (class Newtype)
 import Data.Traversable (class Traversable)
 import Partial.Unsafe (unsafeCrashWith)
 
@@ -20,12 +20,10 @@ import Partial.Unsafe (unsafeCrashWith)
 -- | `Applicative` instance.
 newtype ZipList a = ZipList (List a)
 
--- | Unpack a `ZipList` to obtain the underlying list.
-runZipList :: forall a. ZipList a -> List a
-runZipList (ZipList xs) = xs
-
 instance showZipList :: Show a => Show (ZipList a) where
   show (ZipList xs) = "(ZipList " <> show xs <> ")"
+
+derive instance newtypeZipList :: Newtype (ZipList a) _
 
 derive newtype instance eqZipList :: Eq a => Eq (ZipList a)
 
