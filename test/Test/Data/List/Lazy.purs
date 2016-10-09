@@ -2,14 +2,15 @@ module Test.Data.List.Lazy (testListLazy) where
 
 import Prelude
 
+import Control.Lazy (defer)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 
-import Math ((%))
 import Data.List.Lazy (List, nil, cons, singleton, transpose, take, iterate, filter, uncons, foldM, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
 import Data.Maybe (Maybe(..), isNothing, fromJust)
+import Data.NonEmpty ((:|))
+import Data.NonEmpty as NE
 import Data.Tuple (Tuple(..))
-import Control.Lazy (defer)
 
 import Partial.Unsafe (unsafePartial)
 
@@ -222,13 +223,13 @@ testListLazy = do
   assert $ spanResult.rest == l [4, 5, 6, 7]
 
   log "group should group consecutive equal elements into lists"
-  assert $ group (l [1, 2, 2, 3, 3, 3, 1]) == l [l [1], l [2, 2], l [3, 3, 3], l [1]]
+  assert $ group (l [1, 2, 2, 3, 3, 3, 1]) == l [NE.singleton 1, 2 :| l [2], 3 :| l [3, 3], NE.singleton 1]
 
   -- log "group' should sort then group consecutive equal elements into lists"
   -- assert $ group' (l [1, 2, 2, 3, 3, 3, 1]) == l [l [1, 1], l [2, 2], l [3, 3, 3]]
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
-  assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [l [1, 1], l [2], l [2], l [3, 3]]
+  assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [1 :| l [1], NE.singleton 2, NE.singleton 2, 3 :| l [3]]
 
   log "nub should remove duplicate elements from the list, keeping the first occurence"
   assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]

@@ -90,6 +90,8 @@ module Data.List.Lazy
   , transpose
 
   , foldM
+
+  , module Exports
   ) where
 
 import Prelude
@@ -105,9 +107,13 @@ import Data.Foldable (class Foldable, foldMap, foldl, foldr, any)
 import Data.Lazy (Lazy, defer, force)
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Monoid (class Monoid, mempty)
+import Data.NonEmpty (NonEmpty, (:|))
 import Data.Traversable (class Traversable, traverse, sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
+
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
+import Data.Traversable (scanl, scanr) as Exports
 
 
 -- | A lazy linked list.
@@ -569,20 +575,20 @@ span p xs =
 -- | ```
 -- |
 -- | Running time: `O(n)`
-group :: forall a. Eq a => List a -> List (List a)
+group :: forall a. Eq a => List a -> List (NonEmpty List a)
 group = groupBy (==)
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.
 -- |
 -- | Running time: `O(n)`
-groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
+groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NonEmpty List a)
 groupBy eq xs = List (go <$> runList xs)
   where
   go Nil = Nil
   go (Cons x xs) =
     case span (eq x) xs of
-      { init: ys, rest: zs } -> Cons (cons x ys) (groupBy eq zs)
+      { init: ys, rest: zs } -> Cons (x :| ys) (groupBy eq zs)
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------

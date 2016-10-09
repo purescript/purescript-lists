@@ -3,53 +3,41 @@
 
 module Data.List.ZipList
   ( ZipList(..)
-  , runZipList
   ) where
 
 import Prelude
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
 import Control.Plus (class Plus)
-import Data.Foldable (class Foldable, foldMap, foldl, foldr)
+import Data.Foldable (class Foldable)
 import Data.List.Lazy (List, repeat, zipWith)
 import Data.Monoid (class Monoid, mempty)
-import Data.Traversable (class Traversable, traverse, sequence)
+import Data.Newtype (class Newtype)
+import Data.Traversable (class Traversable)
 import Partial.Unsafe (unsafeCrashWith)
 
 -- | `ZipList` is a newtype around `List` which provides a zippy
 -- | `Applicative` instance.
 newtype ZipList a = ZipList (List a)
 
--- | Unpack a `ZipList` to obtain the underlying list.
-runZipList :: forall a. ZipList a -> List a
-runZipList (ZipList xs) = xs
-
 instance showZipList :: Show a => Show (ZipList a) where
   show (ZipList xs) = "(ZipList " <> show xs <> ")"
 
-instance eqZipList :: Eq a => Eq (ZipList a) where
-  eq z1 z2 = runZipList z1 `eq` runZipList z2
+derive instance newtypeZipList :: Newtype (ZipList a) _
 
-instance ordZipList :: Ord a => Ord (ZipList a) where
-  compare z1 z2 = runZipList z1 `compare` runZipList z2
+derive newtype instance eqZipList :: Eq a => Eq (ZipList a)
 
-instance semigroupZipList :: Semigroup (ZipList a) where
-  append z1 z2 = ZipList (runZipList z1 <> runZipList z2)
+derive newtype instance ordZipList :: Ord a => Ord (ZipList a)
 
-instance monoidZipList :: Monoid (ZipList a) where
-  mempty = ZipList mempty
+derive newtype instance semigroupZipList :: Semigroup (ZipList a)
 
-instance foldableZipList :: Foldable ZipList where
-  foldl f b (ZipList xs) = foldl f b xs
-  foldr f b (ZipList xs) = foldr f b xs
-  foldMap f (ZipList xs) = foldMap f xs
+derive newtype instance monoidZipList :: Monoid (ZipList a)
 
-instance traversableZipList :: Traversable ZipList where
-  traverse f (ZipList xs) = ZipList <$> traverse f xs
-  sequence (ZipList xs) = ZipList <$> sequence xs
+derive newtype instance foldableZipList :: Foldable ZipList
 
-instance functorZipList :: Functor ZipList where
-  map f (ZipList xs) = ZipList (map f xs)
+derive newtype instance traversableZipList :: Traversable ZipList
+
+derive newtype instance functorZipList :: Functor ZipList
 
 instance applyZipList :: Apply ZipList where
   apply (ZipList fs) (ZipList xs) = ZipList (zipWith ($) fs xs)
