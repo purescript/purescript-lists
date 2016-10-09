@@ -97,6 +97,7 @@ import Data.Foldable (class Foldable, foldl, foldr, any, intercalate)
 import Data.Generic (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
+import Data.NonEmpty (NonEmpty, (:|))
 import Data.Traversable (class Traversable, traverse, sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
@@ -529,7 +530,7 @@ span _ xs = { init: Nil, rest: xs }
 -- | ```
 -- |
 -- | Running time: `O(n)`
-group :: forall a. Eq a => List a -> List (List a)
+group :: forall a. Eq a => List a -> List (NonEmpty List a)
 group = groupBy (==)
 
 -- | Sort and then group the elements of a list into lists.
@@ -537,17 +538,17 @@ group = groupBy (==)
 -- | ```purescript
 -- | group' [1,1,2,2,1] == [[1,1,1],[2,2]]
 -- | ```
-group' :: forall a. Ord a => List a -> List (List a)
+group' :: forall a. Ord a => List a -> List (NonEmpty List a)
 group' = group <<< sort
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.
 -- |
 -- | Running time: `O(n)`
-groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (List a)
+groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NonEmpty List a)
 groupBy _ Nil = Nil
 groupBy eq (x : xs) = case span (eq x) xs of
-  { init: ys, rest: zs } -> (x : ys) : groupBy eq zs
+  { init: ys, rest: zs } -> (x :| ys) : groupBy eq zs
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
