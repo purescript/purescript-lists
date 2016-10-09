@@ -90,6 +90,8 @@ module Data.List.Lazy
   , transpose
 
   , foldM
+
+  , module Exports
   ) where
 
 import Prelude
@@ -109,6 +111,9 @@ import Data.NonEmpty (NonEmpty, (:|))
 import Data.Traversable (class Traversable, traverse, sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
+
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
+import Data.Traversable (scanl, scanr) as Exports
 
 
 -- | A lazy linked list.
