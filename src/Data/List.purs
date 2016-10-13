@@ -90,6 +90,7 @@ import Prelude
 
 import Control.Alt (class Alt, (<|>))
 import Control.Alternative (class Alternative)
+import Control.Extend (class Extend)
 import Control.Lazy (class Lazy, defer)
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
@@ -779,3 +780,12 @@ instance alternativeList :: Alternative List
 instance monadZeroList :: MonadZero List
 
 instance monadPlusList :: MonadPlus List
+
+instance extendList :: Extend List where
+  extend f Nil = Nil
+  extend f l@(a : as) =
+    f l : (foldr go { val: Nil, acc: Nil } as).val
+    where
+    go a { val, acc } =
+      let acc' = a : acc
+      in { val: f acc' : val, acc: acc' }
