@@ -1,24 +1,29 @@
-module Data.List.NonEmpty where
+module Data.List.NonEmpty
+  ( module Data.List.Types
+  , toUnfoldable
+  , fromFoldable
+  , fromList
+  , toList
+  , singleton
+  , head
+  , tail
+  , init
+  , uncons
+  , length
+  , concatMap
+  ) where
 
 import Prelude
 
-import Control.Alt (class Alt)
-import Control.Extend (class Extend)
-import Control.Comonad (class Comonad)
-
-import Data.Foldable (class Foldable, foldr)
-import Data.Generic (class Generic)
+import Data.Foldable (class Foldable)
 import Data.List ((:))
 import Data.List as L
-import Data.Newtype (class Newtype)
-import Data.NonEmpty (NonEmpty, (:|))
-import Data.NonEmpty as NE
+import Data.List.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
-import Data.Traversable (class Traversable)
+import Data.NonEmpty ((:|))
+import Data.NonEmpty as NE
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
-
-newtype NonEmptyList a = NonEmptyList (NonEmpty L.List a)
 
 toUnfoldable :: forall f a. Unfoldable f => NonEmptyList a -> f a
 toUnfoldable =
@@ -56,50 +61,4 @@ length :: forall a. NonEmptyList a -> Int
 length (NonEmptyList (x :| xs)) = 1 + L.length xs
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
-concatMap f (NonEmptyList (a :| as)) =
-  case f a of
-    NonEmptyList (b :| bs) ->
-      NonEmptyList (b :| bs <> L.concatMap (toList <<< f) as)
-
-derive instance newtypeNonEmptyList :: Newtype (NonEmptyList a) _
-
-derive newtype instance eqNonEmptyList :: Eq a => Eq (NonEmptyList a)
-derive newtype instance ordNonEmptyList :: Ord a => Ord (NonEmptyList a)
-derive newtype instance genericEmptyList :: Generic a => Generic (NonEmptyList a)
-
-instance showNonEmptyList :: Show a => Show (NonEmptyList a) where
-  show (NonEmptyList errs) = "(NonEmptyList " <> show errs <> ")"
-
-derive newtype instance functorNonEmptyList :: Functor NonEmptyList
-
-instance applyNonEmptyList :: Apply NonEmptyList where
-  apply (NonEmptyList (f :| fs)) (NonEmptyList (a :| as)) =
-    NonEmptyList (f a :| (fs <*> L.singleton a) <> ((f : fs) <*> as))
-
-instance applicativeNonEmptyList :: Applicative NonEmptyList where
-  pure = NonEmptyList <<< NE.singleton
-
-instance bindList :: Bind NonEmptyList where
-  bind = flip concatMap
-
-instance monadNonEmptyList :: Monad NonEmptyList
-
-instance altNonEmptyList :: Alt NonEmptyList where
-  alt = append
-
-instance extendNonEmptyList :: Extend NonEmptyList where
-  extend f w@(NonEmptyList (_ :| as)) =
-    NonEmptyList (f w :| (foldr go { val: L.Nil, acc: L.Nil } as).val)
-    where
-    go a { val, acc } = { val: f (NonEmptyList (a :| acc)) : val, acc: a : acc }
-
-instance comonadNonEmptyList :: Comonad NonEmptyList where
-  extract (NonEmptyList (a :| _)) = a
-
-instance semigroupNonEmptyList :: Semigroup (NonEmptyList a) where
-  append (NonEmptyList (a :| as)) as' =
-    NonEmptyList (a :| as <> toList as')
-
-derive newtype instance foldableNonEmptyList :: Foldable NonEmptyList
-
-derive newtype instance traversableNonEmptyList :: Traversable NonEmptyList
+concatMap = flip bind
