@@ -167,10 +167,10 @@ instance extendList :: Extend List where
           let acc' = a : acc
           in { val: f acc' : val, acc: acc' }
 
-newtype NonEmptyList a = NonEmptyList (NonEmpty List a)
+newtype NonEmptyList a = NonEmptyList (Lazy (NonEmpty List a))
 
 toList :: forall a. NonEmptyList a -> List a
-toList (NonEmptyList (x :| xs)) = x : xs
+toList (NonEmptyList nel) = case force nel of x :| xs -> x : xs
 
 derive instance newtypeNonEmptyList :: Newtype (NonEmptyList a) _
 
@@ -178,22 +178,27 @@ derive newtype instance eqNonEmptyList :: Eq a => Eq (NonEmptyList a)
 derive newtype instance ordNonEmptyList :: Ord a => Ord (NonEmptyList a)
 
 instance showNonEmptyList :: Show a => Show (NonEmptyList a) where
-  show (NonEmptyList errs) = "(NonEmptyList " <> show errs <> ")"
+  show (NonEmptyList nel) = "(NonEmptyList " <> show nel <> ")"
 
-derive newtype instance functorNonEmptyList :: Functor NonEmptyList
+instance functorNonEmptyList :: Functor NonEmptyList where
+  map f (NonEmptyList nel) = NonEmptyList (map f <$> nel)
 
 instance applyNonEmptyList :: Apply NonEmptyList where
-  apply (NonEmptyList (f :| fs)) (NonEmptyList (a :| as)) =
-    NonEmptyList (f a :| (fs <*> a : nil) <> ((f : fs) <*> as))
+  apply (NonEmptyList nefs) (NonEmptyList neas) =
+    case force nefs, force neas of
+      f :| fs, a :| as ->
+        NonEmptyList (defer \_ -> f a :| (fs <*> a : nil) <> ((f : fs) <*> as))
 
 instance applicativeNonEmptyList :: Applicative NonEmptyList where
-  pure = NonEmptyList <<< NE.singleton
+  pure a = NonEmptyList (defer \_ -> NE.singleton a)
 
 instance bindNonEmptyList :: Bind NonEmptyList where
-  bind (NonEmptyList (a :| as)) f =
-    case f a of
-      NonEmptyList (b :| bs) ->
-        NonEmptyList (b :| bs <> bind as (toList <<< f))
+  bind (NonEmptyList nel) f =
+    case force nel of
+      a :| as ->
+        case force $ unwrap $ f a of
+          b :| bs ->
+            NonEmptyList (defer \_ -> b :| bs <> bind as (toList <<< f))
 
 instance monadNonEmptyList :: Monad NonEmptyList
 
@@ -201,18 +206,32 @@ instance altNonEmptyList :: Alt NonEmptyList where
   alt = append
 
 instance extendNonEmptyList :: Extend NonEmptyList where
-  extend f w@(NonEmptyList (_ :| as)) =
-    NonEmptyList (f w :| (foldr go { val: nil, acc: nil } as).val)
+  extend f w@(NonEmptyList nel) =
+    case force nel of
+      _ :| as ->
+        NonEmptyList $ defer \_ ->
+          f w :| (foldr go { val: nil, acc: nil } as).val
     where
-    go a { val, acc } = { val: f (NonEmptyList (a :| acc)) : val, acc: a : acc }
+    go a { val, acc } =
+      { val: f (NonEmptyList (defer \_ -> a :| acc)) : val
+      , acc: a : acc
+      }
 
 instance comonadNonEmptyList :: Comonad NonEmptyList where
-  extract (NonEmptyList (a :| _)) = a
+  extract (NonEmptyList nel) = NE.head $ force nel
 
 instance semigroupNonEmptyList :: Semigroup (NonEmptyList a) where
-  append (NonEmptyList (a :| as)) as' =
-    NonEmptyList (a :| as <> toList as')
+  append (NonEmptyList neas) as' =
+    case force neas of
+      a :| as -> NonEmptyList (defer \_ -> a :| as <> toList as')
 
-derive newtype instance foldableNonEmptyList :: Foldable NonEmptyList
+instance foldableNonEmptyList :: Foldable NonEmptyList where
+  foldr f b (NonEmptyList nel) = foldr f b (force nel)
+  foldl f b (NonEmptyList nel) = foldl f b (force nel)
+  foldMap f (NonEmptyList nel) = foldMap f (force nel)
 
-derive newtype instance traversableNonEmptyList :: Traversable NonEmptyList
+instance traversableNonEmptyList :: Traversable NonEmptyList where
+  traverse f (NonEmptyList nel) =
+    map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ traverse f (force nel)
+  sequence (NonEmptyList nel) =
+    map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ sequence (force nel)
