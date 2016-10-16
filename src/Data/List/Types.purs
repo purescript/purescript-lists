@@ -61,7 +61,10 @@ instance functorList :: Functor List where
   map f = foldr (\x acc -> f x : acc) Nil
 
 instance foldableList :: Foldable List where
-  foldr f b as = foldl (\g a x -> g (f a x)) id as b
+  foldr f b as = foldl (flip f) b (rev Nil as)
+    where
+    rev acc Nil = acc
+    rev acc (x : xs) = rev (x : acc) xs
   foldl f = go
     where
     go b Nil = b
