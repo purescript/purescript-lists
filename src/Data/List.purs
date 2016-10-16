@@ -8,7 +8,7 @@
 -- | good random-access performance.
 
 module Data.List
-  ( List(..)
+  ( module Data.List.Types
   , toUnfoldable
   , fromFoldable
 
@@ -20,7 +20,6 @@ module Data.List
   , null
   , length
 
-  , (:)
   , snoc
   , insert
   , insertBy
@@ -88,32 +87,21 @@ module Data.List
 
 import Prelude
 
-import Control.Alt (class Alt, (<|>))
+import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
-import Control.Extend (class Extend)
 import Control.Lazy (class Lazy, defer)
-import Control.MonadPlus (class MonadPlus)
-import Control.MonadZero (class MonadZero)
-import Control.Plus (class Plus)
 
-import Data.Foldable (class Foldable, foldl, foldr, any, intercalate)
-import Data.Generic (class Generic)
+import Data.Foldable (class Foldable, foldr, any, foldl)
+import Data.List.Types (List(..), (:))
+import Data.List.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..))
-import Data.Monoid (class Monoid, mempty)
-import Data.NonEmpty (NonEmpty, (:|))
-import Data.Traversable (class Traversable, traverse, sequence)
+import Data.NonEmpty ((:|))
+import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
 
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Traversable (scanl, scanr) as Exports
-
--- | A strict linked list.
--- |
--- | A list is either empty (represented by the `Nil` constructor) or non-empty, in
--- | which case it consists of a head element, and another list (represented by the
--- | `Cons` constructor).
-data List a = Nil | Cons a (List a)
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -183,12 +171,6 @@ length = foldl (\acc _ -> acc + 1) 0
 --------------------------------------------------------------------------------
 -- Extending arrays ------------------------------------------------------------
 --------------------------------------------------------------------------------
-
--- | An infix alias for `Cons`; attaches an element to the front of
--- | a list.
--- |
--- | Running time: `O(1)`
-infixr 6 Cons as :
 
 -- | Append an element to the end of a list, creating a new list.
 -- |
@@ -366,8 +348,7 @@ concat = (_ >>= id)
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concatMap :: forall a b. (a -> List b) -> List a -> List b
-concatMap _ Nil = Nil
-concatMap f (x : xs) = f x <> concatMap f xs
+concatMap = flip bind
 
 -- | Filter a list, keeping the elements which satisfy a predicate function.
 -- |
@@ -536,7 +517,7 @@ span _ xs = { init: Nil, rest: xs }
 -- | ```
 -- |
 -- | Running time: `O(n)`
-group :: forall a. Eq a => List a -> List (NonEmpty List a)
+group :: forall a. Eq a => List a -> List (NEL.NonEmptyList a)
 group = groupBy (==)
 
 -- | Sort and then group the elements of a list into lists.
@@ -544,17 +525,17 @@ group = groupBy (==)
 -- | ```purescript
 -- | group' [1,1,2,2,1] == [[1,1,1],[2,2]]
 -- | ```
-group' :: forall a. Ord a => List a -> List (NonEmpty List a)
+group' :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
 group' = group <<< sort
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.
 -- |
 -- | Running time: `O(n)`
-groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NonEmpty List a)
+groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
 groupBy _ Nil = Nil
 groupBy eq (x : xs) = case span (eq x) xs of
-  { init: ys, rest: zs } -> (x :| ys) : groupBy eq zs
+  { init: ys, rest: zs } -> NEL.NonEmptyList (x :| ys) : groupBy eq zs
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
@@ -692,100 +673,3 @@ transpose ((x : xs) : xss) =
 foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> List b -> m a
 foldM _ a Nil = pure a
 foldM f a (b : bs) = f a b >>= \a' -> foldM f a' bs
-
---------------------------------------------------------------------------------
--- Instances -------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-derive instance genericList :: Generic a => Generic (List a)
-
-instance showList :: Show a => Show (List a) where
-  show Nil = "Nil"
-  show xs = "(" <> intercalate " : " (show <$> xs) <> " : Nil)"
-
-instance eqList :: Eq a => Eq (List a) where
-  eq xs ys = go xs ys true
-    where
-      go _ _ false = false
-      go Nil Nil acc = acc
-      go (x : xs) (y : ys) acc = go xs ys $ acc && (y == x)
-      go _ _ _ = false
-
-instance ordList :: Ord a => Ord (List a) where
-  compare xs ys = go xs ys
-    where
-    go Nil Nil = EQ
-    go Nil _ = LT
-    go _ Nil = GT
-    go (x : xs) (y : ys) =
-      case compare x y of
-        EQ -> go xs ys
-        other -> other
-
-instance semigroupList :: Semigroup (List a) where
-  append Nil ys = ys
-  append (x : xs) ys = x : (xs <> ys)
-
-instance monoidList :: Monoid (List a) where
-  mempty = Nil
-
-instance functorList :: Functor List where
-  map f lst = reverse $ go lst Nil
-    where
-    go Nil acc = acc
-    go (x : xs) acc = go xs (f x : acc)
-
-instance foldableList :: Foldable List where
-  foldr _ b Nil = b
-  foldr o b (a : as) = a `o` foldr o b as
-  foldl = go
-    -- FIXME: Helper function is needed until purescript/purescript#1413 is fixed
-    where go _ b Nil = b
-          go o b (a : as) = go o (b `o` a) as
-  foldMap f = foldl (\acc -> append acc <<< f) mempty
-
-instance unfoldableList :: Unfoldable List where
-  unfoldr f b = go b Nil
-    where
-      go source memo = case f source of
-        Nothing -> reverse memo
-        Just (Tuple one rest) -> go rest (one : memo)
-
-instance traversableList :: Traversable List where
-  traverse _ Nil = pure Nil
-  traverse f (a : as) = Cons <$> f a <*> traverse f as
-  sequence Nil = pure Nil
-  sequence (a : as) = Cons <$> a <*> sequence as
-
-instance applyList :: Apply List where
-  apply Nil _ = Nil
-  apply (f : fs) xs = (f <$> xs) <> (fs <*> xs)
-
-instance applicativeList :: Applicative List where
-  pure a = singleton a
-
-instance bindList :: Bind List where
-  bind = flip concatMap
-
-instance monadList :: Monad List
-
-instance altList :: Alt List where
-  alt = append
-
-instance plusList :: Plus List where
-  empty = Nil
-
-instance alternativeList :: Alternative List
-
-instance monadZeroList :: MonadZero List
-
-instance monadPlusList :: MonadPlus List
-
-instance extendList :: Extend List where
-  extend f Nil = Nil
-  extend f l@(a : as) =
-    f l : (foldr go { val: Nil, acc: Nil } as).val
-    where
-    go a { val, acc } =
-      let acc' = a : acc
-      in { val: f acc' : val, acc: acc' }

@@ -8,13 +8,9 @@
 -- | good random-access performance.
 
 module Data.List.Lazy
-  ( List(..)
-  , runList
+  ( module Data.List.Lazy.Types
   , toUnfoldable
   , fromFoldable
-  , Step(..)
-  , step
-  , nil
 
   , singleton
   , (..), range
@@ -29,7 +25,6 @@ module Data.List.Lazy
   , null
   , length
 
-  , (:), cons
   , snoc
   , insert
   , insertBy
@@ -96,32 +91,19 @@ module Data.List.Lazy
 
 import Prelude
 
-import Control.Alt (class Alt)
-import Control.Alternative (class Alternative)
 import Control.Lazy as Z
-import Control.MonadPlus (class MonadPlus)
-import Control.MonadZero (class MonadZero)
-import Control.Plus (class Plus)
 
-import Data.Foldable (class Foldable, foldMap, foldl, foldr, any)
-import Data.Lazy (Lazy, defer, force)
+import Data.Foldable (class Foldable, foldr, any, foldl)
+import Data.List.Lazy.Types (List(..), Step(..), step, nil, cons, (:))
 import Data.Maybe (Maybe(..), isNothing)
-import Data.Monoid (class Monoid, mempty)
+import Data.Newtype (unwrap)
 import Data.NonEmpty (NonEmpty, (:|))
-import Data.Traversable (class Traversable, traverse, sequence)
+import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
 
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Traversable (scanl, scanr) as Exports
-
-
--- | A lazy linked list.
-newtype List a = List (Lazy (Step a))
-
--- | Unwrap a lazy linked list
-runList :: forall a. List a -> Lazy (Step a)
-runList (List l) = l
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -135,23 +117,8 @@ toUnfoldable = unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> uncons xs)
 fromFoldable :: forall f a. Foldable f => f a -> List a
 fromFoldable = foldr cons nil
 
--- | A list is either empty (represented by the `Nil` constructor) or non-empty, in
--- | which case it consists of a head element, and another list (represented by the
--- | `Cons` constructor).
-data Step a = Nil | Cons a (List a)
-
 fromStep :: forall a. Step a -> List a
 fromStep = List <<< pure
-
--- | Unwrap a lazy linked list
-step :: forall a. List a -> Step a
-step = force <<< runList
-
--- | The empty list.
--- |
--- | Running time: `O(1)`
-nil :: forall a. List a
-nil = List $ defer \_ -> Nil
 
 --------------------------------------------------------------------------------
 -- List creation ---------------------------------------------------------------
@@ -226,18 +193,6 @@ length xs = go (step xs)
 -- Extending arrays ------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- | Attach an element to the front of a lazy list.
--- |
--- | Running time: `O(1)`
-cons :: forall a. a -> List a -> List a
-cons x xs = List $ defer \_ -> Cons x xs
-
--- | An infix alias for `cons`; attaches an element to the front of
--- | a list.
--- |
--- | Running time: `O(1)`
-infixr 6 cons as :
-
 -- | Append an element to the end of a list, creating a new list.
 -- |
 -- | Running time: `O(n)`
@@ -255,7 +210,7 @@ insert = insertBy compare
 -- |
 -- | Running time: `O(n)`
 insertBy :: forall a. (a -> a -> Ordering) -> a -> List a -> List a
-insertBy cmp x xs = List (go <$> runList xs)
+insertBy cmp x xs = List (go <$> unwrap xs)
   where
   go Nil = Cons x nil
   go ys@(Cons y ys') =
@@ -358,7 +313,7 @@ findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 -- | Running time: `O(n)`
 insertAt :: forall a. Int -> a -> List a -> List a
 insertAt 0 x xs = cons x xs
-insertAt n x xs = List (go <$> runList xs)
+insertAt n x xs = List (go <$> unwrap xs)
   where
   go Nil = Cons x nil
   go (Cons y ys) = Cons y (insertAt (n - 1) x ys)
@@ -371,7 +326,7 @@ insertAt n x xs = List (go <$> runList xs)
 -- |
 -- | Running time: `O(n)`
 deleteAt :: forall a. Int -> List a -> List a
-deleteAt n xs = List (go n <$> runList xs)
+deleteAt n xs = List (go n <$> unwrap xs)
   where
   go _ Nil = Nil
   go 0 (Cons y ys) = step ys
@@ -385,7 +340,7 @@ deleteAt n xs = List (go n <$> runList xs)
 -- |
 -- | Running time: `O(n)`
 updateAt :: forall a. Int -> a -> List a -> List a
-updateAt n x xs = List (go n <$> runList xs)
+updateAt n x xs = List (go n <$> unwrap xs)
   where
   go _ Nil = Nil
   go 0 (Cons _ ys) = Cons x ys
@@ -411,7 +366,7 @@ modifyAt n f = alterAt n (Just <<< f)
 -- |
 -- | Running time: `O(n)`
 alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> List a
-alterAt n f xs = List (go n <$> runList xs)
+alterAt n f xs = List (go n <$> unwrap xs)
   where
   go _ Nil = Nil
   go 0 (Cons y ys) = case f y of
@@ -443,16 +398,13 @@ concat = (_ >>= id)
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concatMap :: forall a b. (a -> List b) -> List a -> List b
-concatMap f xs = List (go <$> runList xs)
-  where
-  go Nil = Nil
-  go (Cons x xs) = step (f x <> concatMap f xs)
+concatMap = flip bind
 
 -- | Filter a list, keeping the elements which satisfy a predicate function.
 -- |
 -- | Running time: `O(n)`
 filter :: forall a. (a -> Boolean) -> List a -> List a
-filter p xs = List (go <$> runList xs)
+filter p xs = List (go <$> unwrap xs)
   where
   go Nil = Nil
   go (Cons x xs)
@@ -482,7 +434,7 @@ filterM p list =
 -- |
 -- | Running time: `O(n)`
 mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
-mapMaybe f xs = List (go <$> runList xs)
+mapMaybe f xs = List (go <$> unwrap xs)
   where
   go Nil = Nil
   go (Cons x xs) =
@@ -511,7 +463,7 @@ slice start end xs = take (end - start) (drop start xs)
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to take.
 take :: forall a. Int -> List a -> List a
-take n xs = List (go n <$> runList xs)
+take n xs = List (go n <$> unwrap xs)
   where
   go :: Int -> Step a -> Step a
   go i _ | i <= 0 = Nil
@@ -522,7 +474,7 @@ take n xs = List (go n <$> runList xs)
 -- |
 -- | Running time (worst case): `O(n)`
 takeWhile :: forall a. (a -> Boolean) -> List a -> List a
-takeWhile p xs = List (go <$> runList xs)
+takeWhile p xs = List (go <$> unwrap xs)
   where
   go (Cons x xs) | p x = Cons x (takeWhile p xs)
   go _ = Nil
@@ -531,7 +483,7 @@ takeWhile p xs = List (go <$> runList xs)
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to drop.
 drop :: forall a. Int -> List a -> List a
-drop n xs = List (go n <$> runList xs)
+drop n xs = List (go n <$> unwrap xs)
   where
   go 0 xs = xs
   go _ Nil = Nil
@@ -583,7 +535,7 @@ group = groupBy (==)
 -- |
 -- | Running time: `O(n)`
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NonEmpty List a)
-groupBy eq xs = List (go <$> runList xs)
+groupBy eq xs = List (go <$> unwrap xs)
   where
   go Nil = Nil
   go (Cons x xs) =
@@ -605,7 +557,7 @@ nub = nubBy eq
 -- |
 -- | Running time: `O(n^2)`
 nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubBy eq xs = List (go <$> runList xs)
+nubBy eq xs = List (go <$> unwrap xs)
   where
   go Nil = Nil
   go (Cons x xs) = Cons x (nubBy eq (filter (\y -> not (eq x y)) xs))
@@ -634,7 +586,7 @@ delete = deleteBy (==)
 -- |
 -- | Running time: `O(n)`
 deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
-deleteBy eq x xs = List (go <$> runList xs)
+deleteBy eq x xs = List (go <$> unwrap xs)
   where
   go Nil = Nil
   go (Cons y ys) | eq x y = step ys
@@ -677,7 +629,7 @@ intersectBy eq xs ys = filter (\x -> any (eq x) ys) xs
 -- |
 -- | Running time: `O(min(m, n))`
 zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
-zipWith f xs ys = List (go <$> runList xs <*> runList ys)
+zipWith f xs ys = List (go <$> unwrap xs <*> unwrap ys)
   where
   go :: Step a -> Step b -> Step c
   go Nil _ = Nil
@@ -737,113 +689,3 @@ foldM f a xs =
          Nothing -> pure a
          Just { head: b, tail: bs } ->
                        f a b >>= \a' -> foldM f a' bs
-
---------------------------------------------------------------------------------
--- Instances -------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-instance showList :: Show a => Show (List a) where
-  show xs = "fromStrict (" <> go (step xs) <> ")"
-    where
-    go Nil = "Nil"
-    go (Cons x xs) = "(Cons " <> show x <> " " <> go (step xs) <> ")"
-
-instance eqList :: Eq a => Eq (List a) where
-  eq xs ys = go (step xs) (step ys)
-    where
-    go Nil Nil = true
-    go (Cons x xs) (Cons y ys)
-      | x == y = go (step xs) (step ys)
-    go _ _ = false
-
-instance ordList :: Ord a => Ord (List a) where
-  compare xs ys = go (step xs) (step ys)
-    where
-    go Nil Nil = EQ
-    go Nil _   = LT
-    go _   Nil = GT
-    go (Cons x xs) (Cons y ys) =
-      case compare x y of
-        EQ -> go (step xs) (step ys)
-        other -> other
-
-instance lazyList :: Z.Lazy (List a) where
-  defer f = List $ defer (step <<< f)
-
-instance semigroupList :: Semigroup (List a) where
-  append xs ys = List (go <$> runList xs)
-    where
-    go Nil = step ys
-    go (Cons x xs) = Cons x (xs <> ys)
-
-instance monoidList :: Monoid (List a) where
-  mempty = nil
-
-instance functorList :: Functor List where
-  map f xs = List (go <$> runList xs)
-    where
-    go Nil = Nil
-    go (Cons x xs) = Cons (f x) (f <$> xs)
-
-instance foldableList :: Foldable List where
-  -- foldr :: forall a b. (a -> b -> b) -> b -> f a -> b
-  foldr o b xs = go (step xs)
-    where
-    go Nil = b
-    go (Cons a as) = a `o` foldr o b as
-
-  -- foldl :: forall a b. (b -> a -> b) -> b -> f a -> b
-  foldl o b xs = go (step xs)
-    where
-    go Nil = b
-    go (Cons a as) = foldl o (b `o` a) as
-
-  -- foldMap :: forall a m. Monoid m => (a -> m) -> f a -> m
-  foldMap f xs = go (step xs)
-    where
-    go Nil = mempty
-    go (Cons x xs) = f x <> foldMap f xs
-
-instance unfoldableList :: Unfoldable List where
-  -- unfoldr :: forall a b. (b -> Maybe (Tuple a b)) -> b -> List a
-  unfoldr f b = go (f b)
-    where
-    go Nothing = nil
-    -- go (Just (Tuple a b)) = cons a (go (f b))
-    go (Just (Tuple a b)) = a : Z.defer \_ -> go (f b)
-
-instance traversableList :: Traversable List where
-  -- traverse :: forall a b m. Applicative m => (a -> m b) -> t a -> m (t b)
-  traverse f xs = go (step xs)
-    where
-    go Nil = pure nil
-    go (Cons x xs) = cons <$> f x <*> traverse f xs
-
-  -- sequence :: forall a m. Applicative m => t (m a) -> m (t a)
-  sequence xs = go (step xs)
-    where
-    go Nil = pure nil
-    go (Cons x xs) = cons <$> x <*> sequence xs
-
-instance applyList :: Apply List where
-  apply = ap
-
-instance applicativeList :: Applicative List where
-  pure = singleton
-
-instance bindList :: Bind List where
-  bind = flip concatMap
-
-instance monadList :: Monad List
-
-instance altList :: Alt List where
-  alt = append
-
-instance plusList :: Plus List where
-  empty = nil
-
-instance alternativeList :: Alternative List
-
-instance monadZeroList :: MonadZero List
-
-instance monadPlusList :: MonadPlus List

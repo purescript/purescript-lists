@@ -7,10 +7,10 @@ import Control.Monad.Eff.Console (CONSOLE, log)
 
 import Data.Foldable (foldMap, foldl)
 import Data.List (List(..), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
-import Data.NonEmpty as NE
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (replicate, replicateA, unfoldr)
 
@@ -37,7 +37,7 @@ testList = do
   assert $ replicate 0 "foo" == l []
   assert $ replicate (-1) "foo" == l []
 
-  log "replicatA should perform the monadic action the correct number of times"
+  log "replicateA should perform the monadic action the correct number of times"
   assert $ replicateA 3 (Just 1) == Just (l [1, 1, 1])
   assert $ replicateA 1 (Just 1) == Just (l [1])
   assert $ replicateA 0 (Just 1) == Just (l [])
@@ -74,25 +74,25 @@ testList = do
   assert $ insertBy (flip compare) 4 (l [1, 2, 3]) == l [4, 1, 2, 3]
   assert $ insertBy (flip compare) 0 (l [1, 2, 3]) == l [1, 2, 3, 0]
 
-  log "head should return a Just-wrapped first value of a non-empty list"
+  log "head should return a Just-NEL.NonEmptyListped first value of a non-empty list"
   assert $ head (l ["foo", "bar"]) == Just "foo"
 
   log "head should return Nothing for an empty list"
   assert $ head nil == Nothing
 
-  log "last should return a Just-wrapped last value of a non-empty list"
+  log "last should return a Just-NEL.NonEmptyListped last value of a non-empty list"
   assert $ last (l ["foo", "bar"]) == Just "bar"
 
   log "last should return Nothing for an empty list"
   assert $ last nil == Nothing
 
-  log "tail should return a Just-wrapped list containing all the items in an list apart from the first for a non-empty list"
+  log "tail should return a Just-NEL.NonEmptyListped list containing all the items in an list apart from the first for a non-empty list"
   assert $ tail (l ["foo", "bar", "baz"]) == Just (l ["bar", "baz"])
 
   log "tail should return Nothing for an empty list"
   assert $ tail nil == Nothing
 
-  log "init should return a Just-wrapped list containing all the items in an list apart from the first for a non-empty list"
+  log "init should return a Just-NEL.NonEmptyListped list containing all the items in an list apart from the first for a non-empty list"
   assert $ init (l ["foo", "bar", "baz"]) == Just (l ["foo", "bar"])
 
   log "init should return Nothing for an empty list"
@@ -234,13 +234,13 @@ testList = do
   assert $ spanResult.rest == l [4, 5, 6, 7]
 
   log "group should group consecutive equal elements into lists"
-  assert $ group (l [1, 2, 2, 3, 3, 3, 1]) == l [NE.singleton 1, 2 :| l [2], 3 :| l [3, 3], NE.singleton 1]
+  assert $ group (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.singleton 1, NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3]), NEL.singleton 1]
 
   log "group' should sort then group consecutive equal elements into lists"
-  assert $ group' (l [1, 2, 2, 3, 3, 3, 1]) == l [1 :| l [1], 2 :| l [2], 3 :| l [3, 3]]
+  assert $ group' (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3])]
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
-  assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [1 :| l [1], NE.singleton 2, NE.singleton 2, 3 :| l [3]]
+  assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.singleton 2, NEL.singleton 2, NEL.NonEmptyList (3 :| l [3])]
 
   log "nub should remove duplicate elements from the list, keeping the first occurence"
   assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
@@ -304,17 +304,8 @@ testList = do
   log "unfoldr should maintain order"
   assert $ (1..5) == unfoldr step 1
 
-  -- log "can find the first 10 primes using lazy lists"
-  -- let eratos :: L.List Number -> L.List Number
-  --     eratos xs = Control.Lazy.defer \_ ->
-  --       case L.uncons xs of
-  --         Nothing -> L.nil
-  --         Just (Tuple p xs) -> p `L.cons` eratos (L.filter (\x -> x % p /= 0) xs)
-
-  --     upFrom = L.iterate (1 +)
-
-  --     primes = eratos $ upFrom 2
-  -- assert $ L.fromList (L.take 10 primes) == [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+  log "map should maintain order"
+  assert $ (1..5) == map id (1..5)
 
   log "transpose"
   assert $ transpose (l [l [1,2,3], l[4,5,6], l [7,8,9]]) ==
