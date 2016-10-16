@@ -94,10 +94,12 @@ import Prelude
 import Control.Lazy as Z
 
 import Data.Foldable (class Foldable, foldr, any, foldl)
+import Data.Lazy (defer)
 import Data.List.Lazy.Types (List(..), Step(..), step, nil, cons, (:))
+import Data.List.Lazy.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Newtype (unwrap)
-import Data.NonEmpty (NonEmpty, (:|))
+import Data.NonEmpty ((:|))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
@@ -527,20 +529,21 @@ span p xs =
 -- | ```
 -- |
 -- | Running time: `O(n)`
-group :: forall a. Eq a => List a -> List (NonEmpty List a)
+group :: forall a. Eq a => List a -> List (NEL.NonEmptyList a)
 group = groupBy (==)
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.
 -- |
 -- | Running time: `O(n)`
-groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NonEmpty List a)
+groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
 groupBy eq xs = List (go <$> unwrap xs)
   where
   go Nil = Nil
   go (Cons x xs) =
     case span (eq x) xs of
-      { init: ys, rest: zs } -> Cons (x :| ys) (groupBy eq zs)
+      { init: ys, rest: zs } ->
+        Cons (NEL.NonEmptyList (defer \_ -> x :| ys)) (groupBy eq zs)
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
