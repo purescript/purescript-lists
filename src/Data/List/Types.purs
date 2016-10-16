@@ -130,7 +130,7 @@ derive newtype instance ordNonEmptyList :: Ord a => Ord (NonEmptyList a)
 derive newtype instance genericEmptyList :: Generic a => Generic (NonEmptyList a)
 
 instance showNonEmptyList :: Show a => Show (NonEmptyList a) where
-  show (NonEmptyList errs) = "(NonEmptyList " <> show errs <> ")"
+  show (NonEmptyList nel) = "(NonEmptyList " <> show nel <> ")"
 
 derive newtype instance functorNonEmptyList :: Functor NonEmptyList
 
