@@ -15,7 +15,9 @@ module Data.List
   , singleton
   , (..), range
   , some
+  , someRec
   , many
+  , manyRec
 
   , null
   , length
@@ -90,7 +92,9 @@ import Prelude
 import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy (class Lazy, defer)
+import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 
+import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
@@ -143,6 +147,10 @@ range start end | start == end = singleton start
 some :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
 some v = Cons <$> v <*> defer (\_ -> many v)
 
+-- | A stack-safe version of `some`, at the cost of a `MonadRec` constraint.
+someRec :: forall f a. (MonadRec f, Alternative f) => f a -> f (List a)
+someRec v = Cons <$> v <*> manyRec v
+
 -- | Attempt a computation multiple times, returning as many successful results
 -- | as possible (possibly zero).
 -- |
@@ -150,6 +158,15 @@ some v = Cons <$> v <*> defer (\_ -> many v)
 -- | termination.
 many :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
 many v = some v <|> pure Nil
+
+-- | A stack-safe version of `many`, at the cost of a `MonadRec` constraint.
+manyRec :: forall f a. (MonadRec f, Alternative f) => f a -> f (List a)
+manyRec p = tailRecM go Nil
+  where
+  go :: List a -> f (Step (List a) (List a))
+  go acc = do
+    aa <- (Loop <$> p) <|> pure (Done unit)
+    pure $ bimap (_ : acc) (\_ -> reverse acc) aa
 
 --------------------------------------------------------------------------------
 -- List size -------------------------------------------------------------------
