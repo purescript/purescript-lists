@@ -20,7 +20,7 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-generics": "v3.0.0",
+    "purescript-generics": "^3.0.0",
     "purescript-lazy": "^2.0.0",
     "purescript-unfoldable": "^2.0.0"
   },
