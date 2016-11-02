@@ -1,7 +1,6 @@
 module Data.List.Types where
 
 import Prelude
-import Data.NonEmpty as NE
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
 import Control.Apply (lift2)
@@ -16,6 +15,7 @@ import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty (NonEmpty, (:|))
+import Data.NonEmpty as NE
 import Data.Traversable (class Traversable, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable)
