@@ -1,15 +1,14 @@
 module Data.List.Types where
 
 import Prelude
-
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
+import Control.Apply (lift2)
 import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
-
 import Data.Foldable (class Foldable, foldr, foldl, intercalate)
 import Data.Generic (class Generic)
 import Data.Maybe (Maybe(..))
@@ -17,7 +16,7 @@ import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
-import Data.Traversable (class Traversable, traverse, sequence)
+import Data.Traversable (class Traversable, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable)
 
@@ -79,10 +78,8 @@ instance unfoldableList :: Unfoldable List where
         Just (Tuple one rest) -> go rest (one : memo)
 
 instance traversableList :: Traversable List where
-  traverse _ Nil = pure Nil
-  traverse f (a : as) = Cons <$> f a <*> traverse f as
-  sequence Nil = pure Nil
-  sequence (a : as) = Cons <$> a <*> sequence as
+  traverse f = map (foldl (flip (:)) Nil) <<< foldl (\acc -> lift2 (flip (:)) acc <<< f) (pure Nil)
+  sequence = traverse id
 
 instance applyList :: Apply List where
   apply Nil _ = Nil

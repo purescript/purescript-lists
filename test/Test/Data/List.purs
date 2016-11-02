@@ -1,21 +1,18 @@
 module Test.Data.List (testList) where
 
 import Prelude
-
+import Data.List.NonEmpty as NEL
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
-
 import Data.Foldable (foldMap, foldl)
 import Data.List (List(..), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
-import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (replicate, replicateA, unfoldr)
-
 import Partial.Unsafe (unsafePartial)
-
 import Test.Assert (ASSERT, assert)
 
 testList :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
@@ -317,6 +314,10 @@ testList = do
   assert $ transpose Nil == (Nil :: List (List Int))
   log "transpose (singleton Nil) == Nil"
   assert $ transpose (singleton Nil) == (Nil :: List (List Int))
+
+  log "traverse should be stack-safe"
+  let xs = fromFoldable (range 1 100000)
+  assert $ traverse Just xs == Just xs
 
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing
