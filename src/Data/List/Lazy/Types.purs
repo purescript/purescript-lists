@@ -58,14 +58,14 @@ instance showList :: Show a => Show (List a) where
   show xs = "fromStrict (" <> go (step xs) <> ")"
     where
     go Nil = "Nil"
-    go (Cons x xs) = "(Cons " <> show x <> " " <> go (step xs) <> ")"
+    go (Cons x xs') = "(Cons " <> show x <> " " <> go (step xs') <> ")"
 
 instance eqList :: Eq a => Eq (List a) where
   eq xs ys = go (step xs) (step ys)
     where
     go Nil Nil = true
-    go (Cons x xs) (Cons y ys)
-      | x == y = go (step xs) (step ys)
+    go (Cons x xs') (Cons y ys')
+      | x == y = go (step xs') (step ys')
     go _ _ = false
 
 instance ordList :: Ord a => Ord (List a) where
@@ -74,9 +74,9 @@ instance ordList :: Ord a => Ord (List a) where
     go Nil Nil = EQ
     go Nil _   = LT
     go _   Nil = GT
-    go (Cons x xs) (Cons y ys) =
+    go (Cons x xs') (Cons y ys') =
       case compare x y of
-        EQ -> go (step xs) (step ys)
+        EQ -> go (step xs') (step ys')
         other -> other
 
 instance lazyList :: Z.Lazy (List a) where
@@ -86,7 +86,7 @@ instance semigroupList :: Semigroup (List a) where
   append xs ys = List (go <$> unwrap xs)
     where
     go Nil = step ys
-    go (Cons x xs) = Cons x (xs <> ys)
+    go (Cons x xs') = Cons x (xs' <> ys)
 
 instance monoidList :: Monoid (List a) where
   mempty = nil
@@ -95,7 +95,7 @@ instance functorList :: Functor List where
   map f xs = List (go <$> unwrap xs)
     where
     go Nil = Nil
-    go (Cons x xs) = Cons (f x) (f <$> xs)
+    go (Cons x xs') = Cons (f x) (f <$> xs')
 
 instance foldableList :: Foldable List where
   foldr o b xs = go (step xs)
@@ -111,24 +111,24 @@ instance foldableList :: Foldable List where
   foldMap f xs = go (step xs)
     where
     go Nil = mempty
-    go (Cons x xs) = f x <> foldMap f xs
+    go (Cons x xs') = f x <> foldMap f xs'
 
 instance unfoldableList :: Unfoldable List where
   unfoldr f b = go (f b)
     where
     go Nothing = nil
-    go (Just (Tuple a b)) = a : Z.defer \_ -> go (f b)
+    go (Just (Tuple a b')) = a : Z.defer \_ -> go (f b')
 
 instance traversableList :: Traversable List where
   traverse f xs = go (step xs)
     where
     go Nil = pure nil
-    go (Cons x xs) = cons <$> f x <*> traverse f xs
+    go (Cons x xs') = cons <$> f x <*> traverse f xs'
 
   sequence xs = go (step xs)
     where
     go Nil = pure nil
-    go (Cons x xs) = cons <$> x <*> sequence xs
+    go (Cons x xs') = cons <$> x <*> sequence xs'
 
 instance applyList :: Apply List where
   apply = ap
@@ -140,7 +140,7 @@ instance bindList :: Bind List where
   bind xs f = List (go <$> unwrap xs)
     where
     go Nil = Nil
-    go (Cons x xs) = step (f x <> bind xs f)
+    go (Cons x xs') = step (f x <> bind xs' f)
 
 instance monadList :: Monad List
 
