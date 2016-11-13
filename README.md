@@ -1,8 +1,7 @@
 # purescript-lists
 
-[![Latest release](http://img.shields.io/bower/v/purescript-lists.svg)](https://github.com/purescript/purescript-lists/releases)
-[![Build Status](https://travis-ci.org/purescript/purescript-lists.svg?branch=master)](https://travis-ci.org/purescript/purescript-lists)
-[![Dependency Status](https://www.versioneye.com/user/projects/55848c8a363861001d00033b/badge.svg?style=flat)](https://www.versioneye.com/user/projects/55848c8a363861001d00033b)
+[![Latest release](http://img.shields.io/github/release/purescript/purescript-lists.svg)](https://github.com/purescript/purescript-lists/releases)
+[![Build status](https://travis-ci.org/purescript/purescript-lists.svg?branch=master)](https://travis-ci.org/purescript/purescript-lists)
 
 This library defines strict and lazy linked lists, and associated helper functions and type class instances.
 
