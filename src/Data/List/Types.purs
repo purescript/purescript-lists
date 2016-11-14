@@ -35,7 +35,7 @@ instance eqList :: Eq a => Eq (List a) where
     where
       go _ _ false = false
       go Nil Nil acc = acc
-      go (x : xs) (y : ys) acc = go xs ys $ acc && (y == x)
+      go (x : xs') (y : ys') acc = go xs' ys' $ acc && (y == x)
       go _ _ _ = false
 
 instance ordList :: Ord a => Ord (List a) where
@@ -44,9 +44,9 @@ instance ordList :: Ord a => Ord (List a) where
     go Nil Nil = EQ
     go Nil _ = LT
     go _ Nil = GT
-    go (x : xs) (y : ys) =
+    go (x : xs') (y : ys') =
       case compare x y of
-        EQ -> go xs ys
+        EQ -> go xs' ys'
         other -> other
 
 instance semigroupList :: Semigroup (List a) where
@@ -111,8 +111,8 @@ instance extendList :: Extend List where
   extend f l@(a : as) =
     f l : (foldr go { val: Nil, acc: Nil } as).val
     where
-    go a { val, acc } =
-      let acc' = a : acc
+    go a' { val, acc } =
+      let acc' = a' : acc
       in { val: f acc' : val, acc: acc' }
 
 newtype NonEmptyList a = NonEmptyList (NonEmpty List a)

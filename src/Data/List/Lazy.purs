@@ -189,7 +189,7 @@ length :: forall a. List a -> Int
 length xs = go (step xs)
   where
   go Nil = 0
-  go (Cons _ xs) = 1 + go (step xs)
+  go (Cons _ xs') = 1 + go (step xs')
 
 --------------------------------------------------------------------------------
 -- Extending arrays ------------------------------------------------------------
@@ -234,11 +234,12 @@ head xs = _.head <$> uncons xs
 -- |
 -- | Running time: `O(n)`.
 last :: forall a. List a -> Maybe a
-last xs = go (step xs)
+last = go <<< step
   where
-  go (Cons x xs) | null xs = Just x
-                 | otherwise = go (step xs)
-  go _            = Nothing
+  go (Cons x xs)
+    | null xs = Just x
+    | otherwise = go (step xs)
+  go _ = Nothing
 
 -- | Get all but the first element of a list, or `Nothing` if the list is empty.
 -- |
@@ -250,12 +251,13 @@ tail xs = _.tail <$> uncons xs
 -- |
 -- | Running time: `O(n)`
 init :: forall a. List a -> Maybe (List a)
-init xs = go (step xs)
+init = go <<< step
   where
   go :: Step a -> Maybe (List a)
-  go (Cons x xs) | null xs = Just nil
-                 | otherwise = cons x <$> go (step xs)
-  go _            = Nothing
+  go (Cons x xs)
+    | null xs = Just nil
+    | otherwise = cons x <$> go (step xs)
+  go _ = Nothing
 
 -- | Break a list into its first element, and the remaining elements,
 -- | or `Nothing` if the list is empty.
@@ -263,8 +265,8 @@ init xs = go (step xs)
 -- | Running time: `O(1)`
 uncons :: forall a. List a -> Maybe { head :: a, tail :: List a }
 uncons xs = case step xs of
-              Nil -> Nothing
-              Cons x xs -> Just { head: x, tail: xs }
+  Nil -> Nothing
+  Cons x xs' -> Just { head: x, tail: xs' }
 
 --------------------------------------------------------------------------------
 -- Indexed operations ----------------------------------------------------------
@@ -332,7 +334,7 @@ deleteAt n xs = List (go n <$> unwrap xs)
   where
   go _ Nil = Nil
   go 0 (Cons y ys) = step ys
-  go n (Cons y ys) = Cons y (deleteAt (n - 1) ys)
+  go n' (Cons y ys) = Cons y (deleteAt (n' - 1) ys)
 
 -- | Update the element at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
@@ -346,7 +348,7 @@ updateAt n x xs = List (go n <$> unwrap xs)
   where
   go _ Nil = Nil
   go 0 (Cons _ ys) = Cons x ys
-  go n (Cons y ys) = Cons y (updateAt (n - 1) x ys)
+  go n' (Cons y ys) = Cons y (updateAt (n' - 1) x ys)
 
 -- | Update the element at the specified index by applying a function to
 -- | the current value, returning a new list or `Nothing` if the index is
@@ -374,7 +376,7 @@ alterAt n f xs = List (go n <$> unwrap xs)
   go 0 (Cons y ys) = case f y of
     Nothing -> step ys
     Just y' -> Cons y' ys
-  go n (Cons y ys) = Cons y (alterAt (n - 1) f ys)
+  go n' (Cons y ys) = Cons y (alterAt (n' - 1) f ys)
 
 --------------------------------------------------------------------------------
 -- Transformations -------------------------------------------------------------
@@ -384,7 +386,7 @@ alterAt n f xs = List (go n <$> unwrap xs)
 -- |
 -- | Running time: `O(n)`
 reverse :: forall a. List a -> List a
-reverse xs = go nil (step xs)
+reverse = go nil <<< step
   where
   go acc Nil = acc
   go acc (Cons x xs) = go (cons x acc) (step xs)
@@ -406,7 +408,7 @@ concatMap = flip bind
 -- |
 -- | Running time: `O(n)`
 filter :: forall a. (a -> Boolean) -> List a -> List a
-filter p xs = List (go <$> unwrap xs)
+filter p = List <<< map go <<< unwrap
   where
   go Nil = Nil
   go (Cons x xs)
@@ -436,7 +438,7 @@ filterM p list =
 -- |
 -- | Running time: `O(n)`
 mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
-mapMaybe f xs = List (go <$> unwrap xs)
+mapMaybe f = List <<< map go <<< unwrap
   where
   go Nil = Nil
   go (Cons x xs) =
@@ -465,18 +467,18 @@ slice start end xs = take (end - start) (drop start xs)
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to take.
 take :: forall a. Int -> List a -> List a
-take n xs = List (go n <$> unwrap xs)
+take n = List <<< map (go n) <<< unwrap
   where
   go :: Int -> Step a -> Step a
   go i _ | i <= 0 = Nil
   go _ Nil = Nil
-  go n (Cons x xs) = Cons x (take (n - 1) xs)
+  go n' (Cons x xs) = Cons x (take (n' - 1) xs)
 
 -- | Take those elements from the front of a list which match a predicate.
 -- |
 -- | Running time (worst case): `O(n)`
 takeWhile :: forall a. (a -> Boolean) -> List a -> List a
-takeWhile p xs = List (go <$> unwrap xs)
+takeWhile p = List <<< map go <<< unwrap
   where
   go (Cons x xs) | p x = Cons x (takeWhile p xs)
   go _ = Nil
@@ -485,17 +487,17 @@ takeWhile p xs = List (go <$> unwrap xs)
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to drop.
 drop :: forall a. Int -> List a -> List a
-drop n xs = List (go n <$> unwrap xs)
+drop n = List <<< map (go n) <<< unwrap
   where
   go 0 xs = xs
   go _ Nil = Nil
-  go n (Cons x xs) = go (n - 1) (step xs)
+  go n' (Cons x xs) = go (n' - 1) (step xs)
 
 -- | Drop those elements from the front of a list which match a predicate.
 -- |
 -- | Running time (worst case): `O(n)`
 dropWhile :: forall a. (a -> Boolean) -> List a -> List a
-dropWhile p xs = go (step xs)
+dropWhile p = go <<< step
   where
   go (Cons x xs) | p x = go (step xs)
   go xs = fromStep xs
@@ -537,7 +539,7 @@ group = groupBy (==)
 -- |
 -- | Running time: `O(n)`
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
-groupBy eq xs = List (go <$> unwrap xs)
+groupBy eq = List <<< map go <<< unwrap
   where
   go Nil = Nil
   go (Cons x xs) =
@@ -560,7 +562,7 @@ nub = nubBy eq
 -- |
 -- | Running time: `O(n^2)`
 nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubBy eq xs = List (go <$> unwrap xs)
+nubBy eq = List <<< map go <<< unwrap
   where
   go Nil = Nil
   go (Cons x xs) = Cons x (nubBy eq (filter (\y -> not (eq x y)) xs))
@@ -678,8 +680,8 @@ transpose xs =
       case uncons h of
         Nothing ->
           transpose xss
-        Just { head: x, tail: xs } ->
-          (x : mapMaybe head xss) : transpose (xs : mapMaybe tail xss)
+        Just { head: x, tail: xs' } ->
+          (x : mapMaybe head xss) : transpose (xs' : mapMaybe tail xss)
 
 --------------------------------------------------------------------------------
 -- Folding ---------------------------------------------------------------------
