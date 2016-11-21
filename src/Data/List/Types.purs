@@ -50,8 +50,7 @@ instance ordList :: Ord a => Ord (List a) where
         other -> other
 
 instance semigroupList :: Semigroup (List a) where
-  append Nil ys = ys
-  append (x : xs) ys = x : (xs <> ys)
+  append xs ys = foldr (:) ys xs
 
 instance monoidList :: Monoid (List a) where
   mempty = Nil
