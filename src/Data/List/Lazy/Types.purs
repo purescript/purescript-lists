@@ -98,43 +98,35 @@ instance functorList :: Functor List where
     go (Cons x xs') = Cons (f x) (f <$> xs')
 
 instance foldableList :: Foldable List where
-  foldr o b xs = go (step xs)
-    where
-    go Nil = b
-    go (Cons a as) = a `o` foldr o b as
+  -- calls foldl on the reversed list
+  foldr op z xs = foldl (flip op) z (rev xs) where
+    rev = foldl (flip cons) nil
 
-  foldl o b xs = go (step xs)
-    where
-    go Nil = b
-    go (Cons a as) = foldl o (b `o` a) as
+  foldl = go where
+    -- `go` is needed to ensure the function is tail-call optimized
+    go op b xs = case step xs of
+      Nil -> b
+      Cons hd tl -> go op (b `op` hd) tl
 
-  foldMap f xs = go (step xs)
-    where
-    go Nil = mempty
-    go (Cons x xs') = f x <> foldMap f xs'
+  foldMap f = foldl (\b a -> b <> f a) mempty
 
 instance unfoldableList :: Unfoldable List where
-  unfoldr f b = go (f b)
-    where
-    go Nothing = nil
-    go (Just (Tuple a b')) = a : Z.defer \_ -> go (f b')
+  unfoldr = go where
+    go f b = Z.defer \_ -> case f b of
+      Nothing -> nil
+      Just (Tuple a b') -> a : go f b'
 
 instance traversableList :: Traversable List where
-  traverse f xs = go (step xs)
-    where
-    go Nil = pure nil
-    go (Cons x xs') = cons <$> f x <*> traverse f xs'
+  traverse f =
+    foldr (\a b -> cons <$> f a <*> b) (pure nil)
 
-  sequence xs = go (step xs)
-    where
-    go Nil = pure nil
-    go (Cons x xs') = cons <$> x <*> sequence xs'
+  sequence = traverse id
 
 instance applyList :: Apply List where
   apply = ap
 
 instance applicativeList :: Applicative List where
-  pure = flip cons nil
+  pure a = a : nil
 
 instance bindList :: Bind List where
   bind xs f = List (go <$> unwrap xs)
@@ -170,7 +162,8 @@ instance extendList :: Extend List where
 newtype NonEmptyList a = NonEmptyList (Lazy (NonEmpty List a))
 
 toList :: forall a. NonEmptyList a -> List a
-toList (NonEmptyList nel) = case force nel of x :| xs -> x : xs
+toList (NonEmptyList nel) = Z.defer \_ ->
+  case force nel of x :| xs -> x : xs
 
 derive instance newtypeNonEmptyList :: Newtype (NonEmptyList a) _
 
