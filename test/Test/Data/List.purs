@@ -319,6 +319,13 @@ testList = do
   let xs = fromFoldable (range 1 100000)
   assert $ traverse Just xs == Just xs
 
+  log "append should concatenate two lists"
+  assert $ (l [1, 2]) <> (l [3, 4]) == (l [1, 2, 3, 4])
+
+  log "append should be stack-safe"
+  void $ pure $ xs <> xs
+
+
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing
 step n = Just (Tuple n (n + 1))
