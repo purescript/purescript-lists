@@ -7,10 +7,12 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 
 import Data.Lazy as Z
-import Data.List.Lazy (List, nil, cons, singleton, transpose, take, iterate, filter, uncons, foldM, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
+import Data.List.Lazy (List, nil, cons, foldl, foldr, foldMap, singleton, transpose, take, iterate, filter, uncons, foldM, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
+import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 
 import Partial.Unsafe (unsafePartial)
@@ -22,6 +24,31 @@ testListLazy = do
   let
     l = fromFoldable
     nel xxs = NEL.NonEmptyList (Z.defer \_ -> xxs)
+    longList = range 1 100000
+
+  log "append should be stack-safe"
+  assert $ length (longList <> longList) == (2 * length longList)
+
+  log "map should be stack-safe"
+  assert $ (last $ (_ + 1) <$> longList) == ((_ + 1) <$> last longList)
+
+  log "foldl should be stack-safe"
+  void $ pure $ foldl (+) 0 longList
+
+  log "foldr should be stack-safe"
+  void $ pure $ foldr (+) 0 longList
+
+  log "foldMap should be stack-safe"
+  void $ pure $ foldMap Additive longList
+
+  log "foldMap should be left-to-right"
+  assert $ foldMap show (range 1 5) == "12345"
+
+  log "traverse should be stack-safe"
+  assert $ ((traverse Just longList) >>= last) == last longList
+
+  log "bind should be stack-safe"
+  void $ pure $ last $ longList >>= pure
 
   log "singleton should construct an list with a single value"
   assert $ singleton 1 == l [1]
@@ -57,6 +84,9 @@ testListLazy = do
   log "null should return true for an empty list"
   assert $ null nil' == true
 
+  log "length should be stack-safe"
+  assert $ length longList == 100000
+
   log "length should return the number of items in an list"
   assert $ length nil' == 0
   assert $ length (l [1]) == 1
@@ -65,6 +95,9 @@ testListLazy = do
   log "snoc should add an item to the end of an list"
   assert $ l [1, 2, 3] `snoc` 4 == l [1, 2, 3, 4]
   assert $ nil' `snoc` 1 == l [1]
+
+  log "insert should be stack-safe"
+  assert $ last (insert 100001 longList) == Just 100001
 
   log "insert should add an item at the appropriate place in a sorted list"
   assert $ insert 1.5 (l [1.0, 2.0, 3.0]) == l [1.0, 1.5, 2.0, 3.0]
@@ -166,6 +199,9 @@ testListLazy = do
   log "reverse should reverse the order of items in an list"
   assert $ (reverse (l [1, 2, 3])) == l [3, 2, 1]
   assert $ (reverse nil') == nil'
+
+  log "reverse should be stack-safe"
+  assert $ head (reverse longList) == last longList
 
   log "concat should join an list of lists"
   assert $ (concat (l [l [1, 2], l [3, 4]])) == l [1, 2, 3, 4]

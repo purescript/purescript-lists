@@ -186,10 +186,7 @@ null = isNothing <<< uncons
 -- |
 -- | Running time: `O(n)`
 length :: forall a. List a -> Int
-length xs = go (step xs)
-  where
-  go Nil = 0
-  go (Cons _ xs') = 1 + go (step xs')
+length = foldl (\l _ -> l + 1) 0
 
 --------------------------------------------------------------------------------
 -- Extending arrays ------------------------------------------------------------
@@ -386,10 +383,7 @@ alterAt n f xs = List (go n <$> unwrap xs)
 -- |
 -- | Running time: `O(n)`
 reverse :: forall a. List a -> List a
-reverse = go nil <<< step
-  where
-  go acc Nil = acc
-  go acc (Cons x xs) = go (cons x acc) (step xs)
+reverse xs = Z.defer \_ -> foldl (flip cons) nil xs
 
 -- | Flatten a list of lists.
 -- |
