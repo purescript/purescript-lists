@@ -110,13 +110,13 @@ import Data.Traversable (scanl, scanr) as Exports
 -- | Convert a list into any unfoldable structure.
 -- |
 -- | Running time: `O(n)`
-toUnfoldable :: forall f a. Unfoldable f => List a -> f a
+toUnfoldable :: forall f. Unfoldable f => List ~> f
 toUnfoldable = unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> uncons xs)
 
 -- | Construct a list from a foldable structure.
 -- |
 -- | Running time: `O(n)`
-fromFoldable :: forall f a. Foldable f => f a -> List a
+fromFoldable :: forall f. Foldable f => f ~> List
 fromFoldable = foldr Cons Nil
 
 --------------------------------------------------------------------------------

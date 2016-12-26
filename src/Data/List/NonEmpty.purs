@@ -25,7 +25,7 @@ import Data.NonEmpty as NE
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
 
-toUnfoldable :: forall f a. Unfoldable f => NonEmptyList a -> f a
+toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
 toUnfoldable =
   unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> L.uncons xs) <<< toList
 
@@ -36,7 +36,7 @@ fromList :: forall a. L.List a -> Maybe (NonEmptyList a)
 fromList L.Nil = Nothing
 fromList (x : xs) = Just (NonEmptyList (x :| xs))
 
-toList :: forall a. NonEmptyList a -> L.List a
+toList :: NonEmptyList ~> L.List
 toList (NonEmptyList (x :| xs)) = x : xs
 
 singleton :: forall a. a -> NonEmptyList a

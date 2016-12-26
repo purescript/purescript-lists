@@ -161,7 +161,7 @@ instance extendList :: Extend List where
 
 newtype NonEmptyList a = NonEmptyList (Lazy (NonEmpty List a))
 
-toList :: forall a. NonEmptyList a -> List a
+toList :: NonEmptyList ~> List
 toList (NonEmptyList nel) = Z.defer \_ ->
   case force nel of x :| xs -> x : xs
 
