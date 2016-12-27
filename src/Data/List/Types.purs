@@ -116,7 +116,7 @@ instance extendList :: Extend List where
 
 newtype NonEmptyList a = NonEmptyList (NonEmpty List a)
 
-toList :: forall a. NonEmptyList a -> List a
+toList :: NonEmptyList ~> List
 toList (NonEmptyList (x :| xs)) = x : xs
 
 derive instance newtypeNonEmptyList :: Newtype (NonEmptyList a) _
