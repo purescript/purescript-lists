@@ -243,12 +243,7 @@ tail (_ : xs) = Just xs
 -- |
 -- | Running time: `O(n)`
 init :: forall a. List a -> Maybe (List a)
-init Nil = Nothing
-init lst = Just $ reverse $ go lst Nil
-  where
-  go (x : Nil) acc = acc
-  go (x : xs) acc = go xs (x : acc)
-  go _ acc = acc
+init lst = _.init <$> unsnoc lst
 
 -- | Break a list into its first element, and the remaining elements,
 -- | or `Nothing` if the list is empty.
@@ -261,9 +256,14 @@ uncons (x : xs) = Just { head: x, tail: xs }
 -- | Break a list into its last element, and the preceding elements,
 -- | or `Nothing` if the list is empty.
 -- |
--- | Running time: `O(2n)`
+-- | Running time: `O(n)`
 unsnoc :: forall a. List a -> Maybe { init :: List a, last :: a }
-unsnoc xs = { init: _, last: _ } <$> init xs <*> last xs
+unsnoc lst = unsnocHelper lst Nil <#> \h -> { init: reverse h.revInit, last: h.last }
+
+unsnocHelper :: forall a. List a -> List a -> Maybe { revInit :: List a, last :: a }
+unsnocHelper Nil acc = Nothing
+unsnocHelper (x : Nil) acc = Just { revInit: acc, last: x }
+unsnocHelper (x : xs) acc = unsnocHelper xs (x : acc)
 
 --------------------------------------------------------------------------------
 -- Indexed operations ----------------------------------------------------------
