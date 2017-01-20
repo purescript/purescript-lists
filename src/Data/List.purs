@@ -31,6 +31,7 @@ module Data.List
   , tail
   , init
   , uncons
+  , unsnoc
 
   , (!!), index
   , elemIndex
@@ -256,6 +257,13 @@ init lst = Just $ reverse $ go lst Nil
 uncons :: forall a. List a -> Maybe { head :: a, tail :: List a }
 uncons Nil = Nothing
 uncons (x : xs) = Just { head: x, tail: xs }
+
+-- | Break a list into its last element, and the preceding elements,
+-- | or `Nothing` if the list is empty.
+-- |
+-- | Running time: `O(2n)`
+unsnoc :: forall a. List a -> Maybe { init :: List a, last :: a }
+unsnoc xs = { init: _, last: _ } <$> init xs <*> last xs
 
 --------------------------------------------------------------------------------
 -- Indexed operations ----------------------------------------------------------
