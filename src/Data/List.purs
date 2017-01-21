@@ -258,11 +258,11 @@ uncons (x : xs) = Just { head: x, tail: xs }
 -- |
 -- | Running time: `O(n)`
 unsnoc :: forall a. List a -> Maybe { init :: List a, last :: a }
-unsnoc lst = go lst Nil <#> \h -> { init: reverse h.revInit, last: h.last }
+unsnoc lst = (\h -> { init: reverse h.revInit, last: h.last }) <$> go lst Nil
   where
-    go Nil acc = Nothing
-    go (x : Nil) acc = Just { revInit: acc, last: x }
-    go (x : xs) acc = go xs (x : acc)
+  go Nil acc = Nothing
+  go (x : Nil) acc = Just { revInit: acc, last: x }
+  go (x : xs) acc = go xs (x : acc)
 
 --------------------------------------------------------------------------------
 -- Indexed operations ----------------------------------------------------------
