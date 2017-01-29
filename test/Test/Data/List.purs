@@ -5,7 +5,7 @@ import Data.List.NonEmpty as NEL
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Foldable (foldMap, foldl)
-import Data.List (List(..), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List (List(..), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
@@ -105,6 +105,17 @@ testList = do
   let u2 = uncons (l [1, 2, 3])
   assert $ unsafePartial (fromJust u2).head == 1
   assert $ unsafePartial (fromJust u2).tail == l [2, 3]
+
+  log "unsnoc should return nothing when used on an empty list"
+  assert $ isNothing (unsnoc nil)
+
+  log "unsnoc should split an list into an init and last record when there is at least one item"
+  let v1 = unsnoc (l [1])
+  assert $ unsafePartial (fromJust v1).init == l []
+  assert $ unsafePartial (fromJust v1).last == 1
+  let v2 = unsnoc (l [1, 2, 3])
+  assert $ unsafePartial (fromJust v2).init == l [1, 2]
+  assert $ unsafePartial (fromJust v2).last == 3
 
   log "(!!) should return Just x when the index is within the bounds of the list"
   assert $ l [1, 2, 3] !! 0 == (Just 1)
