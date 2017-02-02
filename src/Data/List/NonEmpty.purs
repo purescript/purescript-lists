@@ -48,10 +48,10 @@ head (NonEmptyList (x :| _)) = x
 last :: forall a. NonEmptyList a -> a
 last (NonEmptyList (x :| xs)) = fromMaybe x (L.last xs)
 
-tail :: forall a. NonEmptyList a -> L.List a
+tail :: NonEmptyList ~> L.List
 tail (NonEmptyList (_ :| xs)) = xs
 
-init :: forall a. NonEmptyList a -> L.List a
+init :: NonEmptyList ~> L.List
 init (NonEmptyList (x :| xs)) = maybe L.Nil (x : _) (L.init xs)
 
 uncons :: forall a. NonEmptyList a -> { head :: a, tail :: L.List a }
