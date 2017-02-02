@@ -10,6 +10,7 @@ import Test.Data.List (testList)
 import Test.Data.List.Lazy (testListLazy)
 import Test.Data.List.Partial (testListPartial)
 import Test.Data.List.ZipList (testZipList)
+import Test.Data.List.NonEmpty (testNonEmptyList)
 
 main :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
 main = do
@@ -17,3 +18,4 @@ main = do
   testListLazy
   testZipList
   testListPartial
+  testNonEmptyList

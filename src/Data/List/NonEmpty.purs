@@ -13,6 +13,8 @@ module Data.List.NonEmpty
   , length
   , concatMap
   , appendFoldable
+  , sort
+  , sortBy
   ) where
 
 import Prelude
@@ -21,11 +23,12 @@ import Data.Foldable (class Foldable)
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
-import Data.Maybe (Maybe(..), maybe, fromMaybe)
+import Data.Maybe (Maybe(..), maybe, fromMaybe, fromJust)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
+import Partial.Unsafe (unsafePartial)
 
 toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
 toUnfoldable =
@@ -68,3 +71,10 @@ concatMap = flip bind
 appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyList a
 appendFoldable (NonEmptyList (x :| xs)) ys =
   NonEmptyList (x :| (xs <> L.fromFoldable ys))
+
+sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
+sort xs = sortBy compare xs
+
+sortBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
+sortBy cmp xs = unsafeFromList $ L.sortBy cmp (toList xs)
+  where unsafeFromList ys = unsafePartial $ fromJust $ fromList ys
