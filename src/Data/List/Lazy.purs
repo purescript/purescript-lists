@@ -224,13 +224,13 @@ insertBy cmp x xs = List (go <$> unwrap xs)
 -- | Get the first element in a list, or `Nothing` if the list is empty.
 -- |
 -- | Running time: `O(1)`.
-head :: forall a. List a -> Maybe a
+head :: List ~> Maybe
 head xs = _.head <$> uncons xs
 
 -- | Get the last element in a list, or `Nothing` if the list is empty.
 -- |
 -- | Running time: `O(n)`.
-last :: forall a. List a -> Maybe a
+last :: List ~> Maybe
 last = go <<< step
   where
   go (Cons x xs)
@@ -382,7 +382,7 @@ alterAt n f xs = List (go n <$> unwrap xs)
 -- | Reverse a list.
 -- |
 -- | Running time: `O(n)`
-reverse :: forall a. List a -> List a
+reverse :: List ~> List
 reverse xs = Z.defer \_ -> foldl (flip cons) nil xs
 
 -- | Flatten a list of lists.
@@ -454,7 +454,7 @@ catMaybes = mapMaybe id
 --------------------------------------------------------------------------------
 
 -- | Extract a sublist by a start and end index.
-slice :: forall a. Int -> Int -> List a -> List a
+slice :: Int -> Int -> List ~> List
 slice start end xs = take (end - start) (drop start xs)
 
 -- | Take the specified number of elements from the front of a list.

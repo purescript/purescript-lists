@@ -220,14 +220,14 @@ insertBy cmp x ys@(y : ys') =
 -- | Get the first element in a list, or `Nothing` if the list is empty.
 -- |
 -- | Running time: `O(1)`.
-head :: forall a. List a -> Maybe a
+head :: List ~> Maybe
 head Nil = Nothing
 head (x : _) = Just x
 
 -- | Get the last element in a list, or `Nothing` if the list is empty.
 -- |
 -- | Running time: `O(n)`.
-last :: forall a. List a -> Maybe a
+last :: List ~> Maybe
 last (x : Nil) = Just x
 last (_ : xs)  = last xs
 last _         = Nothing
@@ -355,7 +355,7 @@ alterAt _ _ _  = Nothing
 -- | Reverse a list.
 -- |
 -- | Running time: `O(n)`
-reverse :: forall a. List a -> List a
+reverse :: List ~> List
 reverse = go Nil
   where
   go acc Nil = acc
@@ -476,7 +476,7 @@ sortBy cmp = mergeAll <<< sequences
 --------------------------------------------------------------------------------
 
 -- | Extract a sublist by a start and end index.
-slice :: forall a. Int -> Int -> List a -> List a
+slice :: Int -> Int -> List ~> List
 slice start end xs = take (end - start) (drop start xs)
 
 -- | Take the specified number of elements from the front of a list.
