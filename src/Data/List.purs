@@ -420,11 +420,11 @@ catMaybes = mapMaybe id
 
 
 -- | Apply a function to each element and its index in a list starting at 0.
-mapWithIndex :: forall a b. (a -> Int -> b) -> List a -> List b
+mapWithIndex :: forall a b. (Int -> a -> b) -> List a -> List b
 mapWithIndex f lst = reverse $ go 0 lst Nil
   where
   go _ Nil acc = acc
-  go n (x : xs) acc = go (n+1) xs (f x n : acc)
+  go n (x : xs) acc = go (n+1) xs (f n x : acc)
 
 --------------------------------------------------------------------------------
 -- Sorting ---------------------------------------------------------------------
