@@ -69,4 +69,4 @@ concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList
 concatMap = flip bind
 
 appendList :: forall a. NonEmptyList a -> L.List a -> NonEmptyList a
-appendList nel ys = NonEmptyList (defer \_ -> ((head nel) :| (tail nel) <> ys))
+appendList nel ys = NonEmptyList (defer \_ -> head nel :| tail nel <> ys)
