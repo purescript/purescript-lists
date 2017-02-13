@@ -62,3 +62,6 @@ length (NonEmptyList (x :| xs)) = 1 + L.length xs
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
+
+appendList :: NonEmptyList ~> L.List ~> NonEmptyList
+appendList (NonEmptyList (x :| xs)) ys = NonEmptyList (x :| (xs <> ys))
