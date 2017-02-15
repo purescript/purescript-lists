@@ -11,6 +11,7 @@ module Data.List.Lazy.NonEmpty
   , uncons
   , length
   , concatMap
+  , appendFoldable
   ) where
 
 import Prelude
@@ -68,5 +69,6 @@ length (NonEmptyList nel) = case force nel of x :| xs -> 1 + L.length xs
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
 
-appendList :: forall a. NonEmptyList a -> L.List a -> NonEmptyList a
-appendList nel ys = NonEmptyList (defer \_ -> head nel :| tail nel <> ys)
+appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyList a
+appendFoldable nel ys =
+  NonEmptyList (defer \_ -> head nel :| tail nel <> L.fromFoldable ys)

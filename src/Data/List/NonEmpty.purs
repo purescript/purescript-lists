@@ -11,6 +11,7 @@ module Data.List.NonEmpty
   , uncons
   , length
   , concatMap
+  , appendFoldable
   ) where
 
 import Prelude
@@ -63,5 +64,6 @@ length (NonEmptyList (x :| xs)) = 1 + L.length xs
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
 
-appendList :: forall a. NonEmptyList a -> L.List a -> NonEmptyList a
-appendList (NonEmptyList (x :| xs)) ys = NonEmptyList (x :| (xs <> ys))
+appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyList a
+appendFoldable (NonEmptyList (x :| xs)) ys =
+  NonEmptyList (x :| (xs <> L.fromFoldable ys))
