@@ -334,7 +334,7 @@ testListLazy = do
       eratos xs = defer \_ ->
         case uncons xs of
           Nothing -> nil
-          Just { head: p, tail: xs } -> p `cons` eratos (filter (\x -> x `mod` p /= 0) xs)
+          Just { head: p, tail: ys } -> p `cons` eratos (filter (\x -> x `mod` p /= 0) ys)
 
       upFrom = iterate (1 + _)
 
