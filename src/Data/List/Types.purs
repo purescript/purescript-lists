@@ -1,21 +1,25 @@
 module Data.List.Types where
 
 import Prelude
+
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
 import Control.Apply (lift2)
 import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
+import Control.Monad.Rec.Class (Step(..), tailRec)
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
+
+import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldr, foldl, intercalate)
-import Data.Generic (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
+import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable)
@@ -24,14 +28,15 @@ data List a = Nil | Cons a (List a)
 
 infixr 6 Cons as :
 
-derive instance genericList :: Generic a => Generic (List a)
-
 instance showList :: Show a => Show (List a) where
   show Nil = "Nil"
   show xs = "(" <> intercalate " : " (show <$> xs) <> " : Nil)"
 
 instance eqList :: Eq a => Eq (List a) where
-  eq xs ys = go xs ys true
+  eq = eq1
+
+instance eq1List :: Eq1 List where
+  eq1 xs ys = go xs ys true
     where
       go _ _ false = false
       go Nil Nil acc = acc
@@ -39,7 +44,10 @@ instance eqList :: Eq a => Eq (List a) where
       go _ _ _ = false
 
 instance ordList :: Ord a => Ord (List a) where
-  compare xs ys = go xs ys
+  compare = compare1
+
+instance ord1List :: Ord1 List where
+  compare1 xs ys = go xs ys
     where
     go Nil Nil = EQ
     go Nil _ = LT
@@ -59,22 +67,26 @@ instance functorList :: Functor List where
   map f = foldr (\x acc -> f x : acc) Nil
 
 instance foldableList :: Foldable List where
-  foldr f b as = foldl (flip f) b (rev Nil as)
+  foldr f b as = foldl (flip f) b (rev (Tuple Nil as))
     where
-    rev acc Nil = acc
-    rev acc (x : xs) = rev (x : acc) xs
-  foldl f = go
+    rev = tailRec \(Tuple acc xs) ->
+      case xs of
+        Nil -> Done acc
+        (x : xs') -> Loop (Tuple (x : acc) xs')
+  foldl f b as = go (Tuple b as)
     where
-    go b Nil = b
-    go b (a : as) = go (f b a) as
+    go = tailRec \(Tuple b' xs) ->
+      case xs of
+        Nil -> Done b'
+        (a : as') -> Loop (Tuple (f b' a) as')
   foldMap f = foldl (\acc -> append acc <<< f) mempty
 
 instance unfoldableList :: Unfoldable List where
-  unfoldr f b = go b Nil
+  unfoldr f b = go (Tuple b Nil)
     where
-      go source memo = case f source of
-        Nothing -> foldl (flip (:)) Nil memo
-        Just (Tuple one rest) -> go rest (one : memo)
+      go = tailRec \(Tuple source memo) -> case f source of
+        Nothing -> Done (foldl (flip (:)) Nil memo)
+        Just (Tuple one rest) -> Loop (Tuple rest (one : memo))
 
 instance traversableList :: Traversable List where
   traverse f = map (foldl (flip (:)) Nil) <<< foldl (\acc -> lift2 (flip (:)) acc <<< f) (pure Nil)
@@ -123,7 +135,6 @@ derive instance newtypeNonEmptyList :: Newtype (NonEmptyList a) _
 
 derive newtype instance eqNonEmptyList :: Eq a => Eq (NonEmptyList a)
 derive newtype instance ordNonEmptyList :: Ord a => Ord (NonEmptyList a)
-derive newtype instance genericEmptyList :: Generic a => Generic (NonEmptyList a)
 
 instance showNonEmptyList :: Show a => Show (NonEmptyList a) where
   show (NonEmptyList nel) = "(NonEmptyList " <> show nel <> ")"

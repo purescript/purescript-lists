@@ -4,13 +4,16 @@ import Prelude
 
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
-import Control.Extend (class Extend)
 import Control.Comonad (class Comonad)
+import Control.Extend (class Extend)
 import Control.Lazy as Z
+import Control.Monad.Rec.Class (tailRec)
+import Control.Monad.Rec.Class as Rec
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 
+import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
 import Data.Lazy (Lazy, defer, force)
 import Data.Maybe (Maybe(..))
@@ -18,6 +21,7 @@ import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
+import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse, sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable)
@@ -61,7 +65,10 @@ instance showList :: Show a => Show (List a) where
     go (Cons x xs') = "(Cons " <> show x <> " " <> go (step xs') <> ")"
 
 instance eqList :: Eq a => Eq (List a) where
-  eq xs ys = go (step xs) (step ys)
+  eq = eq1
+
+instance eq1List :: Eq1 List where
+  eq1 xs ys = go (step xs) (step ys)
     where
     go Nil Nil = true
     go (Cons x xs') (Cons y ys')
@@ -69,7 +76,10 @@ instance eqList :: Eq a => Eq (List a) where
     go _ _ = false
 
 instance ordList :: Ord a => Ord (List a) where
-  compare xs ys = go (step xs) (step ys)
+  compare = compare1
+
+instance ord1List :: Ord1 List where
+  compare1 xs ys = go (step xs) (step ys)
     where
     go Nil Nil = EQ
     go Nil _   = LT
@@ -102,11 +112,13 @@ instance foldableList :: Foldable List where
   foldr op z xs = foldl (flip op) z (rev xs) where
     rev = foldl (flip cons) nil
 
-  foldl = go where
+  foldl op b xs = go (Tuple b xs)
+    where
     -- `go` is needed to ensure the function is tail-call optimized
-    go op b xs = case step xs of
-      Nil -> b
-      Cons hd tl -> go op (b `op` hd) tl
+    go = tailRec \(Tuple b' xs') ->
+      case step xs' of
+        Nil -> Rec.Done b'
+        (Cons hd tl) -> Rec.Loop (Tuple (b' `op` hd) tl)
 
   foldMap f = foldl (\b a -> b <> f a) mempty
 

@@ -145,11 +145,11 @@ range start end | start == end = singleton start
 -- |
 -- | The `Lazy` constraint is used to generate the result lazily, to ensure
 -- | termination.
-some :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
+some :: forall f a. Alternative f => Lazy (f (List a)) => f a -> f (List a)
 some v = Cons <$> v <*> defer (\_ -> many v)
 
 -- | A stack-safe version of `some`, at the cost of a `MonadRec` constraint.
-someRec :: forall f a. (MonadRec f, Alternative f) => f a -> f (List a)
+someRec :: forall f a. MonadRec f => Alternative f => f a -> f (List a)
 someRec v = Cons <$> v <*> manyRec v
 
 -- | Attempt a computation multiple times, returning as many successful results
@@ -157,11 +157,11 @@ someRec v = Cons <$> v <*> manyRec v
 -- |
 -- | The `Lazy` constraint is used to generate the result lazily, to ensure
 -- | termination.
-many :: forall f a. (Alternative f, Lazy (f (List a))) => f a -> f (List a)
+many :: forall f a. Alternative f => Lazy (f (List a)) => f a -> f (List a)
 many v = some v <|> pure Nil
 
 -- | A stack-safe version of `many`, at the cost of a `MonadRec` constraint.
-manyRec :: forall f a. (MonadRec f, Alternative f) => f a -> f (List a)
+manyRec :: forall f a. MonadRec f => Alternative f => f a -> f (List a)
 manyRec p = tailRecM go Nil
   where
   go :: List a -> f (Step (List a) (List a))
