@@ -7,8 +7,6 @@ import Control.Alternative (class Alternative)
 import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
 import Control.Lazy as Z
-import Control.Monad.Rec.Class (tailRec)
-import Control.Monad.Rec.Class as Rec
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
@@ -112,13 +110,13 @@ instance foldableList :: Foldable List where
   foldr op z xs = foldl (flip op) z (rev xs) where
     rev = foldl (flip cons) nil
 
-  foldl op b xs = go (Tuple b xs)
+  foldl op = go
     where
     -- `go` is needed to ensure the function is tail-call optimized
-    go = tailRec \(Tuple b' xs') ->
-      case step xs' of
-        Nil -> Rec.Done b'
-        (Cons hd tl) -> Rec.Loop (Tuple (b' `op` hd) tl)
+    go b xs =
+      case step xs of
+        Nil -> b
+        Cons hd tl -> go (b `op` hd) tl
 
   foldMap f = foldl (\b a -> b <> f a) mempty
 

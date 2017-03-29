@@ -7,7 +7,6 @@ import Control.Alternative (class Alternative)
 import Control.Apply (lift2)
 import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
-import Control.Monad.Rec.Class (Step(..), tailRec)
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
@@ -67,26 +66,24 @@ instance functorList :: Functor List where
   map f = foldr (\x acc -> f x : acc) Nil
 
 instance foldableList :: Foldable List where
-  foldr f b as = foldl (flip f) b (rev (Tuple Nil as))
+  foldr f b = foldl (flip f) b <<< rev Nil
     where
-    rev = tailRec \(Tuple acc xs) ->
-      case xs of
-        Nil -> Done acc
-        (x : xs') -> Loop (Tuple (x : acc) xs')
-  foldl f b as = go (Tuple b as)
+    rev acc = case _ of
+      Nil -> acc
+      a : as -> rev (a : acc) as
+  foldl f = go
     where
-    go = tailRec \(Tuple b' xs) ->
-      case xs of
-        Nil -> Done b'
-        (a : as') -> Loop (Tuple (f b' a) as')
+    go b = case _ of
+      Nil -> b
+      a : as -> go (f b a) as
   foldMap f = foldl (\acc -> append acc <<< f) mempty
 
 instance unfoldableList :: Unfoldable List where
-  unfoldr f b = go (Tuple b Nil)
+  unfoldr f b = go b Nil
     where
-      go = tailRec \(Tuple source memo) -> case f source of
-        Nothing -> Done (foldl (flip (:)) Nil memo)
-        Just (Tuple one rest) -> Loop (Tuple rest (one : memo))
+    go source memo = case f source of
+      Nothing -> (foldl (flip (:)) Nil memo)
+      Just (Tuple one rest) -> go rest (one : memo)
 
 instance traversableList :: Traversable List where
   traverse f = map (foldl (flip (:)) Nil) <<< foldl (\acc -> lift2 (flip (:)) acc <<< f) (pure Nil)
