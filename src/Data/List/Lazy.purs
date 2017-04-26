@@ -16,8 +16,8 @@ module Data.List.Lazy
   , (..), range
   , replicate
   , replicateM
-  -- , some
-  -- , many
+  , some
+  , many
   , repeat
   , iterate
   , cycle
@@ -91,6 +91,8 @@ module Data.List.Lazy
 
 import Prelude
 
+import Control.Alt ((<|>))
+import Control.Alternative (class Alternative)
 import Control.Lazy as Z
 
 import Data.Foldable (class Foldable, foldr, any, foldl)
@@ -159,6 +161,21 @@ replicateM n m
       a <- m
       as <- replicateM (n - one) m
       pure (cons a as)
+
+-- | Attempt a computation multiple times, requiring at least one success.
+-- |
+-- | The `Lazy` constraint is used to generate the result lazily, to ensure
+-- | termination.
+some :: forall f a. Alternative f => Z.Lazy (f (List  a)) => f a -> f (List  a)
+some v = cons <$> v <*> Z.defer (\_ -> many v)
+
+-- | Attempt a computation multiple times, returning as many successful results
+-- | as possible (possibly zero).
+-- |
+-- | The `Lazy` constraint is used to generate the result lazily, to ensure
+-- | termination.
+many :: forall f a. Alternative f => Z.Lazy (f (List a)) => f a -> f (List a)
+many v = some v <|> pure nil
 
 -- | Create a list by repeating an element
 repeat :: forall a. a -> List a
