@@ -6,6 +6,7 @@ module Data.List.NonEmpty
   , toList
   , singleton
   , head
+  , last
   , tail
   , init
   , uncons
