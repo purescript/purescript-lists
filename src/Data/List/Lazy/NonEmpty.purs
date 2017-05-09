@@ -6,6 +6,7 @@ module Data.List.Lazy.NonEmpty
   , toList
   , singleton
   , head
+  , last
   , tail
   , init
   , uncons
