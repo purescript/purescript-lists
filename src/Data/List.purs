@@ -192,9 +192,9 @@ length = foldl (\acc _ -> acc + 1) 0
 
 -- | Append an element to the end of a list, creating a new list.
 -- |
--- | Running time: `O(2n)`
+-- | Running time: `O(n)`
 snoc :: forall a. List a -> a -> List a
-snoc xs x = reverse (x : reverse xs)
+snoc xs x = foldr (:) (x : Nil) xs
 
 -- | Insert an element into a sorted list.
 -- |
