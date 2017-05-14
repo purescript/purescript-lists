@@ -270,6 +270,9 @@ testListLazy = do
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
   assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [nel (1 :| l [1]), NEL.singleton 2, NEL.singleton 2, nel (3 :| l [3])]
 
+  log "iterate on nonempty lazy list should apply supplied function correctly"
+  assert $ (take 3 $ NEL.toList $ NEL.iterate (_ + 1) 0) == l [0, 1, 2]
+
   log "nub should remove duplicate elements from the list, keeping the first occurence"
   assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
 
@@ -300,6 +303,9 @@ testListLazy = do
 
   log "intersectBy should return the intersection of two lists using the specified equivalence relation"
   assert $ intersectBy (\x y -> (x * 2) == y) (l [1, 2, 3]) (l [2, 6]) == l [1, 3]
+
+  log "repeat on non-empty lazy list should repeat element"
+  assert $ (take 3 $ NEL.toList $ NEL.repeat 0) == l [0, 0, 0]
 
   log "zipWith should use the specified function to zip two lists together"
   assert $ zipWith (\x y -> l [show x, y]) (l [1, 2, 3]) (l ["a", "b", "c"]) == l [l ["1", "a"], l ["2", "b"], l ["3", "c"]]
