@@ -52,10 +52,10 @@ head (NonEmptyList nel) = case force nel of x :| _ -> x
 last :: forall a. NonEmptyList a -> a
 last (NonEmptyList nel) = case force nel of x :| xs -> fromMaybe x (L.last xs)
 
-tail :: forall a. NonEmptyList a -> L.List a
+tail :: NonEmptyList ~> L.List
 tail (NonEmptyList nel) = case force nel of _ :| xs -> xs
 
-init :: forall a. NonEmptyList a -> L.List a
+init :: NonEmptyList ~> L.List
 init (NonEmptyList nel) =
   case force nel
     of x :| xs ->
