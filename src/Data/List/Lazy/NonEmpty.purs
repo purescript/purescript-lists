@@ -5,6 +5,8 @@ module Data.List.Lazy.NonEmpty
   , fromList
   , toList
   , singleton
+  , repeat
+  , iterate
   , head
   , last
   , tail
@@ -45,6 +47,12 @@ toList (NonEmptyList nel) = case force nel of x :| xs -> x : xs
 
 singleton :: forall a. a -> NonEmptyList a
 singleton = pure
+
+repeat :: forall a. a -> NonEmptyList a
+repeat x = NonEmptyList $ defer \_ -> x :| L.repeat x
+
+iterate :: forall a. (a -> a) -> a -> NonEmptyList a
+iterate f x = NonEmptyList $ defer \_ -> x :| L.iterate f (f x)
 
 head :: forall a. NonEmptyList a -> a
 head (NonEmptyList nel) = case force nel of x :| _ -> x
