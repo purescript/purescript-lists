@@ -7,7 +7,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 
 import Data.Lazy as Z
-import Data.List.Lazy (List, nil, cons, foldl, foldr, foldMap, singleton, transpose, take, iterate, filter, uncons, foldM, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
+import Data.List.Lazy (List, nil, cons, foldl, foldr, foldMap, singleton, transpose, take, iterate, filter, uncons, foldM, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, partition, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -269,6 +269,10 @@ testListLazy = do
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
   assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [nel (1 :| l [1]), NEL.singleton 2, NEL.singleton 2, nel (3 :| l [3])]
+
+  log "partition should separate a list into a tuple of lists that do and do not satisfy a predicate"
+  assert $ partition (_ > 2) (l [1, 5, 3, 2, 4]) ==
+                     Tuple (l [5, 3, 4]) (l [1, 2])
 
   log "iterate on nonempty lazy list should apply supplied function correctly"
   assert $ (take 3 $ NEL.toList $ NEL.iterate (_ + 1) 0) == l [0, 1, 2]

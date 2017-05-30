@@ -65,6 +65,7 @@ module Data.List
   , group
   , group'
   , groupBy
+  , partition
 
   , nub
   , nubBy
@@ -560,6 +561,17 @@ groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
 groupBy _ Nil = Nil
 groupBy eq (x : xs) = case span (eq x) xs of
   { init: ys, rest: zs } -> NEL.NonEmptyList (x :| ys) : groupBy eq zs
+
+-- | Returns a tuple of lists of elements which do
+-- | and do not satisfy a predicate, respectively.
+-- |
+-- | Running time: `O(n)`
+partition :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
+partition f xs =
+  case foldl go (Tuple Nil Nil) xs of
+       (Tuple ys' ns') -> Tuple (reverse ys') (reverse ns')
+  where
+  go (Tuple ys ns) x = if f x then Tuple (x : ys) ns else Tuple ys (x : ns)
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------

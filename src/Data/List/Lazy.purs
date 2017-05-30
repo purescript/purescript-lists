@@ -66,6 +66,7 @@ module Data.List.Lazy
   , group
   -- , group'
   , groupBy
+  , partition
 
   , nub
   , nubBy
@@ -557,6 +558,15 @@ groupBy eq = List <<< map go <<< unwrap
     case span (eq x) xs of
       { init: ys, rest: zs } ->
         Cons (NEL.NonEmptyList (defer \_ -> x :| ys)) (groupBy eq zs)
+
+-- | Returns a tuple of lists of elements which do
+-- | and do not satisfy a predicate, respectively.
+-- |
+-- | Running time: `O(n)`
+partition :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
+partition f xs = foldr go (Tuple nil nil) xs
+  where
+  go x (Tuple ys ns) = if f x then Tuple (x : ys) ns else Tuple ys (x : ns)
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------

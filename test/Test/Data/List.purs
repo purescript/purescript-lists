@@ -5,7 +5,7 @@ import Data.List.NonEmpty as NEL
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Foldable (foldMap, foldl)
-import Data.List (List(..), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List (List(..), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
@@ -249,6 +249,10 @@ testList = do
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
   assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.singleton 2, NEL.singleton 2, NEL.NonEmptyList (3 :| l [3])]
+
+  log "partition should separate a list into a tuple of lists that do and do not satisfy a predicate"
+  assert $ partition (_ > 2) (l [1, 5, 3, 2, 4]) ==
+                     Tuple (l [5, 3, 4]) (l [1, 2])
 
   log "nub should remove duplicate elements from the list, keeping the first occurence"
   assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
