@@ -562,16 +562,16 @@ groupBy _ Nil = Nil
 groupBy eq (x : xs) = case span (eq x) xs of
   { init: ys, rest: zs } -> NEL.NonEmptyList (x :| ys) : groupBy eq zs
 
--- | Returns a tuple of lists of elements which do
--- | and do not satisfy a predicate, respectively.
+-- | Returns a lists of elements which do and do not satisfy a predicate.
 -- |
 -- | Running time: `O(n)`
-partition :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
+partition :: forall a. (a -> Boolean) -> List a -> { yes :: List a, no :: List a }
 partition f xs =
-  case foldl go (Tuple Nil Nil) xs of
-       (Tuple ys' ns') -> Tuple (reverse ys') (reverse ns')
+  case foldl go {yes: Nil, no: Nil} xs of
+       {yes: ys, no: ns} -> {yes: reverse ys, no: reverse ns}
   where
-  go (Tuple ys ns) x = if f x then Tuple (x : ys) ns else Tuple ys (x : ns)
+  go {yes: ys, no: ns} x =
+    if f x then {yes: x : ys, no: ns} else {yes: ys, no: x : ns}
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------

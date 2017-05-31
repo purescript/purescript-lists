@@ -271,8 +271,9 @@ testListLazy = do
   assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [nel (1 :| l [1]), NEL.singleton 2, NEL.singleton 2, nel (3 :| l [3])]
 
   log "partition should separate a list into a tuple of lists that do and do not satisfy a predicate"
-  assert $ partition (_ > 2) (l [1, 5, 3, 2, 4]) ==
-                     Tuple (l [5, 3, 4]) (l [1, 2])
+  let partitioned = partition (_ > 2) (l [1, 5, 3, 2, 4])
+  assert $ partitioned.yes == l [5, 3, 4]
+  assert $ partitioned.no == l [1, 2]
 
   log "iterate on nonempty lazy list should apply supplied function correctly"
   assert $ (take 3 $ NEL.toList $ NEL.iterate (_ + 1) 0) == l [0, 1, 2]

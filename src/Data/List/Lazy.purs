@@ -563,10 +563,11 @@ groupBy eq = List <<< map go <<< unwrap
 -- | and do not satisfy a predicate, respectively.
 -- |
 -- | Running time: `O(n)`
-partition :: forall a. (a -> Boolean) -> List a -> Tuple (List a) (List a)
-partition f xs = foldr go (Tuple nil nil) xs
+partition :: forall a. (a -> Boolean) -> List a -> { yes :: List a, no :: List a }
+partition f = foldr go {yes: nil, no: nil}
   where
-  go x (Tuple ys ns) = if f x then Tuple (x : ys) ns else Tuple ys (x : ns)
+  go x {yes: ys, no: ns} =
+    if f x then {yes: x : ys, no: ns} else {yes: ys, no: x : ns}
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
