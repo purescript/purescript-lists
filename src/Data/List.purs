@@ -566,12 +566,11 @@ groupBy eq (x : xs) = case span (eq x) xs of
 -- |
 -- | Running time: `O(n)`
 partition :: forall a. (a -> Boolean) -> List a -> { yes :: List a, no :: List a }
-partition f xs =
-  case foldl go {yes: Nil, no: Nil} xs of
-       {yes: ys, no: ns} -> {yes: reverse ys, no: reverse ns}
+partition p xs = foldr select { no: Nil, yes: Nil } xs
   where
-  go {yes: ys, no: ns} x =
-    if f x then {yes: x : ys, no: ns} else {yes: ys, no: x : ns}
+    select x { no, yes } = if p x
+                           then { no, yes: x : yes }
+                           else { no: x : no, yes }
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
