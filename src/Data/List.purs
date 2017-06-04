@@ -482,11 +482,11 @@ sortBy cmp = mergeAll <<< sequences
 -- | A newtype used in cases where there is a list to be matched.
 newtype Pattern a = Pattern (List a)
 
-derive instance eqPattern :: (Eq a) => Eq (Pattern a)
-derive instance ordPattern :: (Ord a) => Ord (Pattern a)
+derive instance eqPattern :: Eq a => Eq (Pattern a)
+derive instance ordPattern :: Ord a => Ord (Pattern a)
 derive instance newtypePattern :: Newtype (Pattern a) _
 
-instance showPattern :: (Show a) => Show (Pattern a) where
+instance showPattern :: Show a => Show (Pattern a) where
   show (Pattern s) = "(Pattern " <> show s <> ")"
 
 
@@ -501,8 +501,8 @@ stripPrefix :: forall a. Eq a => Pattern a -> List a -> Maybe (List a)
 stripPrefix (Pattern p') s = tailRecM2 go p' s
   where
   go prefix input = case prefix, input of
-    (Cons p ps), (Cons i is) | p == i -> Just $ Loop ({ a: ps, b: is })
-    (Nil), is -> Just $ Done is
+    Cons p ps, Cons i is | p == i -> Just $ Loop { a: ps, b: is }
+    Nil, is -> Just $ Done is
     _, _ -> Nothing
 
 -- | Extract a sublist by a start and end index.
