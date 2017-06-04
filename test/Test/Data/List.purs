@@ -5,7 +5,7 @@ import Data.List.NonEmpty as NEL
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Foldable (foldMap, foldl)
-import Data.List (List(..), (..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
@@ -18,6 +18,11 @@ import Test.Assert (ASSERT, assert)
 testList :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
 testList = do
   let l = fromFoldable
+
+  log "strip prefix"
+  assert $ stripPrefix (Pattern (1:Nil)) (1:2:Nil) == Just (2:Nil)
+  assert $ stripPrefix (Pattern Nil) (1:Nil) == Just (1:Nil)
+  assert $ stripPrefix (Pattern (2:Nil)) (1:Nil) == Nothing
 
   log "singleton should construct an list with a single value"
   assert $ singleton 1 == l [1]

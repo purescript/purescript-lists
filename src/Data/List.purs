@@ -56,6 +56,8 @@ module Data.List
   , sort
   , sortBy
 
+  , Pattern(..)
+  , stripPrefix
   , slice
   , take
   , takeWhile
@@ -94,7 +96,7 @@ import Prelude
 import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy (class Lazy, defer)
-import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
+import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
 
 import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
@@ -475,6 +477,33 @@ sortBy cmp = mergeAll <<< sequences
 --------------------------------------------------------------------------------
 -- Sublists --------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+-- | A newtype used in cases where there is a list to be matched.
+newtype Pattern a = Pattern (List a)
+
+derive instance eqPattern :: (Eq a) => Eq (Pattern a)
+derive instance ordPattern :: (Ord a) => Ord (Pattern a)
+-- TODO define Newtype
+-- derive instance newtypePattern :: Newtype Pattern _
+
+instance showPattern :: (Show a) => Show (Pattern a) where
+  show (Pattern s) = "(Pattern " <> show s <> ")"
+
+
+-- | If the list starts with the given prefix, return the portion of the
+-- | list left after removing it, as a Just value. Otherwise, return Nothing.
+-- | * `stripPrefix (Pattern (1:Nil)) (1:2:Nil) == Just (2:Nil)`
+-- | * `stripPrefix (Pattern Nil) (1:Nil) == Just (1:Nil)`
+-- | * `stripPrefix (Pattern (2:Nil)) (1:Nil) == Nothing`
+-- |
+-- | Running time: `O(n)` where `n` is the number of elements to strip.
+stripPrefix :: forall a. Eq a => Pattern a -> List a -> Maybe (List a)
+stripPrefix (Pattern p) s = tailRecM2 go p s
+  where
+  go prefix input = case prefix, input of
+    (Cons p ps), (Cons i is) | p == i -> Just $ Loop ({ a: ps, b: is })
+    (Nil), is -> Just $ Done is
+    _, _ -> Nothing
 
 -- | Extract a sublist by a start and end index.
 slice :: Int -> Int -> List ~> List
