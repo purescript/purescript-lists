@@ -86,6 +86,7 @@ module Data.List.Lazy
   , transpose
 
   , foldM
+  , foldrLazy
 
   , module Exports
   ) where
@@ -716,3 +717,11 @@ foldM f a xs =
          Nothing -> pure a
          Just { head: b, tail: bs } ->
                        f a b >>= \a' -> foldM f a' bs
+
+-- | Perform a right fold lazily
+foldrLazy :: forall a b. Z.Lazy b => (a -> b -> b) -> b -> List a -> b
+foldrLazy op z = go
+  where
+    go xs = case step xs of
+      Cons x xs' -> Z.defer \_ -> x `op` go xs'
+      Nil -> z
