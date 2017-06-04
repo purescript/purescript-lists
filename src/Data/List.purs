@@ -103,6 +103,7 @@ import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
@@ -483,8 +484,7 @@ newtype Pattern a = Pattern (List a)
 
 derive instance eqPattern :: (Eq a) => Eq (Pattern a)
 derive instance ordPattern :: (Ord a) => Ord (Pattern a)
--- TODO define Newtype
--- derive instance newtypePattern :: Newtype Pattern _
+derive instance newtypePattern :: Newtype (Pattern a) _
 
 instance showPattern :: (Show a) => Show (Pattern a) where
   show (Pattern s) = "(Pattern " <> show s <> ")"
@@ -498,7 +498,7 @@ instance showPattern :: (Show a) => Show (Pattern a) where
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to strip.
 stripPrefix :: forall a. Eq a => Pattern a -> List a -> Maybe (List a)
-stripPrefix (Pattern p) s = tailRecM2 go p s
+stripPrefix (Pattern p') s = tailRecM2 go p' s
   where
   go prefix input = case prefix, input of
     (Cons p ps), (Cons i is) | p == i -> Just $ Loop ({ a: ps, b: is })
