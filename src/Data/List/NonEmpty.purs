@@ -5,11 +5,14 @@ module Data.List.NonEmpty
   , fromList
   , toList
   , singleton
+  , cons
+  , snoc
   , head
   , last
   , tail
   , init
   , uncons
+  , unsnoc
   , length
   , concatMap
   , appendFoldable
@@ -47,6 +50,12 @@ toList (NonEmptyList (x :| xs)) = x : xs
 singleton :: forall a. a -> NonEmptyList a
 singleton = NonEmptyList <<< NE.singleton
 
+cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
+cons y (NonEmptyList (x :| xs)) = NonEmptyList (y :| x : xs)
+
+snoc :: forall a. NonEmptyList a -> a -> NonEmptyList a
+snoc (NonEmptyList (x :| xs)) y = NonEmptyList (x :| L.snoc xs y)
+
 head :: forall a. NonEmptyList a -> a
 head (NonEmptyList (x :| _)) = x
 
@@ -61,6 +70,11 @@ init (NonEmptyList (x :| xs)) = maybe L.Nil (x : _) (L.init xs)
 
 uncons :: forall a. NonEmptyList a -> { head :: a, tail :: L.List a }
 uncons (NonEmptyList (x :| xs)) = { head: x, tail: xs }
+
+unsnoc :: forall a. NonEmptyList a -> { init :: L.List a, last :: a }
+unsnoc (NonEmptyList (x :| xs)) = case L.unsnoc xs of
+  Nothing -> { init: L.Nil, last: x }
+  Just un -> { init: x : un.init, last: un.last }
 
 length :: forall a. NonEmptyList a -> Int
 length (NonEmptyList (x :| xs)) = 1 + L.length xs
