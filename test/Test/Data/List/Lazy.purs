@@ -7,7 +7,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 
 import Data.Lazy as Z
-import Data.List.Lazy (List, nil, cons, foldl, foldr, foldMap, singleton, transpose, take, iterate, filter, uncons, foldM, foldrLazy, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, partition, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
+import Data.List.Lazy (List, nil, stripPrefix, Pattern(..), cons, foldl, foldr, foldMap, singleton, transpose, take, iterate, filter, uncons, foldM, foldrLazy, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, partition, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -25,6 +25,10 @@ testListLazy = do
     l = fromFoldable
     nel xxs = NEL.NonEmptyList (Z.defer \_ -> xxs)
     longList = range 1 100000
+  log "strip prefix"
+  assert $ stripPrefix (Pattern (l [1])) (l [1,2]) == Just (l [2])
+  assert $ stripPrefix (Pattern (l [])) (l [1]) == Just (l [1])
+  assert $ stripPrefix (Pattern (l [2])) (l [1]) == Nothing
 
   log "append should be stack-safe"
   assert $ length (longList <> longList) == (2 * length longList)

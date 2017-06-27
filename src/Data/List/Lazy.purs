@@ -57,6 +57,8 @@ module Data.List.Lazy
   -- , sort
   -- , sortBy
 
+  , Pattern(..)
+  , stripPrefix
   , slice
   , take
   , takeWhile
@@ -96,20 +98,19 @@ import Prelude
 import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy as Z
-
+import Control.Monad.Rec.Class as Rec
 import Data.Foldable (class Foldable, foldr, any, foldl)
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Lazy (defer)
 import Data.List.Lazy.Types (List(..), Step(..), step, nil, cons, (:))
 import Data.List.Lazy.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..), isNothing)
-import Data.Newtype (unwrap)
+import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty ((:|))
+import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
-
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
-import Data.Traversable (scanl, scanr) as Exports
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -471,6 +472,34 @@ catMaybes = mapMaybe id
 --------------------------------------------------------------------------------
 -- Sublists --------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+
+-- | A newtype used in cases where there is a list to be matched.
+newtype Pattern a = Pattern (List a)
+
+derive instance eqPattern :: Eq a => Eq (Pattern a)
+derive instance ordPattern :: Ord a => Ord (Pattern a)
+derive instance newtypePattern :: Newtype (Pattern a) _
+
+instance showPattern :: Show a => Show (Pattern a) where
+  show (Pattern s) = "(Pattern " <> show s <> ")"
+
+
+-- | If the list starts with the given prefix, return the portion of the
+-- | list left after removing it, as a Just value. Otherwise, return Nothing.
+-- | * `stripPrefix (Pattern (fromFoldable [1])) (fromFoldable [1,2]) == Just (fromFoldable [2])`
+-- | * `stripPrefix (Pattern (fromFoldable [])) (fromFoldable [1]) == Just (fromFoldable [1])`
+-- | * `stripPrefix (Pattern (fromFoldable [2])) (fromFoldable [1]) == Nothing`
+-- |
+-- | Running time: `O(n)` where `n` is the number of elements to strip.
+stripPrefix :: forall a. Eq a => Pattern a -> List a -> Maybe (List a)
+stripPrefix (Pattern p') s = Rec.tailRecM2 go p' s
+  where
+  go prefix input = case step prefix of
+    Nil -> Just $ Rec.Done input
+    Cons p ps -> case step input of
+      Cons i is | p == i -> Just $ Rec.Loop { a: ps, b: is }
+      _ -> Nothing
 
 -- | Extract a sublist by a start and end index.
 slice :: Int -> Int -> List ~> List
