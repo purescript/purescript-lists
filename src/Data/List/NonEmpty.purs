@@ -58,7 +58,7 @@ module Data.List.NonEmpty
 
 import Prelude
 
-import Data.Foldable (class Foldable, foldr)
+import Data.Foldable (class Foldable)
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
@@ -66,7 +66,7 @@ import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
 import Data.Semigroup.Traversable (sequence1)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Partial.Unsafe (unsafeCrashWith)
 
@@ -74,7 +74,6 @@ import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, f
 import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
 import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
 import Data.Traversable (scanl, scanr) as Exports
-
 
 -- | Internal function: any operation on a list that is guaranteed not to delete
 -- | all elements also applies to a NEL, this function is a helper for defining
@@ -285,11 +284,7 @@ zip :: forall a b. NonEmptyList a -> NonEmptyList b -> NonEmptyList (Tuple a b)
 zip = zipWith Tuple
 
 unzip :: forall a b. NonEmptyList (Tuple a b) -> Tuple (NonEmptyList a) (NonEmptyList b)
-unzip (NonEmptyList (Tuple x y :| xs)) =
-  foldr
-    (\(Tuple a b) (Tuple as bs) -> Tuple (cons a as) (cons b bs))
-    (Tuple (pure x) (pure y))
-    xs
+unzip ts = Tuple (map fst ts) (map snd ts)
 
 foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> NonEmptyList b -> m a
 foldM f a (NonEmptyList (b :| bs)) = f a b >>= \a' -> L.foldM f a' bs
