@@ -13,6 +13,7 @@ module Data.List.NonEmpty
   , init
   , uncons
   , unsnoc
+  , reverse
   , length
   , concatMap
   , appendFoldable
@@ -31,7 +32,7 @@ import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
-import Partial.Unsafe (unsafePartial)
+import Partial.Unsafe (unsafePartial, unsafeCrashWith)
 
 toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
 toUnfoldable =
@@ -78,6 +79,12 @@ unsnoc (NonEmptyList (x :| xs)) = case L.unsnoc xs of
 
 length :: forall a. NonEmptyList a -> Int
 length (NonEmptyList (x :| xs)) = 1 + L.length xs
+
+reverse :: forall a. NonEmptyList a -> NonEmptyList a
+reverse (NonEmptyList (x :| xs)) =
+  case L.reverse (x : xs) of
+    x' : xs' -> NonEmptyList (x' :| xs')
+    L.Nil -> unsafeCrashWith "Impossible: empty list in NonEmptyList.reverse"
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
