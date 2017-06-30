@@ -28,6 +28,10 @@ module Data.List.NonEmpty
   , nubBy
   , union
   , unionBy
+  , zipWith
+  , zipWithA
+  , zip
+  , unzip
   , foldM
   , module Exports
   ) where
