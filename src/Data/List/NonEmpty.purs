@@ -38,6 +38,8 @@ module Data.List.NonEmpty
   , nubBy
   , union
   , unionBy
+  , intersect
+  , intersectBy
   , zipWith
   , zipWithA
   , zip
@@ -216,6 +218,12 @@ union = wrappedOperation2 "union" L.union
 
 unionBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList a -> NonEmptyList a
 unionBy = wrappedOperation2 "unionBy" <<< L.unionBy
+
+intersect :: forall a. Eq a => NonEmptyList a -> NonEmptyList a -> NonEmptyList a
+intersect = wrappedOperation2 "intersect" L.intersect
+
+intersectBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList a -> NonEmptyList a
+intersectBy = wrappedOperation2 "intersectBy" <<< L.intersectBy
 
 zipWith :: forall a b c. (a -> b -> c) -> NonEmptyList a -> NonEmptyList b -> NonEmptyList c
 zipWith f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
