@@ -16,6 +16,8 @@ module Data.List.NonEmpty
   , reverse
   , length
   , concatMap
+  , filter
+  , filterM
   , appendFoldable
   , sort
   , sortBy
@@ -85,6 +87,12 @@ reverse (NonEmptyList (x :| xs)) =
   case L.reverse (x : xs) of
     x' : xs' -> NonEmptyList (x' :| xs')
     L.Nil -> unsafeCrashWith "Impossible: empty list in NonEmptyList.reverse"
+
+filter :: forall a. (a -> Boolean) -> NonEmptyList a -> L.List a
+filter f (NonEmptyList (x :| xs)) = L.filter f (x : xs)
+
+filterM :: forall m a. Monad m => (a -> m Boolean) -> NonEmptyList a -> m (L.List a)
+filterM f (NonEmptyList (x :| xs)) = L.filterM f (x : xs)
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
