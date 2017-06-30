@@ -18,6 +18,8 @@ module Data.List.NonEmpty
   , concatMap
   , filter
   , filterM
+  , mapMaybe
+  , catMaybes
   , appendFoldable
   , sort
   , sortBy
@@ -93,6 +95,12 @@ filter f (NonEmptyList (x :| xs)) = L.filter f (x : xs)
 
 filterM :: forall m a. Monad m => (a -> m Boolean) -> NonEmptyList a -> m (L.List a)
 filterM f (NonEmptyList (x :| xs)) = L.filterM f (x : xs)
+
+mapMaybe :: forall a b. (a -> Maybe b) -> NonEmptyList a -> L.List b
+mapMaybe f (NonEmptyList (x :| xs)) = L.mapMaybe f (x : xs)
+
+catMaybes :: forall a. NonEmptyList (Maybe a) -> L.List a
+catMaybes (NonEmptyList (x :| xs)) = L.catMaybes (x : xs)
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
