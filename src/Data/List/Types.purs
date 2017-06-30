@@ -12,13 +12,15 @@ import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 
 import Data.Eq (class Eq1, eq1)
-import Data.Foldable (class Foldable, foldr, foldl, intercalate)
+import Data.Foldable (class Foldable, foldl, foldr, intercalate)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
 import Data.Ord (class Ord1, compare1)
+import Data.Semigroup.Foldable (class Foldable1)
+import Data.Semigroup.Traversable (class Traversable1, traverse1)
 import Data.Traversable (class Traversable, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable)
@@ -128,6 +130,9 @@ newtype NonEmptyList a = NonEmptyList (NonEmpty List a)
 toList :: NonEmptyList ~> List
 toList (NonEmptyList (x :| xs)) = x : xs
 
+nelCons :: forall a. a -> NonEmptyList a -> NonEmptyList a
+nelCons a (NonEmptyList (b :| bs)) = NonEmptyList (a :| b : bs)
+
 derive instance newtypeNonEmptyList :: Newtype (NonEmptyList a) _
 
 derive newtype instance eqNonEmptyList :: Eq a => Eq (NonEmptyList a)
@@ -172,3 +177,15 @@ instance semigroupNonEmptyList :: Semigroup (NonEmptyList a) where
 derive newtype instance foldableNonEmptyList :: Foldable NonEmptyList
 
 derive newtype instance traversableNonEmptyList :: Traversable NonEmptyList
+
+instance foldable1NonEmptyList :: Foldable1 NonEmptyList where
+  fold1 (NonEmptyList (a :| as)) =
+    foldl append a as
+  foldMap1 f (NonEmptyList (a :| as)) =
+    foldl (\acc -> append acc <<< f) (f a) as
+
+instance traversable1NonEmptyList :: Traversable1 NonEmptyList where
+  traverse1 f (NonEmptyList (a :| as)) =
+    foldl (\acc -> lift2 (flip nelCons) acc <<< f) (pure <$> f a) as
+      <#> case _ of NonEmptyList (x :| xs) → foldl (flip nelCons) (pure x) xs
+  sequence1 = traverse1 id
