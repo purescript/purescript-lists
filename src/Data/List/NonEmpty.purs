@@ -24,6 +24,10 @@ module Data.List.NonEmpty
   , mapWithIndex
   , sort
   , sortBy
+  , nub
+  , nubBy
+  , union
+  , unionBy
   , foldM
   , module Exports
   ) where
@@ -48,16 +52,30 @@ import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Ex
 import Data.Traversable (scanl, scanr) as Exports
 
 
--- | Internal function: any structure-preserving operation on a list also
--- | applies to a NEL, this function is a helper for defining those cases.
+-- | Internal function: any operation on a list that is guaranteed not to delete
+-- | all elements also applies to a NEL, this function is a helper for defining
+-- | those cases.
 wrappedOperation
-  :: forall b a
+  :: forall a b
    . String
   -> (L.List a -> L.List b)
   -> NonEmptyList a
   -> NonEmptyList b
 wrappedOperation name f (NonEmptyList (x :| xs)) =
   case f (x : xs) of
+    x' : xs' -> NonEmptyList (x' :| xs')
+    L.Nil -> unsafeCrashWith ("Impossible: empty list in NonEmptyList " <> name)
+
+-- | Like `wrappedOperation`, but for functions that operate on 2 lists.
+wrappedOperation2
+  :: forall a b c
+   . String
+  -> (L.List a -> L.List b -> L.List c)
+  -> NonEmptyList a
+  -> NonEmptyList b
+  -> NonEmptyList c
+wrappedOperation2 name f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
+  case f (x : xs) (y : ys) of
     x' : xs' -> NonEmptyList (x' :| xs')
     L.Nil -> unsafeCrashWith ("Impossible: empty list in NonEmptyList " <> name)
 
@@ -137,6 +155,18 @@ sort xs = sortBy compare xs
 
 sortBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
 sortBy = wrappedOperation "sortBy" <<< L.sortBy
+
+nub :: forall a. Eq a => NonEmptyList a -> NonEmptyList a
+nub = wrappedOperation "nub" L.nub
+
+nubBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList a
+nubBy = wrappedOperation "nubBy" <<< L.nubBy
+
+union :: forall a. Eq a => NonEmptyList a -> NonEmptyList a -> NonEmptyList a
+union = wrappedOperation2 "union" L.union
+
+unionBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList a -> NonEmptyList a
+unionBy = wrappedOperation2 "unionBy" <<< L.unionBy
 
 zipWith :: forall a b c. (a -> b -> c) -> NonEmptyList a -> NonEmptyList b -> NonEmptyList c
 zipWith f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
