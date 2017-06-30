@@ -185,6 +185,18 @@ drop = lift <<< L.drop
 dropWhile :: forall a. (a -> Boolean) -> NonEmptyList a -> L.List a
 dropWhile = lift <<< L.dropWhile
 
+span :: forall a. (a -> Boolean) -> NonEmptyList a -> { init :: L.List a, rest :: L.List a }
+span = lift <<< L.span
+
+group :: forall a. Eq a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
+group = wrappedOperation "group" L.group
+
+group' :: forall a. Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
+group' = wrappedOperation "group'" L.group'
+
+groupBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
+groupBy = wrappedOperation "groupBy" <<< L.groupBy
+
 nub :: forall a. Eq a => NonEmptyList a -> NonEmptyList a
 nub = wrappedOperation "nub" L.nub
 
