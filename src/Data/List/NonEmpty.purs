@@ -24,6 +24,7 @@ module Data.List.NonEmpty
   , mapWithIndex
   , sort
   , sortBy
+  , module Exports
   ) where
 
 import Prelude
@@ -38,6 +39,9 @@ import Data.NonEmpty as NE
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Partial.Unsafe (unsafePartial, unsafeCrashWith)
+
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
+import Data.Traversable (scanl, scanr) as Exports
 
 toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
 toUnfoldable =
