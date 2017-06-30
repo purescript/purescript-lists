@@ -22,6 +22,10 @@ module Data.List.NonEmpty
   , catMaybes
   , appendFoldable
   , mapWithIndex
+  , take
+  , takeWhile
+  , drop
+  , dropWhile
   , sort
   , sortBy
   , nub
@@ -82,6 +86,9 @@ wrappedOperation2 name f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
   case f (x : xs) (y : ys) of
     x' : xs' -> NonEmptyList (x' :| xs')
     L.Nil -> unsafeCrashWith ("Impossible: empty list in NonEmptyList " <> name)
+
+lift :: forall a b. (L.List a -> b) -> NonEmptyList a -> b
+lift f (NonEmptyList (x :| xs)) = f (x : xs)
 
 toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
 toUnfoldable =
@@ -159,6 +166,18 @@ sort xs = sortBy compare xs
 
 sortBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
 sortBy = wrappedOperation "sortBy" <<< L.sortBy
+
+take :: forall a. Int -> NonEmptyList a -> L.List a
+take = lift <<< L.take
+
+takeWhile :: forall a. (a -> Boolean) -> NonEmptyList a -> L.List a
+takeWhile = lift <<< L.takeWhile
+
+drop :: forall a. Int -> NonEmptyList a -> L.List a
+drop = lift <<< L.drop
+
+dropWhile :: forall a. (a -> Boolean) -> NonEmptyList a -> L.List a
+dropWhile = lift <<< L.dropWhile
 
 nub :: forall a. Eq a => NonEmptyList a -> NonEmptyList a
 nub = wrappedOperation "nub" L.nub
