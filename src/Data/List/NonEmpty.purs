@@ -21,6 +21,7 @@ module Data.List.NonEmpty
   , mapMaybe
   , catMaybes
   , appendFoldable
+  , mapWithIndex
   , sort
   , sortBy
   ) where
@@ -108,6 +109,12 @@ concatMap = flip bind
 appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyList a
 appendFoldable (NonEmptyList (x :| xs)) ys =
   NonEmptyList (x :| (xs <> L.fromFoldable ys))
+
+mapWithIndex :: forall a b. (Int -> a -> b) -> NonEmptyList a -> NonEmptyList b
+mapWithIndex f (NonEmptyList (x :| xs)) =
+  case L.mapWithIndex f (x : xs) of
+    x' : xs' -> NonEmptyList (x' :| xs')
+    L.Nil -> unsafeCrashWith "Impossible: empty list in NonEmptyList.mapWithIndex"
 
 sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 sort xs = sortBy compare xs
