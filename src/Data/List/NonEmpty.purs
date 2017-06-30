@@ -14,6 +14,14 @@ module Data.List.NonEmpty
   , init
   , uncons
   , unsnoc
+  , (!!), index
+  , elemIndex
+  , elemLastIndex
+  , findIndex
+  , findLastIndex
+  , insertAt
+  , updateAt
+  , modifyAt
   , reverse
   , concat
   , concatMap
@@ -145,6 +153,47 @@ unsnoc (NonEmptyList (x :| xs)) = case L.unsnoc xs of
 
 length :: forall a. NonEmptyList a -> Int
 length (NonEmptyList (x :| xs)) = 1 + L.length xs
+
+index :: forall a. NonEmptyList a -> Int -> Maybe a
+index (NonEmptyList (x :| xs)) i
+  | i == 0 = Just x
+  | otherwise = L.index xs (i - 1)
+
+infixl 8 index as !!
+
+elemIndex :: forall a. Eq a => a -> NonEmptyList a -> Maybe Int
+elemIndex x = findIndex (_ == x)
+
+elemLastIndex :: forall a. Eq a => a -> NonEmptyList a -> Maybe Int
+elemLastIndex x = findLastIndex (_ == x)
+
+findIndex :: forall a. (a -> Boolean) -> NonEmptyList a -> Maybe Int
+findIndex f (NonEmptyList (x :| xs))
+  | f x = Just 0
+  | otherwise = (_ + 1) <$> L.findIndex f xs
+
+findLastIndex :: forall a. (a -> Boolean) -> NonEmptyList a -> Maybe Int
+findLastIndex f (NonEmptyList (x :| xs)) =
+  case L.findLastIndex f xs of
+    Just i -> Just (i + 1)
+    Nothing
+      | f x -> Just 0
+      | otherwise -> Nothing
+
+insertAt :: forall a. Int -> a -> NonEmptyList a -> Maybe (NonEmptyList a)
+insertAt i a (NonEmptyList (x :| xs))
+  | i == 0 = Just (NonEmptyList (a :| x : xs))
+  | otherwise = NonEmptyList <<< (x :| _) <$> L.insertAt (i - 1) a xs
+
+updateAt :: forall a. Int -> a -> NonEmptyList a -> Maybe (NonEmptyList a)
+updateAt i a (NonEmptyList (x :| xs))
+  | i == 0 = Just (NonEmptyList (a :| xs))
+  | otherwise = NonEmptyList <<< (x :| _) <$> L.updateAt (i - 1) a xs
+
+modifyAt :: forall a. Int -> (a -> a) -> NonEmptyList a -> Maybe (NonEmptyList a)
+modifyAt i f (NonEmptyList (x :| xs))
+  | i == 0 = Just (NonEmptyList (f x :| xs))
+  | otherwise = NonEmptyList <<< (x :| _) <$> L.modifyAt (i - 1) f xs
 
 reverse :: forall a. NonEmptyList a -> NonEmptyList a
 reverse = wrappedOperation "reverse" L.reverse
