@@ -87,6 +87,8 @@ wrappedOperation2 name f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
     x' : xs' -> NonEmptyList (x' :| xs')
     L.Nil -> unsafeCrashWith ("Impossible: empty list in NonEmptyList " <> name)
 
+-- | Lifts a function that operates on a list to work on a NEL. This does not
+-- | preserve the non-empty status of the result.
 lift :: forall a b. (L.List a -> b) -> NonEmptyList a -> b
 lift f (NonEmptyList (x :| xs)) = f (x : xs)
 
@@ -140,16 +142,16 @@ reverse :: forall a. NonEmptyList a -> NonEmptyList a
 reverse = wrappedOperation "reverse" L.reverse
 
 filter :: forall a. (a -> Boolean) -> NonEmptyList a -> L.List a
-filter f (NonEmptyList (x :| xs)) = L.filter f (x : xs)
+filter = lift <<< L.filter
 
 filterM :: forall m a. Monad m => (a -> m Boolean) -> NonEmptyList a -> m (L.List a)
-filterM f (NonEmptyList (x :| xs)) = L.filterM f (x : xs)
+filterM = lift <<< L.filterM
 
 mapMaybe :: forall a b. (a -> Maybe b) -> NonEmptyList a -> L.List b
-mapMaybe f (NonEmptyList (x :| xs)) = L.mapMaybe f (x : xs)
+mapMaybe = lift <<< L.mapMaybe
 
 catMaybes :: forall a. NonEmptyList (Maybe a) -> L.List a
-catMaybes (NonEmptyList (x :| xs)) = L.catMaybes (x : xs)
+catMaybes = lift L.catMaybes
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
