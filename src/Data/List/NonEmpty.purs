@@ -30,13 +30,14 @@ module Data.List.NonEmpty
 
 import Prelude
 
-import Data.Foldable (class Foldable)
+import Data.Foldable (class Foldable, foldr)
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
+import Data.Semigroup.Traversable (sequence1)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Partial.Unsafe (unsafeCrashWith)
@@ -136,6 +137,23 @@ sort xs = sortBy compare xs
 
 sortBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
 sortBy = wrappedOperation "sortBy" <<< L.sortBy
+
+zipWith :: forall a b c. (a -> b -> c) -> NonEmptyList a -> NonEmptyList b -> NonEmptyList c
+zipWith f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
+  NonEmptyList (f x y :| L.zipWith f xs ys)
+
+zipWithA :: forall m a b c. Applicative m => (a -> b -> m c) -> NonEmptyList a -> NonEmptyList b -> m (NonEmptyList c)
+zipWithA f xs ys = sequence1 (zipWith f xs ys)
+
+zip :: forall a b. NonEmptyList a -> NonEmptyList b -> NonEmptyList (Tuple a b)
+zip = zipWith Tuple
+
+unzip :: forall a b. NonEmptyList (Tuple a b) -> Tuple (NonEmptyList a) (NonEmptyList b)
+unzip (NonEmptyList (Tuple x y :| xs)) =
+  foldr
+    (\(Tuple a b) (Tuple as bs) -> Tuple (cons a as) (cons b bs))
+    (Tuple (pure x) (pure y))
+    xs
 
 foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> NonEmptyList b -> m a
 foldM f a (NonEmptyList (b :| bs)) = f a b >>= \a' -> L.foldM f a' bs
