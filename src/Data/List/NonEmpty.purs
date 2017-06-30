@@ -5,6 +5,7 @@ module Data.List.NonEmpty
   , fromList
   , toList
   , singleton
+  , length
   , cons
   , snoc
   , head
@@ -14,7 +15,7 @@ module Data.List.NonEmpty
   , uncons
   , unsnoc
   , reverse
-  , length
+  , concat
   , concatMap
   , filter
   , filterM
@@ -22,12 +23,12 @@ module Data.List.NonEmpty
   , catMaybes
   , appendFoldable
   , mapWithIndex
+  , sort
+  , sortBy
   , take
   , takeWhile
   , drop
   , dropWhile
-  , sort
-  , sortBy
   , nub
   , nubBy
   , union
@@ -152,6 +153,9 @@ mapMaybe = lift <<< L.mapMaybe
 
 catMaybes :: forall a. NonEmptyList (Maybe a) -> L.List a
 catMaybes = lift L.catMaybes
+
+concat :: forall a. NonEmptyList (NonEmptyList a) -> NonEmptyList a
+concat = (_ >>= id)
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
