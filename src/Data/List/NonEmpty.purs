@@ -24,6 +24,7 @@ module Data.List.NonEmpty
   , mapWithIndex
   , sort
   , sortBy
+  , foldM
   , module Exports
   ) where
 
@@ -132,3 +133,6 @@ sort xs = sortBy compare xs
 
 sortBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
 sortBy = wrappedOperation "sortBy" <<< L.sortBy
+
+foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> NonEmptyList b -> m a
+foldM f a (NonEmptyList (b :| bs)) = f a b >>= \a' -> L.foldM f a' bs
