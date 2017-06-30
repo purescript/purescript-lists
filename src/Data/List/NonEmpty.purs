@@ -29,6 +29,11 @@ module Data.List.NonEmpty
   , takeWhile
   , drop
   , dropWhile
+  , span
+  , group
+  , group'
+  , groupBy
+  , partition
   , nub
   , nubBy
   , union
@@ -196,6 +201,9 @@ group' = wrappedOperation "group'" L.group'
 
 groupBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupBy = wrappedOperation "groupBy" <<< L.groupBy
+
+partition :: forall a. (a -> Boolean) -> NonEmptyList a -> { yes :: L.List a, no :: L.List a }
+partition = lift <<< L.partition
 
 nub :: forall a. Eq a => NonEmptyList a -> NonEmptyList a
 nub = wrappedOperation "nub" L.nub
