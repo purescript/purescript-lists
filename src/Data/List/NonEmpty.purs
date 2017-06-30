@@ -33,15 +33,28 @@ import Data.Foldable (class Foldable)
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
-import Data.Maybe (Maybe(..), maybe, fromMaybe, fromJust)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
-import Partial.Unsafe (unsafePartial, unsafeCrashWith)
+import Partial.Unsafe (unsafeCrashWith)
 
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Traversable (scanl, scanr) as Exports
+
+-- | Internal function: any structure-preserving operation on a list also
+-- | applies to a NEL, this function is a helper for defining those cases.
+wrappedOperation
+  :: forall b a
+   . String
+  -> (L.List a -> L.List b)
+  -> NonEmptyList a
+  -> NonEmptyList b
+wrappedOperation name f (NonEmptyList (x :| xs)) =
+  case f (x : xs) of
+    x' : xs' -> NonEmptyList (x' :| xs')
+    L.Nil -> unsafeCrashWith ("Impossible: empty list in NonEmptyList." <> name)
 
 toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
 toUnfoldable =
@@ -90,10 +103,7 @@ length :: forall a. NonEmptyList a -> Int
 length (NonEmptyList (x :| xs)) = 1 + L.length xs
 
 reverse :: forall a. NonEmptyList a -> NonEmptyList a
-reverse (NonEmptyList (x :| xs)) =
-  case L.reverse (x : xs) of
-    x' : xs' -> NonEmptyList (x' :| xs')
-    L.Nil -> unsafeCrashWith "Impossible: empty list in NonEmptyList.reverse"
+reverse = wrappedOperation "reverse" L.reverse
 
 filter :: forall a. (a -> Boolean) -> NonEmptyList a -> L.List a
 filter f (NonEmptyList (x :| xs)) = L.filter f (x : xs)
@@ -115,14 +125,10 @@ appendFoldable (NonEmptyList (x :| xs)) ys =
   NonEmptyList (x :| (xs <> L.fromFoldable ys))
 
 mapWithIndex :: forall a b. (Int -> a -> b) -> NonEmptyList a -> NonEmptyList b
-mapWithIndex f (NonEmptyList (x :| xs)) =
-  case L.mapWithIndex f (x : xs) of
-    x' : xs' -> NonEmptyList (x' :| xs')
-    L.Nil -> unsafeCrashWith "Impossible: empty list in NonEmptyList.mapWithIndex"
+mapWithIndex = wrappedOperation "mapWithIndex" <<< L.mapWithIndex
 
 sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 sort xs = sortBy compare xs
 
 sortBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
-sortBy cmp xs = unsafeFromList $ L.sortBy cmp (toList xs)
-  where unsafeFromList ys = unsafePartial $ fromJust $ fromList ys
+sortBy = wrappedOperation "sortBy" <<< L.sortBy
