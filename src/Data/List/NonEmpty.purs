@@ -42,7 +42,10 @@ import Data.Unfoldable (class Unfoldable, unfoldr)
 import Partial.Unsafe (unsafeCrashWith)
 
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
+import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
+import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
 import Data.Traversable (scanl, scanr) as Exports
+
 
 -- | Internal function: any structure-preserving operation on a list also
 -- | applies to a NEL, this function is a helper for defining those cases.
@@ -55,7 +58,7 @@ wrappedOperation
 wrappedOperation name f (NonEmptyList (x :| xs)) =
   case f (x : xs) of
     x' : xs' -> NonEmptyList (x' :| xs')
-    L.Nil -> unsafeCrashWith ("Impossible: empty list in NonEmptyList." <> name)
+    L.Nil -> unsafeCrashWith ("Impossible: empty list in NonEmptyList " <> name)
 
 toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
 toUnfoldable =
