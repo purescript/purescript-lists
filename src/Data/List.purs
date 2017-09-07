@@ -60,8 +60,10 @@ module Data.List
   , stripPrefix
   , slice
   , take
+  , takeEnd
   , takeWhile
   , drop
+  , dropEnd
   , dropWhile
   , span
   , group
@@ -519,6 +521,13 @@ take = go Nil
   go acc _ Nil = reverse acc
   go acc n (x : xs) = go (x : acc) (n - 1) xs
 
+-- | Take the specified number of elements from the end of a list.
+-- |
+-- | Running time: `O(2n - m)` where `n` is the number of elements in list 
+-- | and `m` is number of elements to take.
+takeEnd :: forall a. Int -> List a -> List a
+takeEnd n xs = drop (length xs - n) xs
+
 -- | Take those elements from the front of a list which match a predicate.
 -- |
 -- | Running time (worst case): `O(n)`
@@ -535,6 +544,12 @@ drop :: forall a. Int -> List a -> List a
 drop 0 xs = xs
 drop _ Nil = Nil
 drop n (x : xs) = drop (n - 1) xs
+
+-- | Drop the specified number of elements from the end of a list.
+-- |
+-- | Running time: `O(2n - m)` where `n` is the number of elements to drop.
+dropEnd :: forall a. Int -> List a -> List a
+dropEnd n xs = take (length xs - n) xs
 
 -- | Drop those elements from the front of a list which match a predicate.
 -- |
