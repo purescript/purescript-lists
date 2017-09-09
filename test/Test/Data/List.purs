@@ -236,12 +236,12 @@ testList = do
   assert $ (takeWhile (_ /= 3) (l [1, 2, 3])) == l [1, 2]
   assert $ (takeWhile (_ /= 1) nil) == nil
 
-  log "dropEnd should remove the specified number of items from the end of an list"
+  log "dropE should remove the specified number of items from the front of an list"
   assert $ (drop 1 (l [1, 2, 3])) == l [2, 3]
   assert $ (drop 2 (l [1, 2, 3])) == l [3]
   assert $ (drop 1 nil) == nil
 
-  log "drop should remove the specified number of items from the front of an list"
+  log "dropEnd should remove the specified number of items from the end of an list"
   assert $ (dropEnd 1 (l [1, 2, 3])) == l [1, 2]
   assert $ (dropEnd 2 (l [1, 2, 3])) == l [1]
   assert $ (dropEnd 1 nil) == nil
