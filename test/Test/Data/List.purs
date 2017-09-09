@@ -5,7 +5,7 @@ import Data.List.NonEmpty as NEL
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Foldable (foldMap, foldl)
-import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, takeWhile, take, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
@@ -226,15 +226,25 @@ testList = do
   assert $ (take 2 (l [1, 2, 3])) == l [1, 2]
   assert $ (take 1 nil) == nil
 
+  log "takeEnd should keep the specified number of items from the end of an list, discarding the rest"
+  assert $ (takeEnd 1 (l [1, 2, 3])) == l [3]
+  assert $ (takeEnd 2 (l [1, 2, 3])) == l [2, 3]
+  assert $ (takeEnd 1 nil) == nil
+
   log "takeWhile should keep all values that match a predicate from the front of an list"
   assert $ (takeWhile (_ /= 2) (l [1, 2, 3])) == l [1]
   assert $ (takeWhile (_ /= 3) (l [1, 2, 3])) == l [1, 2]
   assert $ (takeWhile (_ /= 1) nil) == nil
 
-  log "drop should remove the specified number of items from the front of an list"
+  log "dropE should remove the specified number of items from the front of an list"
   assert $ (drop 1 (l [1, 2, 3])) == l [2, 3]
   assert $ (drop 2 (l [1, 2, 3])) == l [3]
   assert $ (drop 1 nil) == nil
+
+  log "dropEnd should remove the specified number of items from the end of an list"
+  assert $ (dropEnd 1 (l [1, 2, 3])) == l [1, 2]
+  assert $ (dropEnd 2 (l [1, 2, 3])) == l [1]
+  assert $ (dropEnd 1 nil) == nil
 
   log "dropWhile should remove all values that match a predicate from the front of an list"
   assert $ (dropWhile (_ /= 1) (l [1, 2, 3])) == l [1, 2, 3]
