@@ -225,6 +225,8 @@ testList = do
   assert $ (take 1 (l [1, 2, 3])) == l [1]
   assert $ (take 2 (l [1, 2, 3])) == l [1, 2]
   assert $ (take 1 nil) == nil
+  assert $ (take 0 (l [1, 2])) == l []
+  assert $ (take (-1) (l [1, 2])) == l []
 
   log "takeEnd should keep the specified number of items from the end of an list, discarding the rest"
   assert $ (takeEnd 1 (l [1, 2, 3])) == l [3]

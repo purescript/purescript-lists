@@ -517,7 +517,7 @@ slice start end xs = take (end - start) (drop start xs)
 take :: forall a. Int -> List a -> List a
 take = go Nil
   where
-  go acc 0 _ = reverse acc
+  go acc n _ | n < 1 = reverse acc
   go acc _ Nil = reverse acc
   go acc n (x : xs) = go (x : acc) (n - 1) xs
 
