@@ -541,7 +541,7 @@ takeWhile p = go Nil
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to drop.
 drop :: forall a. Int -> List a -> List a
-drop 0 xs = xs
+drop n xs | n < 1 = xs
 drop _ Nil = Nil
 drop n (x : xs) = drop (n - 1) xs
 
