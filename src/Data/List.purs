@@ -517,7 +517,7 @@ slice start end xs = take (end - start) (drop start xs)
 take :: forall a. Int -> List a -> List a
 take = go Nil
   where
-  go acc 0 _ = reverse acc
+  go acc n _ | n < 1 = reverse acc
   go acc _ Nil = reverse acc
   go acc n (x : xs) = go (x : acc) (n - 1) xs
 
@@ -541,7 +541,7 @@ takeWhile p = go Nil
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to drop.
 drop :: forall a. Int -> List a -> List a
-drop 0 xs = xs
+drop n xs | n < 1 = xs
 drop _ Nil = Nil
 drop n (x : xs) = drop (n - 1) xs
 

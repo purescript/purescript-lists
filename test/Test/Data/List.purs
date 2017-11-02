@@ -225,21 +225,25 @@ testList = do
   assert $ (take 1 (l [1, 2, 3])) == l [1]
   assert $ (take 2 (l [1, 2, 3])) == l [1, 2]
   assert $ (take 1 nil) == nil
+  assert $ (take 0 (l [1, 2])) == l []
+  assert $ (take (-1) (l [1, 2])) == l []
 
   log "takeEnd should keep the specified number of items from the end of an list, discarding the rest"
   assert $ (takeEnd 1 (l [1, 2, 3])) == l [3]
   assert $ (takeEnd 2 (l [1, 2, 3])) == l [2, 3]
   assert $ (takeEnd 1 nil) == nil
+  assert $ (takeEnd 2 (l [1])) == l [1]
 
   log "takeWhile should keep all values that match a predicate from the front of an list"
   assert $ (takeWhile (_ /= 2) (l [1, 2, 3])) == l [1]
   assert $ (takeWhile (_ /= 3) (l [1, 2, 3])) == l [1, 2]
   assert $ (takeWhile (_ /= 1) nil) == nil
 
-  log "dropE should remove the specified number of items from the front of an list"
+  log "drop should remove the specified number of items from the front of an list"
   assert $ (drop 1 (l [1, 2, 3])) == l [2, 3]
   assert $ (drop 2 (l [1, 2, 3])) == l [3]
   assert $ (drop 1 nil) == nil
+  assert $ (drop (-1) (l [1, 2, 3])) == l [1, 2, 3]
 
   log "dropEnd should remove the specified number of items from the end of an list"
   assert $ (dropEnd 1 (l [1, 2, 3])) == l [1, 2]
