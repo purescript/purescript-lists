@@ -10,9 +10,10 @@ import Control.Lazy as Z
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
-
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Lazy (Lazy, defer, force)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
@@ -21,7 +22,7 @@ import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
 import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse, sequence)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
 
 -- | A lazy linked list.
@@ -105,6 +106,12 @@ instance functorList :: Functor List where
     go Nil = Nil
     go (Cons x xs') = Cons (f x) (f <$> xs')
 
+instance functorWithIndexList :: FunctorWithIndex Int List where
+  mapWithIndex f xs = List (go 0 <$> unwrap xs)
+    where
+    go _ Nil = Nil
+    go i (Cons x xs') = Cons (f i x) (f (i + 1) <$> xs')
+
 instance foldableList :: Foldable List where
   -- calls foldl on the reversed list
   foldr op z xs = foldl (flip op) z (rev xs) where
@@ -119,6 +126,13 @@ instance foldableList :: Foldable List where
         Cons hd tl -> go (b `op` hd) tl
 
   foldMap f = foldl (\b a -> b <> f a) mempty
+
+instance foldableWithIndexList :: FoldableWithIndex Int List where
+  foldrWithIndex f acc =
+    snd <<< foldr (\a (Tuple i b) -> Tuple (i + 1) (f i a b)) (Tuple 0 acc)
+  foldlWithIndex f acc =
+    snd <<< foldl (\(Tuple i b) a -> Tuple (i + 1) (f i b a)) (Tuple 0 acc)
+  foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty
 
 instance unfoldableList :: Unfoldable List where
   unfoldr = go where

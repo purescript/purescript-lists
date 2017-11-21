@@ -10,9 +10,10 @@ import Control.Extend (class Extend)
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
-
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldl, foldr, intercalate)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
@@ -22,7 +23,7 @@ import Data.Ord (class Ord1, compare1)
 import Data.Semigroup.Foldable (class Foldable1)
 import Data.Semigroup.Traversable (class Traversable1, traverse1)
 import Data.Traversable (class Traversable, traverse)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
 
 data List a = Nil | Cons a (List a)
@@ -67,6 +68,9 @@ instance monoidList :: Monoid (List a) where
 instance functorList :: Functor List where
   map f = foldr (\x acc -> f x : acc) Nil
 
+instance functorWithIndexList :: FunctorWithIndex Int List where
+  mapWithIndex f = foldrWithIndex (\i x acc -> f i x : acc) Nil
+
 instance foldableList :: Foldable List where
   foldr f b = foldl (flip f) b <<< rev Nil
     where
@@ -79,6 +83,13 @@ instance foldableList :: Foldable List where
       Nil -> b
       a : as -> go (f b a) as
   foldMap f = foldl (\acc -> append acc <<< f) mempty
+
+instance foldableWithIndexList :: FoldableWithIndex Int List where
+  foldrWithIndex f acc =
+    snd <<< foldr (\a (Tuple i b) -> Tuple (i + 1) (f i a b)) (Tuple 0 acc)
+  foldlWithIndex f acc =
+    snd <<< foldl (\(Tuple i b) a -> Tuple (i + 1) (f i b a)) (Tuple 0 acc)
+  foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty
 
 instance unfoldableList :: Unfoldable List where
   unfoldr f b = go b Nil
