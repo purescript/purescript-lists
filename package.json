@@ -3,7 +3,11 @@
   "scripts": {
     "clean": "rimraf output && rimraf .pulp-cache",
     "build": "pulp build -- --censor-lib --strict",
-    "test": "pulp test"
+    "test": "pulp test",
+
+    "bench:build": "purs compile 'bench/**/*.purs' 'src/**/*.purs' 'bower_components/*/src/**/*.purs'",
+    "bench:run": "node --expose-gc -e 'require(\"./output/Bench.Main/index.js\").main()'",
+    "bench": "npm run bench:build && npm run bench:run"
   },
   "devDependencies": {
     "pulp": "^11.0.0",
