@@ -102,6 +102,7 @@ import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
 
 import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
+import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..))
@@ -426,11 +427,10 @@ catMaybes = mapMaybe id
 
 
 -- | Apply a function to each element and its index in a list starting at 0.
+-- |
+-- | Deprecated. Use Data.FunctorWithIndex instead.
 mapWithIndex :: forall a b. (Int -> a -> b) -> List a -> List b
-mapWithIndex f lst = reverse $ go 0 lst Nil
-  where
-  go _ Nil acc = acc
-  go n (x : xs) acc = go (n+1) xs (f n x : acc)
+mapWithIndex = FWI.mapWithIndex
 
 --------------------------------------------------------------------------------
 -- Sorting ---------------------------------------------------------------------
