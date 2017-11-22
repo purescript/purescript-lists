@@ -12,7 +12,7 @@ import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Lazy (Lazy, defer, force)
 import Data.Maybe (Maybe(..))
@@ -22,6 +22,7 @@ import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
 import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse, sequence)
+import Data.TraversableWithIndex (class TraversableWithIndex)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
 
@@ -145,6 +146,10 @@ instance traversableList :: Traversable List where
     foldr (\a b -> cons <$> f a <*> b) (pure nil)
 
   sequence = traverse id
+
+instance traversableWithIndexList :: TraversableWithIndex Int List where
+  traverseWithIndex f =
+    foldrWithIndex (\i a b -> cons <$> f i a <*> b) (pure nil)
 
 instance applyList :: Apply List where
   apply = ap

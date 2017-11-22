@@ -23,6 +23,7 @@ import Data.Ord (class Ord1, compare1)
 import Data.Semigroup.Foldable (class Foldable1)
 import Data.Semigroup.Traversable (class Traversable1, traverse1)
 import Data.Traversable (class Traversable, traverse)
+import Data.TraversableWithIndex (class TraversableWithIndex)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
 
@@ -101,6 +102,11 @@ instance unfoldableList :: Unfoldable List where
 instance traversableList :: Traversable List where
   traverse f = map (foldl (flip (:)) Nil) <<< foldl (\acc -> lift2 (flip (:)) acc <<< f) (pure Nil)
   sequence = traverse id
+
+instance traversableWithIndexList :: TraversableWithIndex Int List where
+  traverseWithIndex f =
+    map (foldl (flip (:)) Nil)
+    <<< foldlWithIndex (\i acc -> lift2 (flip (:)) acc <<< f i) (pure Nil)
 
 instance applyList :: Apply List where
   apply Nil _ = Nil
