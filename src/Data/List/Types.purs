@@ -73,11 +73,9 @@ instance functorWithIndexList :: FunctorWithIndex Int List where
   mapWithIndex f = foldrWithIndex (\i x acc -> f i x : acc) Nil
 
 instance foldableList :: Foldable List where
-  foldr f b = foldl (flip f) b <<< rev Nil
+  foldr f b = foldl (flip f) b <<< rev
     where
-    rev acc = case _ of
-      Nil -> acc
-      a : as -> rev (a : acc) as
+    rev = foldl (flip Cons) Nil
   foldl f = go
     where
     go b = case _ of
@@ -87,17 +85,16 @@ instance foldableList :: Foldable List where
 
 instance foldableWithIndexList :: FoldableWithIndex Int List where
   foldrWithIndex f b xs =
+    -- as we climb the reversed list, we decrement the index
     snd $ foldl
             (\(Tuple i b') a -> Tuple (i - 1) (f (i - 1) a b'))
             (Tuple len b)
             revList
     where
-    Tuple len revList = rev 0 Nil xs
+    Tuple len revList = rev (Tuple 0 Nil) xs
       where
       -- As we create our reversed list, we count elements.
-      rev n acc = case _ of
-        Nil -> Tuple n acc
-        a : as -> rev (n + 1) (a : acc) as
+      rev = foldl (\(Tuple i acc) a -> Tuple (i + 1) (a : acc))
   foldlWithIndex f acc =
     snd <<< foldl (\(Tuple i b) a -> Tuple (i + 1) (f i b a)) (Tuple 0 acc)
   foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty
