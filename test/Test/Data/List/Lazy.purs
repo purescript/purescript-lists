@@ -5,7 +5,7 @@ import Prelude
 import Control.Lazy (defer)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
-
+import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
 import Data.List.Lazy (List, nil, stripPrefix, Pattern(..), cons, foldl, foldr, foldMap, singleton, transpose, take, iterate, filter, uncons, foldM, foldrLazy, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, partition, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
 import Data.List.Lazy.NonEmpty as NEL
@@ -14,9 +14,7 @@ import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-
 import Partial.Unsafe (unsafePartial)
-
 import Test.Assert (ASSERT, assert)
 
 testListLazy :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
@@ -227,6 +225,9 @@ testListLazy = do
 
   log "catMaybe should take an list of Maybe values and throw out Nothings"
   assert $ catMaybes (l [Nothing, Just 2, Nothing, Just 4]) == l [2, 4]
+
+  log "mapWithIndex should take a list of values and apply a function which also takes the index into account"
+  assert $ mapWithIndex (\x ix -> x + ix) (fromFoldable [0, 1, 2, 3]) == fromFoldable [0, 2, 4, 6]
 
   -- log "sort should reorder a list into ascending order based on the result of compare"
   -- assert $ sort (l [1, 3, 2, 5, 6, 4]) == l [1, 2, 3, 4, 5, 6]
