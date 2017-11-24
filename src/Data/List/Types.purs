@@ -86,8 +86,18 @@ instance foldableList :: Foldable List where
   foldMap f = foldl (\acc -> append acc <<< f) mempty
 
 instance foldableWithIndexList :: FoldableWithIndex Int List where
-  foldrWithIndex f acc =
-    snd <<< foldr (\a (Tuple i b) -> Tuple (i + 1) (f i a b)) (Tuple 0 acc)
+  foldrWithIndex f b xs =
+    snd $ foldl
+            (\(Tuple i b') a -> Tuple (i - 1) (f (i - 1) a b'))
+            (Tuple len b)
+            revList
+    where
+    Tuple len revList = rev 0 Nil xs
+      where
+      -- As we create our reversed list, we count elements.
+      rev n acc = case _ of
+        Nil -> Tuple n acc
+        a : as -> rev (n + 1) (a : acc) as
   foldlWithIndex f acc =
     snd <<< foldl (\(Tuple i b) a -> Tuple (i + 1) (f i b a)) (Tuple 0 acc)
   foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty

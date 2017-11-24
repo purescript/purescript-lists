@@ -108,10 +108,7 @@ instance functorList :: Functor List where
     go (Cons x xs') = Cons (f x) (f <$> xs')
 
 instance functorWithIndexList :: FunctorWithIndex Int List where
-  mapWithIndex f xs = List (go 0 <$> unwrap xs)
-    where
-    go _ Nil = Nil
-    go i (Cons x xs') = Cons (f i x) (f (i + 1) <$> xs')
+  mapWithIndex f = foldrWithIndex (\i x acc -> f i x : acc) nil
 
 instance foldableList :: Foldable List where
   -- calls foldl on the reversed list
