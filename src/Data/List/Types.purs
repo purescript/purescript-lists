@@ -77,8 +77,7 @@ instance functorList :: Functor List where
 -- https://discuss.ocaml.org/t/a-new-list-map-that-is-both-stack-safe-and-fast/865
 -- chunk sizes determined through experimentation
 listMap :: forall a b. (a -> b) -> List a -> List b
-listMap f = startUnrolledMap unrollLimit
-  where
+listMap f = startUnrolledMap unrollLimit where
   -- iterate the unrolled map up to 1000 times,
   -- which hits up to 5000 elements
   unrollLimit = 1000
