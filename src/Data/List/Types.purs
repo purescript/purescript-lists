@@ -78,9 +78,9 @@ instance functorList :: Functor List where
 -- chunk sizes determined through experimentation
 listMap :: forall a b. (a -> b) -> List a -> List b
 listMap f = startUnrolledMap unrollLimit where
-  -- iterate the unrolled map up to 1000 times,
-  -- which hits up to 5000 elements
-  unrollLimit = 1000
+  -- iterate the unrolled map up to 200 times,
+  -- which hits up to 1000 elements
+  unrollLimit = 200
 
   startUnrolledMap :: Int -> List a -> List b
   startUnrolledMap 0 (x : xs) = f x : chunkedRevMap xs
