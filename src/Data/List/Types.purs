@@ -112,8 +112,10 @@ instance traversableList :: Traversable List where
 
 instance traversableWithIndexList :: TraversableWithIndex Int List where
   traverseWithIndex f =
-    map (foldl (flip (:)) Nil)
+    map rev
     <<< foldlWithIndex (\i acc -> lift2 (flip (:)) acc <<< f i) (pure Nil)
+    where
+    rev = foldl (flip Cons) Nil
 
 instance applyList :: Apply List where
   apply Nil _ = Nil
