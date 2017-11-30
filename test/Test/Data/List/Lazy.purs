@@ -5,7 +5,8 @@ import Prelude
 import Control.Lazy (defer)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
-
+import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
+import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
 import Data.List.Lazy (List, nil, stripPrefix, Pattern(..), cons, foldl, foldr, foldMap, singleton, transpose, take, iterate, filter, uncons, foldM, foldrLazy, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, partition, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
 import Data.List.Lazy.NonEmpty as NEL
@@ -13,10 +14,9 @@ import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
 import Data.Traversable (traverse)
+import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
-
 import Partial.Unsafe (unsafePartial)
-
 import Test.Assert (ASSERT, assert)
 
 testListLazy :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
@@ -48,8 +48,33 @@ testListLazy = do
   log "foldMap should be left-to-right"
   assert $ foldMap show (range 1 5) == "12345"
 
+  log "foldlWithIndex should be correct"
+  assert $ foldlWithIndex (\i b _ -> i + b) 0 (range 0 10000) == 50005000
+
+  log "foldlWithIndex should be stack-safe"
+  void $ pure $ foldlWithIndex (\i b _ -> i + b) 0 $ range 0 100000
+
+  log "foldrWithIndex should be correct"
+  assert $ foldrWithIndex (\i _ b -> i + b) 0 (range 0 10000) == 50005000
+
+  log "foldrWithIndex should be stack-safe"
+  void $ pure $ foldrWithIndex (\i _ b -> i + b) 0 $ range 0 100000
+
+  log "foldMapWithIndex should be stack-safe"
+  void $ pure $ foldMapWithIndex (\i _ -> Additive i) $ range 1 100000
+
+  log "foldMapWithIndex should be left-to-right"
+  assert $ foldMapWithIndex (\i _ -> show i) (fromFoldable [0, 0, 0]) == "012"
+
   log "traverse should be stack-safe"
   assert $ ((traverse Just longList) >>= last) == last longList
+
+  log "traverseWithIndex should be stack-safe"
+  assert $ traverseWithIndex (const Just) longList == Just longList
+
+  log "traverseWithIndex should be correct"
+  assert $ traverseWithIndex (\i a -> Just $ i + a) (fromFoldable [2, 2, 2])
+           == Just (fromFoldable [2, 3, 4])
 
   log "bind should be stack-safe"
   void $ pure $ last $ longList >>= pure
@@ -227,6 +252,9 @@ testListLazy = do
 
   log "catMaybe should take an list of Maybe values and throw out Nothings"
   assert $ catMaybes (l [Nothing, Just 2, Nothing, Just 4]) == l [2, 4]
+
+  log "mapWithIndex should take a list of values and apply a function which also takes the index into account"
+  assert $ mapWithIndex (\x ix -> x + ix) (fromFoldable [0, 1, 2, 3]) == fromFoldable [0, 2, 4, 6]
 
   -- log "sort should reorder a list into ascending order based on the result of compare"
   -- assert $ sort (l [1, 3, 2, 5, 6, 4]) == l [1, 2, 3, 4, 5, 6]

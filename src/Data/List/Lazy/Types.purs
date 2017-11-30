@@ -10,9 +10,10 @@ import Control.Lazy as Z
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
-
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Lazy (Lazy, defer, force)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
@@ -21,7 +22,8 @@ import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
 import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse, sequence)
-import Data.Tuple (Tuple(..))
+import Data.TraversableWithIndex (class TraversableWithIndex)
+import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
 
 -- | A lazy linked list.
@@ -105,6 +107,9 @@ instance functorList :: Functor List where
     go Nil = Nil
     go (Cons x xs') = Cons (f x) (f <$> xs')
 
+instance functorWithIndexList :: FunctorWithIndex Int List where
+  mapWithIndex f = foldrWithIndex (\i x acc -> f i x : acc) nil
+
 instance foldableList :: Foldable List where
   -- calls foldl on the reversed list
   foldr op z xs = foldl (flip op) z (rev xs) where
@@ -120,6 +125,22 @@ instance foldableList :: Foldable List where
 
   foldMap f = foldl (\b a -> b <> f a) mempty
 
+instance foldableWithIndexList :: FoldableWithIndex Int List where
+  foldrWithIndex f b xs =
+    -- as we climb the reversed list, we decrement the index
+    snd $ foldl
+            (\(Tuple i b') a -> Tuple (i - 1) (f (i - 1) a b'))
+            (Tuple len b)
+            revList
+    where
+    Tuple len revList = rev (Tuple 0 nil) xs
+      where
+      -- As we create our reversed list, we count elements.
+      rev = foldl (\(Tuple i acc) a -> Tuple (i + 1) (a : acc))
+  foldlWithIndex f acc =
+    snd <<< foldl (\(Tuple i b) a -> Tuple (i + 1) (f i b a)) (Tuple 0 acc)
+  foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty
+
 instance unfoldableList :: Unfoldable List where
   unfoldr = go where
     go f b = Z.defer \_ -> case f b of
@@ -131,6 +152,10 @@ instance traversableList :: Traversable List where
     foldr (\a b -> cons <$> f a <*> b) (pure nil)
 
   sequence = traverse id
+
+instance traversableWithIndexList :: TraversableWithIndex Int List where
+  traverseWithIndex f =
+    foldrWithIndex (\i a b -> cons <$> f i a <*> b) (pure nil)
 
 instance applyList :: Apply List where
   apply = ap

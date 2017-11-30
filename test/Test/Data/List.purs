@@ -1,15 +1,18 @@
 module Test.Data.List (testList) where
 
 import Prelude
-import Data.List.NonEmpty as NEL
+
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Foldable (foldMap, foldl)
+import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
 import Data.Traversable (traverse)
+import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (replicate, replicateA, unfoldr)
 import Partial.Unsafe (unsafePartial)
@@ -324,11 +327,29 @@ testList = do
   log "foldl should be stack-safe"
   void $ pure $ foldl (+) 0 $ range 1 100000
 
+  log "foldlWithIndex should be correct"
+  assert $ foldlWithIndex (\i b _ -> i + b) 0 (range 0 10000) == 50005000
+
+  log "foldlWithIndex should be stack-safe"
+  void $ pure $ foldlWithIndex (\i b _ -> i + b) 0 $ range 0 100000
+
+  log "foldrWithIndex should be correct"
+  assert $ foldrWithIndex (\i _ b -> i + b) 0 (range 0 10000) == 50005000
+
+  log "foldrWithIndex should be stack-safe"
+  void $ pure $ foldrWithIndex (\i _ b -> i + b) 0 $ range 0 100000
+
   log "foldMap should be stack-safe"
   void $ pure $ foldMap Additive $ range 1 100000
 
   log "foldMap should be left-to-right"
   assert $ foldMap show (range 1 5) == "12345"
+
+  log "foldMapWithIndex should be stack-safe"
+  void $ pure $ foldMapWithIndex (\i _ -> Additive i) $ range 1 100000
+
+  log "foldMapWithIndex should be left-to-right"
+  assert $ foldMapWithIndex (\i _ -> show i) (fromFoldable [0, 0, 0]) == "012"
 
   log "unfoldable replicate should be stack-safe"
   void $ pure $ length $ replicate 100000 1
@@ -353,6 +374,13 @@ testList = do
   log "traverse should be stack-safe"
   let xs = fromFoldable (range 1 100000)
   assert $ traverse Just xs == Just xs
+
+  log "traverseWithIndex should be stack-safe"
+  assert $ traverseWithIndex (const Just) xs == Just xs
+
+  log "traverseWithIndex should be correct"
+  assert $ traverseWithIndex (\i a -> Just $ i + a) (fromFoldable [2, 2, 2])
+           == Just (fromFoldable [2, 3, 4])
 
   log "append should concatenate two lists"
   assert $ (l [1, 2]) <> (l [3, 4]) == (l [1, 2, 3, 4])

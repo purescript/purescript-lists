@@ -25,7 +25,7 @@
     "purescript-tailrec": "^3.3.0",
     "purescript-unfoldable": "^3.0.0",
     "purescript-partial": "^1.0.0",
-    "purescript-foldable-traversable": "^3.3.0"
+    "purescript-foldable-traversable": "^3.4.0"
   },
   "devDependencies": {
     "purescript-arrays": "^4.0.0",
