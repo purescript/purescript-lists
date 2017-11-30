@@ -360,6 +360,9 @@ testList = do
   log "map should maintain order"
   assert $ (1..5) == map id (1..5)
 
+  log "map should be stack-safe"
+  void $ pure $ map id (1..100000)
+
   log "transpose"
   assert $ transpose (l [l [1,2,3], l[4,5,6], l [7,8,9]]) ==
                      (l [l [1,4,7], l[2,5,8], l [3,6,9]])
