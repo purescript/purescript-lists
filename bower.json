@@ -32,6 +32,6 @@
     "purescript-assert": "^3.0.0",
     "purescript-console": "^3.0.0",
     "purescript-math": "^2.0.0",
-    "purescript-minibench": "matthewleon/purescript-minibench#gc"
+    "purescript-minibench": "^1.0.1"
   }
 }

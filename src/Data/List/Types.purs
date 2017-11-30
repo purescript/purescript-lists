@@ -2,6 +2,8 @@ module Data.List.Types
   ( List(..)
   , (:)
   , NonEmptyList(..)
+  , toList
+  , nelCons
   ) where
 
 import Prelude
