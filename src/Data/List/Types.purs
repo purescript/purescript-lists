@@ -79,33 +79,18 @@ instance functorList :: Functor List where
 -- https://discuss.ocaml.org/t/a-new-list-map-that-is-both-stack-safe-and-fast/865
 -- chunk sizes determined through experimentation
 listMap :: forall a b. (a -> b) -> List a -> List b
-listMap f = startUnrolledMap unrollLimit where
-  -- iterate the unrolled map up to 200 times,
-  -- which hits up to 1000 elements
-  unrollLimit = 200
-
-  startUnrolledMap :: Int -> List a -> List b
-  startUnrolledMap 0 (x : xs) = f x : chunkedRevMap xs
-  startUnrolledMap n (x1 : x2 : x3 : x4 : x5 : xs) =
-    f x1 : f x2 : f x3 : f x4 : f x5 : startUnrolledMap (n - 1) xs
-  startUnrolledMap n (x1 : x2 : x3 : x4 : xs) =
-    f x1 : f x2 : f x3 : f x4 : startUnrolledMap (n - 1) xs
-  startUnrolledMap n (x1 : x2 : x3 : xs) =
-    f x1 : f x2 : f x3 : startUnrolledMap (n - 1) xs
-  startUnrolledMap n (x1 : x2 : xs) =
-    f x1 : f x2 : startUnrolledMap (n - 1) xs
-  startUnrolledMap n (x : xs) = f x : startUnrolledMap (n - 1) xs
-
-  startUnrolledMap _ Nil = Nil
-
-  chunkedRevMap :: List a -> List b
-  chunkedRevMap = go Nil
+listMap f = chunkedRevMap Nil
+  where
+  chunkedRevMap :: List (List a) -> List a -> List b
+  chunkedRevMap chunksAcc chunk@(x1 : x2 : x3 : xs) =
+    chunkedRevMap (chunk : chunksAcc) xs
+  chunkedRevMap chunksAcc xs =
+    reverseUnrolledMap chunksAcc $ unrolledMap xs
     where
-    go :: List (List a) -> List a -> List b
-    go chunksAcc chunk@(x1 : x2 : x3 : xs) =
-      go (chunk : chunksAcc) xs
-    go chunksAcc finalChunk =
-      reverseUnrolledMap chunksAcc $ startUnrolledMap 0 finalChunk
+    unrolledMap :: List a -> List b
+    unrolledMap (x1 : x2 : Nil) = f x1 : f x2 : Nil
+    unrolledMap (x1 : Nil) = f x1 : Nil
+    unrolledMap _ = Nil
 
     reverseUnrolledMap :: List (List a) -> List b -> List b
     reverseUnrolledMap ((x1 : x2 : x3 : _) : cs) acc =
