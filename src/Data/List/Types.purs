@@ -102,7 +102,7 @@ listMap f = startUnrolledMap unrollLimit where
   chunkedRevMap = go Nil
     where
     go :: List (List a) -> List a -> List b
-    go chunksAcc chunk@(x1 : x2 : x3 : x4 : x5 : xs) =
+    go chunksAcc chunk@(x1 : x2 : x3 : xs) =
       go (chunk : chunksAcc) xs
     go chunksAcc finalChunk =
       reverseUnrolledMap chunksAcc $ startUnrolledMap 0 finalChunk
