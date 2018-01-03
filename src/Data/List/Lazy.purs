@@ -186,7 +186,7 @@ repeat x = Z.fix \xs -> cons x xs
 
 -- | Create a list by iterating a function
 iterate :: forall a. (a -> a) -> a -> List a
-iterate f x = Z.fix \xs -> cons x (f <$> xs)
+iterate f x = cons x (Z.defer \_ -> iterate f (f x))
 
 -- | Create a list by repeating another list
 cycle :: forall a. List a -> List a
