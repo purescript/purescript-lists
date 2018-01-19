@@ -399,6 +399,9 @@ testListLazy = do
   log "transpose (singleton nil) == nil"
   assert $ transpose (singleton nil) == (nil :: List (List Int))
 
+  log "NonEmptyList cons should add an element"
+  assert $ NEL.toList (NEL.cons 0 (NEL.singleton 1)) == fromFoldable [0, 1]
+
 nil' :: List Int
 nil' = nil
 
