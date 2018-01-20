@@ -509,8 +509,9 @@ slice start end xs = take (end - start) (drop start xs)
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to take.
 take :: forall a. Int -> List a -> List a
-take n _ | n <= 0 = nil
-take n xs = List <<< map (go n) <<< unwrap $ xs
+take n = if n <= 0
+  then const nil
+  else List <<< map (go n) <<< unwrap
   where
   go :: Int -> Step a -> Step a
   go _ Nil = Nil
