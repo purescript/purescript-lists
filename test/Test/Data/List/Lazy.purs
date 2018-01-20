@@ -272,7 +272,7 @@ testListLazy = do
 
   log "take should evaluate exactly n items which we needed"
   assert let oops x = 0 : (oops x)
-          in (take 1 $ 1 : defer oops) == fromFoldable [1]
+          in (take 1 $ 1 : defer oops) == l [1]
   -- If `take` evaluate more than once, it would crash with a stack overflow
 
   log "takeWhile should keep all values that match a predicate from the front of an list"
