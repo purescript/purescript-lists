@@ -270,6 +270,11 @@ testListLazy = do
   assert $ (take 2 (l [1, 2, 3])) == l [1, 2]
   assert $ (take 1 nil') == nil'
 
+  log "take should evaluate exactly n items which we needed"
+  assert let oops x = 0 : (oops x)
+          in (take 1 $ 1 : defer oops) == fromFoldable [1]
+  -- If `take` evaluate more than once, it would crash with a stack overflow
+
   log "takeWhile should keep all values that match a predicate from the front of an list"
   assert $ (takeWhile (_ /= 2) (l [1, 2, 3])) == l [1]
   assert $ (takeWhile (_ /= 3) (l [1, 2, 3])) == l [1, 2]
