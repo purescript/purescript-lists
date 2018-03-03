@@ -6,6 +6,7 @@ module Data.List.ZipList
   ) where
 
 import Prelude
+import Prim.TypeError (class Fail)
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
 import Control.Plus (class Plus)
