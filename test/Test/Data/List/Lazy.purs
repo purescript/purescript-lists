@@ -3,8 +3,8 @@ module Test.Data.List.Lazy (testListLazy) where
 import Prelude
 
 import Control.Lazy (defer)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Effect (Effect)
+import Effect.Console (log)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
@@ -17,9 +17,9 @@ import Data.Traversable (traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
 import Partial.Unsafe (unsafePartial)
-import Test.Assert (ASSERT, assert)
+import Test.Assert (assert)
 
-testListLazy :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
+testListLazy :: Effect Unit
 testListLazy = do
   let
     l = fromFoldable

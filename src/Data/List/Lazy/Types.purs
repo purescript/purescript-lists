@@ -16,7 +16,6 @@ import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWit
 import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Lazy (Lazy, defer, force)
 import Data.Maybe (Maybe(..))
-import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
@@ -151,7 +150,7 @@ instance traversableList :: Traversable List where
   traverse f =
     foldr (\a b -> cons <$> f a <*> b) (pure nil)
 
-  sequence = traverse id
+  sequence = traverse identity
 
 instance traversableWithIndexList :: TraversableWithIndex Int List where
   traverseWithIndex f =
