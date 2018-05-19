@@ -25,6 +25,7 @@ import Data.Traversable (class Traversable, traverse)
 import Data.TraversableWithIndex (class TraversableWithIndex)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
+import Data.Unfoldable1 (class Unfoldable1)
 
 data List a = Nil | Cons a (List a)
 
@@ -97,6 +98,13 @@ instance foldableWithIndexList :: FoldableWithIndex Int List where
   foldlWithIndex f acc =
     snd <<< foldl (\(Tuple i b) a -> Tuple (i + 1) (f i b a)) (Tuple 0 acc)
   foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty
+
+instance unfoldable1List :: Unfoldable1 List where
+  unfoldr1 f b = go b Nil
+    where
+    go source memo = case f source of
+      Tuple one (Just rest) -> go rest (one : memo)
+      Tuple one Nothing -> foldl (flip (:)) Nil (one : memo)
 
 instance unfoldableList :: Unfoldable List where
   unfoldr f b = go b Nil

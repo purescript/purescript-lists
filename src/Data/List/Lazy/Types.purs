@@ -24,6 +24,7 @@ import Data.Traversable (class Traversable, traverse, sequence)
 import Data.TraversableWithIndex (class TraversableWithIndex)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
+import Data.Unfoldable1 (class Unfoldable1)
 
 -- | A lazy linked list.
 newtype List a = List (Lazy (Step a))
@@ -139,6 +140,12 @@ instance foldableWithIndexList :: FoldableWithIndex Int List where
   foldlWithIndex f acc =
     snd <<< foldl (\(Tuple i b) a -> Tuple (i + 1) (f i b a)) (Tuple 0 acc)
   foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty
+
+instance unfoldable1List :: Unfoldable1 List where
+  unfoldr1 = go where
+    go f b = Z.defer \_ -> case f b of
+      Tuple a (Just b') -> a : go f b'
+      Tuple a Nothing -> a : nil
 
 instance unfoldableList :: Unfoldable List where
   unfoldr = go where
