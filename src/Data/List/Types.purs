@@ -211,11 +211,7 @@ derive newtype instance foldableNonEmptyList :: Foldable NonEmptyList
 
 derive newtype instance traversableNonEmptyList :: Traversable NonEmptyList
 
-instance foldable1NonEmptyList :: Foldable1 NonEmptyList where
-  fold1 (NonEmptyList (a :| as)) =
-    foldl append a as
-  foldMap1 f (NonEmptyList (a :| as)) =
-    foldl (\acc -> append acc <<< f) (f a) as
+derive newtype instance foldable1NonEmptyList :: Foldable1 NonEmptyList
 
 instance traversable1NonEmptyList :: Traversable1 NonEmptyList where
   traverse1 f (NonEmptyList (a :| as)) =
