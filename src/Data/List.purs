@@ -617,6 +617,16 @@ partition p xs = foldr select { no: Nil, yes: Nil } xs
                            then { no, yes: x : yes }
                            else { no: x : no, yes }
 
+-- | Returns all final segments of the argument, longest first. For example,
+-- |
+-- | ```purescript
+-- | tails (1 : 2 : 3 : Nil) == ((1 : 2 : 3 : Nil) : (2 : 3 : Nil) : (3 : Nil) : (Nil) : Nil)
+-- | ```
+-- | Running time: `O(n)`
+tails :: forall a. List a -> List (List a)
+tails Nil = singleton Nil
+tails list@(Cons _ tl)= list : tails tl
+
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
 --------------------------------------------------------------------------------
