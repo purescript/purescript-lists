@@ -2,17 +2,17 @@ module Test.Data.List.Partial (testListPartial) where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Effect (Effect)
+import Effect.Console (log)
 
 import Data.List (List(..), fromFoldable)
 import Data.List.Partial (init, tail, last, head)
 
 import Partial.Unsafe (unsafePartial)
 
-import Test.Assert (ASSERT, assert, assertThrows)
+import Test.Assert (assert, assertThrows)
 
-testListPartial :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
+testListPartial :: Effect Unit
 testListPartial = do
   let l = fromFoldable
 

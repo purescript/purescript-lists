@@ -2,8 +2,8 @@ module Test.Data.List.NonEmpty (testNonEmptyList) where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Effect (Effect)
+import Effect.Console (log)
 import Data.Foldable (class Foldable, foldM, foldMap, foldl, length)
 import Data.List as L
 import Data.List.NonEmpty as NEL
@@ -11,10 +11,9 @@ import Data.Maybe (Maybe(..))
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
 import Data.Tuple (Tuple(..))
-import Test.Assert (ASSERT, assert)
+import Test.Assert (assert)
 
-testNonEmptyList ::
-  forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
+testNonEmptyList :: Effect Unit
 testNonEmptyList = do
   let
     nel :: ∀ f a. Foldable f => a -> f a -> NEL.NonEmptyList a
@@ -223,7 +222,7 @@ testNonEmptyList = do
   assert $ foldMap show (nel 1 (L.range 2 5)) == "12345"
 
   log "map should maintain order"
-  assert $ nel 0 (L.range 1 5) == map id (nel 0 (L.range 1 5))
+  assert $ nel 0 (L.range 1 5) == map identity (nel 0 (L.range 1 5))
 
   log "traverse1 should be stack-safe"
   let xs = nel 0 (L.range 1 100000)

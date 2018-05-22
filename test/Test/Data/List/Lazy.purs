@@ -3,12 +3,10 @@ module Test.Data.List.Lazy (testListLazy) where
 import Prelude
 
 import Control.Lazy (defer)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
-import Data.List.Lazy (List, nil, stripPrefix, Pattern(..), cons, foldl, foldr, foldMap, singleton, transpose, take, iterate, filter, uncons, foldM, foldrLazy, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, partition, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
+import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, null, partition, range, repeat, replicate, replicateM, reverse, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -16,10 +14,14 @@ import Data.NonEmpty ((:|))
 import Data.Traversable (traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
+import Data.Unfoldable (unfoldr)
+import Data.Unfoldable1 (unfoldr1)
+import Effect (Effect)
+import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
-import Test.Assert (ASSERT, assert)
+import Test.Assert (assert)
 
-testListLazy :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
+testListLazy :: Effect Unit
 testListLazy = do
   let
     l = fromFoldable
@@ -270,6 +272,12 @@ testListLazy = do
   assert $ (take 2 (l [1, 2, 3])) == l [1, 2]
   assert $ (take 1 nil') == nil'
 
+  log "take should evaluate exactly n items which we needed"
+  assert let oops x = 0 : oops x
+             xs = 1 : defer oops
+          in take 1 xs == l [1]
+  -- If `take` evaluate more than once, it would crash with a stack overflow
+
   log "takeWhile should keep all values that match a predicate from the front of an list"
   assert $ (takeWhile (_ /= 2) (l [1, 2, 3])) == l [1]
   assert $ (takeWhile (_ /= 3) (l [1, 2, 3])) == l [1, 2]
@@ -396,8 +404,25 @@ testListLazy = do
                      ((10:20:30:nil) : (11:31:nil) : (32:nil) : nil)
   log "transpose nil == nil"
   assert $ transpose nil == (nil :: List (List Int))
+
   log "transpose (singleton nil) == nil"
   assert $ transpose (singleton nil) == (nil :: List (List Int))
+
+  log "unfoldr should maintain order"
+  assert $ (1..5) == unfoldr step 1
+
+  log "unfoldr1 should maintain order"
+  assert $ (1..5) == unfoldr1 step1 1
+
+  log "map should maintain order"
+  assert $ (1..5) == map identity (1..5)
+
+step :: Int -> Maybe (Tuple Int Int)
+step 6 = Nothing
+step n = Just (Tuple n (n + 1))
+
+step1 :: Int -> Tuple Int (Maybe Int)
+step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))
 
 nil' :: List Int
 nil' = nil

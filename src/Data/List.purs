@@ -372,7 +372,7 @@ reverse = go Nil
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (_ >>= id)
+concat = (_ >>= identity)
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.
@@ -423,7 +423,7 @@ mapMaybe f = go Nil
 -- | Filter a list of optional values, keeping only the elements which contain
 -- | a value.
 catMaybes :: forall a. List (Maybe a) -> List a
-catMaybes = mapMaybe id
+catMaybes = mapMaybe identity
 
 
 -- | Apply a function to each element and its index in a list starting at 0.
