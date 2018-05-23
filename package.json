@@ -3,11 +3,11 @@
   "scripts": {
     "clean": "rimraf output && rimraf .pulp-cache",
     "build": "pulp build -- --censor-lib --strict",
-    "test": "pulp test"
+    "test": "pulp test --check-main-type Effect.Effect"
   },
   "devDependencies": {
-    "pulp": "^11.0.0",
-    "purescript-psa": "^0.5.1",
-    "rimraf": "^2.6.1"
+    "pulp": "^12.2.0",
+    "purescript-psa": "^0.6.0",
+    "rimraf": "^2.6.2"
   }
 }

@@ -409,7 +409,7 @@ reverse xs = Z.defer \_ -> foldl (flip cons) nil xs
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (_ >>= id)
+concat = (_ >>= identity)
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.
@@ -463,7 +463,7 @@ mapMaybe f = List <<< map go <<< unwrap
 -- | Filter a list of optional values, keeping only the elements which contain
 -- | a value.
 catMaybes :: forall a. List (Maybe a) -> List a
-catMaybes = mapMaybe id
+catMaybes = mapMaybe identity
 
 --------------------------------------------------------------------------------
 -- Sorting ---------------------------------------------------------------------
@@ -509,10 +509,11 @@ slice start end xs = take (end - start) (drop start xs)
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to take.
 take :: forall a. Int -> List a -> List a
-take n = List <<< map (go n) <<< unwrap
+take n = if n <= 0
+  then const nil
+  else List <<< map (go n) <<< unwrap
   where
   go :: Int -> Step a -> Step a
-  go i _ | i <= 0 = Nil
   go _ Nil = Nil
   go n' (Cons x xs) = Cons x (take (n' - 1) xs)
 

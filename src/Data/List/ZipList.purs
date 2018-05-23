@@ -6,12 +6,12 @@ module Data.List.ZipList
   ) where
 
 import Prelude
+import Prim.TypeError (class Fail, Text)
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
 import Control.Plus (class Plus)
 import Data.Foldable (class Foldable)
 import Data.List.Lazy (List, repeat, zipWith)
-import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
 import Data.Traversable (class Traversable)
 import Partial.Unsafe (unsafeCrashWith)
@@ -54,12 +54,12 @@ instance plusZipList :: Plus ZipList where
 instance alternativeZipList :: Alternative ZipList
 
 instance zipListIsNotBind
-  :: Fail """
+  :: Fail (Text """
     ZipList is not Bind. Any implementation would break the associativity law.
 
     Possible alternatives:
         Data.List.List
         Data.List.Lazy.List
-    """
+    """)
   => Bind ZipList where
     bind = unsafeCrashWith "bind: unreachable"

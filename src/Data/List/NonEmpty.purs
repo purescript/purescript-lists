@@ -210,7 +210,7 @@ catMaybes :: forall a. NonEmptyList (Maybe a) -> L.List a
 catMaybes = lift L.catMaybes
 
 concat :: forall a. NonEmptyList (NonEmptyList a) -> NonEmptyList a
-concat = (_ >>= id)
+concat = (_ >>= identity)
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
