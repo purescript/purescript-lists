@@ -15,6 +15,7 @@ import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
 import Data.Traversable (class Traversable)
 import Partial.Unsafe (unsafeCrashWith)
+import Prim.TypeError (class Fail, Text)
 
 -- | `ZipList` is a newtype around `List` which provides a zippy
 -- | `Applicative` instance.
@@ -54,12 +55,13 @@ instance plusZipList :: Plus ZipList where
 instance alternativeZipList :: Alternative ZipList
 
 instance zipListIsNotBind
-  :: Fail """
+  :: Fail (Text
+    """
     ZipList is not Bind. Any implementation would break the associativity law.
 
     Possible alternatives:
         Data.List.List
         Data.List.Lazy.List
-    """
+    """)
   => Bind ZipList where
     bind = unsafeCrashWith "bind: unreachable"
