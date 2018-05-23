@@ -4,8 +4,7 @@
   "authors": [
     "Phil Freeman <paf31@cantab.net>"
   ],
-  "description": "Linked lists",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
     "url": "git://github.com/purescript/purescript-lists.git"
@@ -20,17 +19,23 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-lazy": "#compiler/0.12",
-    "purescript-nonempty": "#compiler/0.12",
-    "purescript-tailrec": "#compiler/0.12",
-    "purescript-unfoldable": "#compiler/0.12",
-    "purescript-partial": "#compiler/0.12",
-    "purescript-foldable-traversable": "#compiler/0.12"
+    "purescript-bifunctors": "^4.0.0",
+    "purescript-control": "^4.0.0",
+    "purescript-foldable-traversable": "^4.0.0",
+    "purescript-lazy": "^4.0.0",
+    "purescript-maybe": "^4.0.0",
+    "purescript-newtype": "^3.0.0",
+    "purescript-nonempty": "^5.0.0",
+    "purescript-partial": "^2.0.0",
+    "purescript-prelude": "^4.0.0",
+    "purescript-tailrec": "^4.0.0",
+    "purescript-tuples": "^5.0.0",
+    "purescript-unfoldable": "^4.0.0"
   },
   "devDependencies": {
-    "purescript-arrays": "#compiler/0.12",
-    "purescript-assert": "#compiler/0.12",
-    "purescript-console": "#compiler/0.12",
-    "purescript-math": "#compiler/0.12"
+    "purescript-arrays": "^5.0.0",
+    "purescript-assert": "^4.0.0",
+    "purescript-console": "^4.0.0",
+    "purescript-math": "^2.1.1"
   }
 }
