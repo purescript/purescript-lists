@@ -6,15 +6,16 @@ module Data.List.ZipList
   ) where
 
 import Prelude
-import Prim.TypeError (class Fail, Text)
+
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
 import Control.Plus (class Plus)
 import Data.Foldable (class Foldable)
-import Data.List.Lazy (List, repeat, zipWith)
+import Data.List.Lazy (List, drop, length, repeat, zipWith)
 import Data.Newtype (class Newtype)
 import Data.Traversable (class Traversable)
 import Partial.Unsafe (unsafeCrashWith)
+import Prim.TypeError (class Fail, Text)
 
 -- | `ZipList` is a newtype around `List` which provides a zippy
 -- | `Applicative` instance.
@@ -46,7 +47,7 @@ instance applicativeZipList :: Applicative ZipList where
   pure = ZipList <<< repeat
 
 instance altZipList :: Alt ZipList where
-  alt = append
+  alt (ZipList xs) (ZipList ys) = ZipList $ (xs <> drop (length xs) ys)
 
 instance plusZipList :: Plus ZipList where
   empty = mempty
