@@ -47,7 +47,7 @@ instance applicativeZipList :: Applicative ZipList where
   pure = ZipList <<< repeat
 
 instance altZipList :: Alt ZipList where
-  alt (ZipList xs) (ZipList ys) = ZipList $ (xs <> drop (length xs) ys)
+  alt (ZipList xs) (ZipList ys) = ZipList $ xs <> drop (length xs) ys
 
 instance plusZipList :: Plus ZipList where
   empty = mempty
