@@ -59,6 +59,7 @@ module Data.List.NonEmpty
 import Prelude
 
 import Data.Foldable (class Foldable)
+import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
@@ -219,8 +220,11 @@ appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyLis
 appendFoldable (NonEmptyList (x :| xs)) ys =
   NonEmptyList (x :| (xs <> L.fromFoldable ys))
 
+-- | Apply a function to each element and its index in a list starting at 0.
+-- |
+-- | Deprecated. Use Data.FunctorWithIndex instead.
 mapWithIndex :: forall a b. (Int -> a -> b) -> NonEmptyList a -> NonEmptyList b
-mapWithIndex = wrappedOperation "mapWithIndex" <<< L.mapWithIndex
+mapWithIndex = FWI.mapWithIndex
 
 sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 sort xs = sortBy compare xs

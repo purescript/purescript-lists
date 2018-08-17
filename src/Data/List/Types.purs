@@ -12,9 +12,9 @@ import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldl, foldr, intercalate)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex)
-import Data.FunctorWithIndex (class FunctorWithIndex)
-import Data.Maybe (Maybe(..))
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex, foldMapWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
@@ -22,7 +22,7 @@ import Data.Ord (class Ord1, compare1)
 import Data.Semigroup.Foldable (class Foldable1)
 import Data.Semigroup.Traversable (class Traversable1, traverse1)
 import Data.Traversable (class Traversable, traverse)
-import Data.TraversableWithIndex (class TraversableWithIndex)
+import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
 import Data.Unfoldable1 (class Unfoldable1)
@@ -212,6 +212,17 @@ derive newtype instance foldableNonEmptyList :: Foldable NonEmptyList
 derive newtype instance traversableNonEmptyList :: Traversable NonEmptyList
 
 derive newtype instance foldable1NonEmptyList :: Foldable1 NonEmptyList
+
+instance functorWithIndexNonEmptyList :: FunctorWithIndex Int NonEmptyList where
+  mapWithIndex fn (NonEmptyList ne) = NonEmptyList $ mapWithIndex (fn <<< maybe 0 (add 1)) ne
+
+instance foldableWithIndexNonEmptyList :: FoldableWithIndex Int NonEmptyList where
+  foldMapWithIndex f (NonEmptyList ne) = foldMapWithIndex (f <<< maybe 0 (add 1)) ne
+  foldlWithIndex f b (NonEmptyList ne) = foldlWithIndex (f <<< maybe 0 (add 1)) b ne
+  foldrWithIndex f b (NonEmptyList ne) = foldrWithIndex (f <<< maybe 0 (add 1)) b ne
+
+instance traversableWithIndexNonEmptyList :: TraversableWithIndex Int NonEmptyList where
+  traverseWithIndex f (NonEmptyList ne) = NonEmptyList <$> traverseWithIndex (f <<< maybe 0 (add 1)) ne
 
 instance traversable1NonEmptyList :: Traversable1 NonEmptyList where
   traverse1 f (NonEmptyList (a :| as)) =
