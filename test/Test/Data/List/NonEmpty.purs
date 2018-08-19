@@ -5,6 +5,8 @@ import Prelude
 import Effect (Effect)
 import Effect.Console (log)
 import Data.Foldable (class Foldable, foldM, foldMap, foldl, length)
+import Data.FoldableWithIndex (foldlWithIndex, foldrWithIndex, foldMapWithIndex)
+import Data.TraversableWithIndex (traverseWithIndex)
 import Data.List as L
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
@@ -237,6 +239,31 @@ testNonEmptyList = do
 
   log "append should be stack-safe"
   void $ pure $ xs <> xs
+
+  log "foldlWithIndex should be correct"
+  assert $ (foldlWithIndex (\i b _ -> i + b) 0 <$> (NEL.fromFoldable (L.range 0 10000))) == Just 50005000
+
+  log "foldlWithIndex should be stack-safe"
+  void $ pure $ map (foldlWithIndex (\i b _ -> i + b) 0) $ NEL.fromFoldable $ L.range 0 100000
+
+  log "foldrWithIndex should be correct"
+  assert $ (foldrWithIndex (\i _ b -> i + b) 0 <$> (NEL.fromFoldable (L.range 0 10000))) == Just 50005000
+
+  log "foldrWithIndex should be stack-safe"
+  void $ pure $ map (foldrWithIndex (\i b _ -> i + b) 0) $ NEL.fromFoldable $ L.range 0 100000
+
+  log "foldMapWithIndex should be stack-safe"
+  void $ pure $ map (foldMapWithIndex (\i _ -> Additive i)) $ NEL.fromFoldable $ L.range 1 100000
+
+  log "foldMapWithIndex should be left-to-right"
+  assert $ map (foldMapWithIndex (\i _ -> show i)) (NEL.fromFoldable [0, 0, 0]) == Just "012"
+
+  log "traverseWithIndex should be stack-safe"
+  assert $ map (traverseWithIndex (const Just)) (NEL.fromFoldable xs) == Just (NEL.fromFoldable xs)
+
+  log "traverseWithIndex should be correct"
+  assert $ map (traverseWithIndex (\i a -> Just $ i + a)) (NEL.fromFoldable [2, 2, 2])
+           == Just (NEL.fromFoldable [2, 3, 4])
 
 odd :: Int -> Boolean
 odd n = n `mod` 2 /= zero

@@ -12,16 +12,16 @@ import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex)
-import Data.FunctorWithIndex (class FunctorWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex, foldMapWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Lazy (Lazy, defer, force)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
 import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse, sequence)
-import Data.TraversableWithIndex (class TraversableWithIndex)
+import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
 import Data.Unfoldable1 (class Unfoldable1)
@@ -269,3 +269,15 @@ instance traversableNonEmptyList :: Traversable NonEmptyList where
     map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ traverse f (force nel)
   sequence (NonEmptyList nel) =
     map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ sequence (force nel)
+
+instance functorWithIndexNonEmptyList :: FunctorWithIndex Int NonEmptyList where
+  mapWithIndex f (NonEmptyList ne) = NonEmptyList $ defer \_ -> mapWithIndex (f <<< maybe 0 (add 1)) $ force ne
+
+instance foldableWithIndexNonEmptyList :: FoldableWithIndex Int NonEmptyList where
+  foldMapWithIndex f (NonEmptyList ne) = foldMapWithIndex (f <<< maybe 0 (add 1)) $ force ne
+  foldlWithIndex f b (NonEmptyList ne) = foldlWithIndex (f <<< maybe 0 (add 1)) b $ force ne
+  foldrWithIndex f b (NonEmptyList ne) = foldrWithIndex (f <<< maybe 0 (add 1)) b $ force ne
+
+instance traversableWithIndexNonEmptyList :: TraversableWithIndex Int NonEmptyList where
+  traverseWithIndex f (NonEmptyList ne) =
+    map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ traverseWithIndex (f <<< maybe 0 (add 1)) $ force ne
