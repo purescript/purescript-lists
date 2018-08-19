@@ -213,6 +213,8 @@ derive newtype instance traversableNonEmptyList :: Traversable NonEmptyList
 
 derive newtype instance foldable1NonEmptyList :: Foldable1 NonEmptyList
 
+derive newtype instance unfoldable1NonEmptyList :: Unfoldable1 NonEmptyList
+
 instance functorWithIndexNonEmptyList :: FunctorWithIndex Int NonEmptyList where
   mapWithIndex fn (NonEmptyList ne) = NonEmptyList $ mapWithIndex (fn <<< maybe 0 (add 1)) ne
 

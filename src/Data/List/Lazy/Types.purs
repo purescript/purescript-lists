@@ -23,7 +23,7 @@ import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse, sequence)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..), snd)
-import Data.Unfoldable (class Unfoldable)
+import Data.Unfoldable (class Unfoldable, unfoldr1)
 import Data.Unfoldable1 (class Unfoldable1)
 
 -- | A lazy linked list.
@@ -269,6 +269,9 @@ instance traversableNonEmptyList :: Traversable NonEmptyList where
     map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ traverse f (force nel)
   sequence (NonEmptyList nel) =
     map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ sequence (force nel)
+
+instance unfoldable1NonEmptyList :: Unfoldable1 NonEmptyList where
+  unfoldr1 f b = NonEmptyList $ defer \_ -> unfoldr1 f b
 
 instance functorWithIndexNonEmptyList :: FunctorWithIndex Int NonEmptyList where
   mapWithIndex f (NonEmptyList ne) = NonEmptyList $ defer \_ -> mapWithIndex (f <<< maybe 0 (add 1)) $ force ne
