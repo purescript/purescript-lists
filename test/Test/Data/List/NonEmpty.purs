@@ -2,17 +2,18 @@ module Test.Data.List.NonEmpty (testNonEmptyList) where
 
 import Prelude
 
-import Effect (Effect)
-import Effect.Console (log)
 import Data.Foldable (class Foldable, foldM, foldMap, foldl, length)
 import Data.FoldableWithIndex (foldlWithIndex, foldrWithIndex, foldMapWithIndex)
-import Data.TraversableWithIndex (traverseWithIndex)
 import Data.List as L
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
+import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
+import Data.Unfoldable (replicate, replicate1, unfoldr, unfoldr1)
+import Effect (Effect)
+import Effect.Console (log)
 import Test.Assert (assert)
 
 testNonEmptyList :: Effect Unit
@@ -264,6 +265,19 @@ testNonEmptyList = do
   log "traverseWithIndex should be correct"
   assert $ map (traverseWithIndex (\i a -> Just $ i + a)) (NEL.fromFoldable [2, 2, 2])
            == Just (NEL.fromFoldable [2, 3, 4])
+
+  log "unfoldable replicate1 should be stack-safe"
+  void $ pure $ NEL.length $ (replicate1 100000 1 :: NEL.NonEmptyList Int)
+
+  log "unfoldr1 should maintain order"
+  assert $ (nel 1 [2, 3, 4, 5]) == unfoldr1 step1 1
+
+step :: Int -> Maybe (Tuple Int Int)
+step 6 = Nothing
+step n = Just (Tuple n (n + 1))
+
+step1 :: Int -> Tuple Int (Maybe Int)
+step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))
 
 odd :: Int -> Boolean
 odd n = n `mod` 2 /= zero
