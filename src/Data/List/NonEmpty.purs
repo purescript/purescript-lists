@@ -7,7 +7,9 @@ module Data.List.NonEmpty
   , singleton
   , length
   , cons
+  , cons'
   , snoc
+  , snoc'
   , head
   , last
   , tail
@@ -128,8 +130,15 @@ singleton = NonEmptyList <<< NE.singleton
 cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
 cons y (NonEmptyList (x :| xs)) = NonEmptyList (y :| x : xs)
 
+cons' :: forall a. a -> L.List a -> NonEmptyList a
+cons' x xs = NonEmptyList (x :| xs)
+
 snoc :: forall a. NonEmptyList a -> a -> NonEmptyList a
 snoc (NonEmptyList (x :| xs)) y = NonEmptyList (x :| L.snoc xs y)
+
+snoc' :: forall a. L.List a -> a -> NonEmptyList a
+snoc' (x : xs) y = NonEmptyList (x :| L.snoc xs y)
+snoc' L.Nil y = singleton y
 
 head :: forall a. NonEmptyList a -> a
 head (NonEmptyList (x :| _)) = x
