@@ -89,6 +89,7 @@ module Data.List.Lazy
 
   , foldM
   , foldrLazy
+  , scanrLazy
 
   , module Exports
   ) where
@@ -755,3 +756,13 @@ foldrLazy op z = go
     go xs = case step xs of
       Cons x xs' -> Z.defer \_ -> x `op` go xs'
       Nil -> z
+
+-- | Perform a right scan lazily
+scanrLazy :: forall a b. (a -> b -> b) -> b -> List a -> List b
+scanrLazy f acc xs = List (go <$> unwrap xs)
+  where
+    go :: Step a -> Step b
+    go Nil = Nil
+    go (Cons x xs') =
+      let acc' = f x acc
+       in Cons acc' $ scanrLazy f acc' xs'
