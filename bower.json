@@ -21,6 +21,7 @@
   "dependencies": {
     "purescript-bifunctors": "^4.0.0",
     "purescript-control": "^4.0.0",
+    "purescript-either": "^4.0.0",
     "purescript-foldable-traversable": "^4.0.0",
     "purescript-lazy": "^4.0.0",
     "purescript-maybe": "^4.0.0",

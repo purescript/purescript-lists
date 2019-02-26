@@ -89,6 +89,7 @@ module Data.List.Lazy
 
   , foldM
   , foldrLazy
+  , foldrWhile
   , scanrLazy
 
   , module Exports
@@ -100,6 +101,7 @@ import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy as Z
 import Control.Monad.Rec.Class as Rec
+import Data.Either (Either(..))
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Lazy (defer)
@@ -756,6 +758,17 @@ foldrLazy op z = go
     go xs = case step xs of
       Cons x xs' -> Z.defer \_ -> x `op` go xs'
       Nil -> z
+
+-- | Perform a right fold until the list is consumed or the provided function returns a Left value
+foldrWhile :: forall a b. (a -> b -> Either b b) -> b -> List a -> b
+foldrWhile f acc xs = go $ step xs
+  where
+    go :: Step a -> b
+    go Nil = acc
+    go (Cons x xs') =
+      case f x acc of
+        Left acc' -> acc'
+        Right acc' -> foldrWhile f acc' xs'
 
 -- | Perform a right scan lazily
 scanrLazy :: forall a b. (a -> b -> b) -> b -> List a -> List b

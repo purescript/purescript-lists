@@ -6,8 +6,9 @@ import Control.Lazy (defer)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
-import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, null, partition, range, repeat, replicate, replicateM, reverse, scanrLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
+import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, foldrWhile, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, null, partition, range, repeat, replicate, replicateM, reverse, scanrLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.Lazy.NonEmpty as NEL
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
@@ -398,6 +399,11 @@ testListLazy = do
   assert let infs = iterate (_ + 1) 1
              infs' = scanrLazy (\i _ -> i) 0 infs
           in take 1000 infs == take 1000 infs'
+
+  log "foldrWhile should work ok on infinite lists"
+  assert let infs = iterate (_ + 1) 1
+             sum = foldrWhile (\i acc -> if i < 5 then Right (i + acc) else Left acc) 0 infs
+          in sum == 10
 
   log "can find the first 10 primes using lazy lists"
   let eratos :: List Int -> List Int
