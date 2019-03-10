@@ -89,7 +89,7 @@ module Data.List.Lazy
 
   , foldM
   , foldrLazy
-  , foldrWhile
+  , foldlWhile
   , scanrLazy
 
   , module Exports
@@ -759,16 +759,16 @@ foldrLazy op z = go
       Cons x xs' -> Z.defer \_ -> x `op` go xs'
       Nil -> z
 
--- | Perform a right fold until the list is consumed or the provided function returns a Left value
-foldrWhile :: forall a b. (a -> b -> Either b b) -> b -> List a -> b
-foldrWhile f acc xs = go $ step xs
+-- | Perform a left fold until the list is consumed or the provided function returns a Left value
+foldlWhile :: forall a b. (b -> a -> Either b b) -> b -> List a -> b
+foldlWhile f acc xs = go $ step xs
   where
     go :: Step a -> b
     go Nil = acc
     go (Cons x xs') =
-      case f x acc of
+      case f acc x of
         Left acc' -> acc'
-        Right acc' -> foldrWhile f acc' xs'
+        Right acc' -> foldlWhile f acc' xs'
 
 -- | Perform a right scan lazily
 scanrLazy :: forall a b. (a -> b -> b) -> b -> List a -> List b
