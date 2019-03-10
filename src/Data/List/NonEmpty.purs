@@ -7,7 +7,9 @@ module Data.List.NonEmpty
   , singleton
   , length
   , cons
+  , cons'
   , snoc
+  , snoc'
   , head
   , last
   , tail
@@ -59,6 +61,7 @@ module Data.List.NonEmpty
 import Prelude
 
 import Data.Foldable (class Foldable)
+import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
@@ -127,8 +130,15 @@ singleton = NonEmptyList <<< NE.singleton
 cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
 cons y (NonEmptyList (x :| xs)) = NonEmptyList (y :| x : xs)
 
+cons' :: forall a. a -> L.List a -> NonEmptyList a
+cons' x xs = NonEmptyList (x :| xs)
+
 snoc :: forall a. NonEmptyList a -> a -> NonEmptyList a
 snoc (NonEmptyList (x :| xs)) y = NonEmptyList (x :| L.snoc xs y)
+
+snoc' :: forall a. L.List a -> a -> NonEmptyList a
+snoc' (x : xs) y = NonEmptyList (x :| L.snoc xs y)
+snoc' L.Nil y = singleton y
 
 head :: forall a. NonEmptyList a -> a
 head (NonEmptyList (x :| _)) = x
@@ -210,7 +220,7 @@ catMaybes :: forall a. NonEmptyList (Maybe a) -> L.List a
 catMaybes = lift L.catMaybes
 
 concat :: forall a. NonEmptyList (NonEmptyList a) -> NonEmptyList a
-concat = (_ >>= id)
+concat = (_ >>= identity)
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
@@ -219,8 +229,11 @@ appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyLis
 appendFoldable (NonEmptyList (x :| xs)) ys =
   NonEmptyList (x :| (xs <> L.fromFoldable ys))
 
+-- | Apply a function to each element and its index in a list starting at 0.
+-- |
+-- | Deprecated. Use Data.FunctorWithIndex instead.
 mapWithIndex :: forall a b. (Int -> a -> b) -> NonEmptyList a -> NonEmptyList b
-mapWithIndex = wrappedOperation "mapWithIndex" <<< L.mapWithIndex
+mapWithIndex = FWI.mapWithIndex
 
 sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 sort xs = sortBy compare xs

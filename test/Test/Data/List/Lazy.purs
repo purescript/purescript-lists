@@ -3,12 +3,10 @@ module Test.Data.List.Lazy (testListLazy) where
 import Prelude
 
 import Control.Lazy (defer)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
-import Data.List.Lazy (List, nil, stripPrefix, Pattern(..), cons, foldl, foldr, foldMap, singleton, transpose, take, iterate, filter, uncons, foldM, foldrLazy, range, unzip, zip, length, zipWithA, replicate, repeat, zipWith, intersectBy, intersect, deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group, partition, span, dropWhile, drop, takeWhile, slice, catMaybes, mapMaybe, filterM, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, init, tail, last, head, insertBy, insert, snoc, null, replicateM, fromFoldable, (:), (\\), (!!))
+import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, null, partition, range, repeat, replicate, replicateM, reverse, scanrLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -16,10 +14,14 @@ import Data.NonEmpty ((:|))
 import Data.Traversable (traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
+import Data.Unfoldable (replicate1, unfoldr)
+import Data.Unfoldable1 (unfoldr1)
+import Effect (Effect)
+import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
-import Test.Assert (ASSERT, assert)
+import Test.Assert (assert)
 
-testListLazy :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
+testListLazy :: Effect Unit
 testListLazy = do
   let
     l = fromFoldable
@@ -50,31 +52,40 @@ testListLazy = do
 
   log "foldlWithIndex should be correct"
   assert $ foldlWithIndex (\i b _ -> i + b) 0 (range 0 10000) == 50005000
+  assert $ map (foldlWithIndex (\i b _ -> i + b) 0) (NEL.fromFoldable (range 0 10000)) == Just 50005000
 
   log "foldlWithIndex should be stack-safe"
   void $ pure $ foldlWithIndex (\i b _ -> i + b) 0 $ range 0 100000
+  void $ pure $ map (foldlWithIndex (\i b _ -> i + b) 0) $ NEL.fromFoldable $ range 0 100000
 
   log "foldrWithIndex should be correct"
   assert $ foldrWithIndex (\i _ b -> i + b) 0 (range 0 10000) == 50005000
+  assert $ map (foldrWithIndex (\i _ b -> i + b) 0) (NEL.fromFoldable (range 0 10000)) == Just 50005000
 
   log "foldrWithIndex should be stack-safe"
   void $ pure $ foldrWithIndex (\i _ b -> i + b) 0 $ range 0 100000
+  void $ pure $ map (foldrWithIndex (\i _ b -> i + b) 0) $ NEL.fromFoldable $ range 0 100000
 
   log "foldMapWithIndex should be stack-safe"
   void $ pure $ foldMapWithIndex (\i _ -> Additive i) $ range 1 100000
+  void $ pure $ map (foldMapWithIndex (\i _ -> Additive i)) $ NEL.fromFoldable $ range 1 100000
 
   log "foldMapWithIndex should be left-to-right"
   assert $ foldMapWithIndex (\i _ -> show i) (fromFoldable [0, 0, 0]) == "012"
+  assert $ map (foldMapWithIndex (\i _ -> show i)) (NEL.fromFoldable [0, 0, 0]) == Just "012"
 
   log "traverse should be stack-safe"
   assert $ ((traverse Just longList) >>= last) == last longList
 
   log "traverseWithIndex should be stack-safe"
   assert $ traverseWithIndex (const Just) longList == Just longList
+  assert $ traverseWithIndex (const Just) (NEL.fromFoldable longList) == Just (NEL.fromFoldable longList)
 
   log "traverseWithIndex should be correct"
   assert $ traverseWithIndex (\i a -> Just $ i + a) (fromFoldable [2, 2, 2])
            == Just (fromFoldable [2, 3, 4])
+  assert $ map (traverseWithIndex (\i a -> Just $ i + a)) (NEL.fromFoldable [2, 2, 2])
+           == Just (NEL.fromFoldable [2, 3, 4])
 
   log "bind should be stack-safe"
   void $ pure $ last $ longList >>= pure
@@ -255,6 +266,7 @@ testListLazy = do
 
   log "mapWithIndex should take a list of values and apply a function which also takes the index into account"
   assert $ mapWithIndex (\x ix -> x + ix) (fromFoldable [0, 1, 2, 3]) == fromFoldable [0, 2, 4, 6]
+  assert $ map (mapWithIndex (\x ix -> x + ix)) (NEL.fromFoldable [0, 1, 2, 3]) == NEL.fromFoldable [0, 2, 4, 6]
 
   -- log "sort should reorder a list into ascending order based on the result of compare"
   -- assert $ sort (l [1, 3, 2, 5, 6, 4]) == l [1, 2, 3, 4, 5, 6]
@@ -269,6 +281,12 @@ testListLazy = do
   assert $ (take 1 (l [1, 2, 3])) == l [1]
   assert $ (take 2 (l [1, 2, 3])) == l [1, 2]
   assert $ (take 1 nil') == nil'
+
+  log "take should evaluate exactly n items which we needed"
+  assert let oops x = 0 : oops x
+             xs = 1 : defer oops
+          in take 1 xs == l [1]
+  -- If `take` evaluate more than once, it would crash with a stack overflow
 
   log "takeWhile should keep all values that match a predicate from the front of an list"
   assert $ (takeWhile (_ /= 2) (l [1, 2, 3])) == l [1]
@@ -376,6 +394,11 @@ testListLazy = do
              infs' = foldrLazy cons nil infs
           in take 1000 infs == take 1000 infs'
 
+  log "scanrLazy should work ok on infinite lists"
+  assert let infs = iterate (_ + 1) 1
+             infs' = scanrLazy (\i _ -> i) 0 infs
+          in take 1000 infs == take 1000 infs'
+
   log "can find the first 10 primes using lazy lists"
   let eratos :: List Int -> List Int
       eratos xs = defer \_ ->
@@ -396,8 +419,31 @@ testListLazy = do
                      ((10:20:30:nil) : (11:31:nil) : (32:nil) : nil)
   log "transpose nil == nil"
   assert $ transpose nil == (nil :: List (List Int))
+
   log "transpose (singleton nil) == nil"
   assert $ transpose (singleton nil) == (nil :: List (List Int))
+
+  log "unfoldr should maintain order"
+  assert $ (1..5) == unfoldr step 1
+
+  log "unfoldr1 should maintain order"
+  assert $ (1..5) == unfoldr1 step1 1
+
+  log "map should maintain order"
+  assert $ (1..5) == map identity (1..5)
+
+  log "unfoldable replicate1 should be stack-safe for NEL"
+  void $ pure $ NEL.length $ (replicate1 100000 1 :: NEL.NonEmptyList Int)
+
+  log "unfoldr1 should maintain order for NEL"
+  assert $ (nel (1 :| l [2, 3, 4, 5])) == unfoldr1 step1 1
+
+step :: Int -> Maybe (Tuple Int Int)
+step 6 = Nothing
+step n = Just (Tuple n (n + 1))
+
+step1 :: Int -> Tuple Int (Maybe Int)
+step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))
 
 nil' :: List Int
 nil' = nil

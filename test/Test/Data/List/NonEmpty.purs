@@ -2,19 +2,21 @@ module Test.Data.List.NonEmpty (testNonEmptyList) where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Foldable (class Foldable, foldM, foldMap, foldl, length)
+import Data.FoldableWithIndex (foldlWithIndex, foldrWithIndex, foldMapWithIndex)
 import Data.List as L
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.Monoid.Additive (Additive(..))
 import Data.NonEmpty ((:|))
+import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
-import Test.Assert (ASSERT, assert)
+import Data.Unfoldable (replicate, replicate1, unfoldr, unfoldr1)
+import Effect (Effect)
+import Effect.Console (log)
+import Test.Assert (assert)
 
-testNonEmptyList ::
-  forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
+testNonEmptyList :: Effect Unit
 testNonEmptyList = do
   let
     nel :: ∀ f a. Foldable f => a -> f a -> NEL.NonEmptyList a
@@ -223,7 +225,7 @@ testNonEmptyList = do
   assert $ foldMap show (nel 1 (L.range 2 5)) == "12345"
 
   log "map should maintain order"
-  assert $ nel 0 (L.range 1 5) == map id (nel 0 (L.range 1 5))
+  assert $ nel 0 (L.range 1 5) == map identity (nel 0 (L.range 1 5))
 
   log "traverse1 should be stack-safe"
   let xs = nel 0 (L.range 1 100000)
@@ -238,6 +240,44 @@ testNonEmptyList = do
 
   log "append should be stack-safe"
   void $ pure $ xs <> xs
+
+  log "foldlWithIndex should be correct"
+  assert $ (foldlWithIndex (\i b _ -> i + b) 0 <$> (NEL.fromFoldable (L.range 0 10000))) == Just 50005000
+
+  log "foldlWithIndex should be stack-safe"
+  void $ pure $ map (foldlWithIndex (\i b _ -> i + b) 0) $ NEL.fromFoldable $ L.range 0 100000
+
+  log "foldrWithIndex should be correct"
+  assert $ (foldrWithIndex (\i _ b -> i + b) 0 <$> (NEL.fromFoldable (L.range 0 10000))) == Just 50005000
+
+  log "foldrWithIndex should be stack-safe"
+  void $ pure $ map (foldrWithIndex (\i b _ -> i + b) 0) $ NEL.fromFoldable $ L.range 0 100000
+
+  log "foldMapWithIndex should be stack-safe"
+  void $ pure $ map (foldMapWithIndex (\i _ -> Additive i)) $ NEL.fromFoldable $ L.range 1 100000
+
+  log "foldMapWithIndex should be left-to-right"
+  assert $ map (foldMapWithIndex (\i _ -> show i)) (NEL.fromFoldable [0, 0, 0]) == Just "012"
+
+  log "traverseWithIndex should be stack-safe"
+  assert $ map (traverseWithIndex (const Just)) (NEL.fromFoldable xs) == Just (NEL.fromFoldable xs)
+
+  log "traverseWithIndex should be correct"
+  assert $ map (traverseWithIndex (\i a -> Just $ i + a)) (NEL.fromFoldable [2, 2, 2])
+           == Just (NEL.fromFoldable [2, 3, 4])
+
+  log "unfoldable replicate1 should be stack-safe"
+  void $ pure $ NEL.length $ (replicate1 100000 1 :: NEL.NonEmptyList Int)
+
+  log "unfoldr1 should maintain order"
+  assert $ (nel 1 [2, 3, 4, 5]) == unfoldr1 step1 1
+
+step :: Int -> Maybe (Tuple Int Int)
+step 6 = Nothing
+step n = Just (Tuple n (n + 1))
+
+step1 :: Int -> Tuple Int (Maybe Int)
+step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))
 
 odd :: Int -> Boolean
 odd n = n `mod` 2 /= zero

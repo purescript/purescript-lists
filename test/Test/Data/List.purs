@@ -2,8 +2,6 @@ module Test.Data.List (testList) where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Foldable (foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
@@ -15,10 +13,13 @@ import Data.Traversable (traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (replicate, replicateA, unfoldr)
+import Data.Unfoldable1 (unfoldr1)
+import Effect (Effect)
+import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
-import Test.Assert (ASSERT, assert)
+import Test.Assert (assert)
 
-testList :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
+testList :: Effect Unit
 testList = do
   let l = fromFoldable
 
@@ -216,7 +217,7 @@ testList = do
   assert $ catMaybes (l [Nothing, Just 2, Nothing, Just 4]) == l [2, 4]
 
   log "mapWithIndex should take a list of values and apply a function which also takes the index into account"
-  assert $ mapWithIndex (\x ix -> x + ix) (fromFoldable [0, 1, 2, 3]) == fromFoldable [0, 2, 4, 6]
+  assert $ mapWithIndex (\x ix -> x + ix) (l [0, 1, 2, 3]) == l [0, 2, 4, 6]
 
   log "sort should reorder a list into ascending order based on the result of compare"
   assert $ sort (l [1, 3, 2, 5, 6, 4]) == l [1, 2, 3, 4, 5, 6]
@@ -357,8 +358,11 @@ testList = do
   log "unfoldr should maintain order"
   assert $ (1..5) == unfoldr step 1
 
+  log "unfoldr1 should maintain order"
+  assert $ (1..5) == unfoldr1 step1 1
+
   log "map should maintain order"
-  assert $ (1..5) == map id (1..5)
+  assert $ (1..5) == map identity (1..5)
 
   log "map should be stack-safe"
   void $ pure $ map id (1..100000)
@@ -394,10 +398,12 @@ testList = do
   log "append should be stack-safe"
   void $ pure $ xs <> xs
 
-
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing
 step n = Just (Tuple n (n + 1))
+
+step1 :: Int -> Tuple Int (Maybe Int)
+step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))
 
 nil :: List Int
 nil = Nil

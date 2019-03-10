@@ -18,10 +18,9 @@ import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldl, foldr, intercalate)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex)
-import Data.FunctorWithIndex (class FunctorWithIndex)
-import Data.Maybe (Maybe(..))
-import Data.Monoid (class Monoid, mempty)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex, foldMapWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
@@ -29,9 +28,10 @@ import Data.Ord (class Ord1, compare1)
 import Data.Semigroup.Foldable (class Foldable1)
 import Data.Semigroup.Traversable (class Traversable1, traverse1)
 import Data.Traversable (class Traversable, traverse)
-import Data.TraversableWithIndex (class TraversableWithIndex)
+import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable)
+import Data.Unfoldable1 (class Unfoldable1)
 
 data List a = Nil | Cons a (List a)
 
@@ -129,6 +129,13 @@ instance foldableWithIndexList :: FoldableWithIndex Int List where
     snd <<< foldl (\(Tuple i b) a -> Tuple (i + 1) (f i b a)) (Tuple 0 acc)
   foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty
 
+instance unfoldable1List :: Unfoldable1 List where
+  unfoldr1 f b = go b Nil
+    where
+    go source memo = case f source of
+      Tuple one (Just rest) -> go rest (one : memo)
+      Tuple one Nothing -> foldl (flip (:)) Nil (one : memo)
+
 instance unfoldableList :: Unfoldable List where
   unfoldr f b = go b Nil
     where
@@ -138,7 +145,7 @@ instance unfoldableList :: Unfoldable List where
 
 instance traversableList :: Traversable List where
   traverse f = map (foldl (flip (:)) Nil) <<< foldl (\acc -> lift2 (flip (:)) acc <<< f) (pure Nil)
-  sequence = traverse id
+  sequence = traverse identity
 
 instance traversableWithIndexList :: TraversableWithIndex Int List where
   traverseWithIndex f =
@@ -234,14 +241,23 @@ derive newtype instance foldableNonEmptyList :: Foldable NonEmptyList
 
 derive newtype instance traversableNonEmptyList :: Traversable NonEmptyList
 
-instance foldable1NonEmptyList :: Foldable1 NonEmptyList where
-  fold1 (NonEmptyList (a :| as)) =
-    foldl append a as
-  foldMap1 f (NonEmptyList (a :| as)) =
-    foldl (\acc -> append acc <<< f) (f a) as
+derive newtype instance foldable1NonEmptyList :: Foldable1 NonEmptyList
+
+derive newtype instance unfoldable1NonEmptyList :: Unfoldable1 NonEmptyList
+
+instance functorWithIndexNonEmptyList :: FunctorWithIndex Int NonEmptyList where
+  mapWithIndex fn (NonEmptyList ne) = NonEmptyList $ mapWithIndex (fn <<< maybe 0 (add 1)) ne
+
+instance foldableWithIndexNonEmptyList :: FoldableWithIndex Int NonEmptyList where
+  foldMapWithIndex f (NonEmptyList ne) = foldMapWithIndex (f <<< maybe 0 (add 1)) ne
+  foldlWithIndex f b (NonEmptyList ne) = foldlWithIndex (f <<< maybe 0 (add 1)) b ne
+  foldrWithIndex f b (NonEmptyList ne) = foldrWithIndex (f <<< maybe 0 (add 1)) b ne
+
+instance traversableWithIndexNonEmptyList :: TraversableWithIndex Int NonEmptyList where
+  traverseWithIndex f (NonEmptyList ne) = NonEmptyList <$> traverseWithIndex (f <<< maybe 0 (add 1)) ne
 
 instance traversable1NonEmptyList :: Traversable1 NonEmptyList where
   traverse1 f (NonEmptyList (a :| as)) =
     foldl (\acc -> lift2 (flip nelCons) acc <<< f) (pure <$> f a) as
       <#> case _ of NonEmptyList (x :| xs) → foldl (flip nelCons) (pure x) xs
-  sequence1 = traverse1 id
+  sequence1 = traverse1 identity

@@ -372,7 +372,7 @@ reverse = go Nil
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (_ >>= id)
+concat = (_ >>= identity)
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.
@@ -423,7 +423,7 @@ mapMaybe f = go Nil
 -- | Filter a list of optional values, keeping only the elements which contain
 -- | a value.
 catMaybes :: forall a. List (Maybe a) -> List a
-catMaybes = mapMaybe id
+catMaybes = mapMaybe identity
 
 
 -- | Apply a function to each element and its index in a list starting at 0.
@@ -616,6 +616,16 @@ partition p xs = foldr select { no: Nil, yes: Nil } xs
     select x { no, yes } = if p x
                            then { no, yes: x : yes }
                            else { no: x : no, yes }
+
+-- | Returns all final segments of the argument, longest first. For example,
+-- |
+-- | ```purescript
+-- | tails (1 : 2 : 3 : Nil) == ((1 : 2 : 3 : Nil) : (2 : 3 : Nil) : (3 : Nil) : (Nil) : Nil)
+-- | ```
+-- | Running time: `O(n)`
+tails :: forall a. List a -> List (List a)
+tails Nil = singleton Nil
+tails list@(Cons _ tl)= list : tails tl
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
