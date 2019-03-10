@@ -1,13 +1,13 @@
 module Bench.Data.List where
 
 import Prelude
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Effect (Effect)
+import Effect.Console (log)
 import Performance.Minibench (bench)
 
 import Data.List as L
 
-benchList :: Eff (console :: CONSOLE) Unit
+benchList :: Effect Unit
 benchList = do
   log "map"
   log "---"
