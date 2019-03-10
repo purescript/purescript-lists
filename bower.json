@@ -36,6 +36,7 @@
     "purescript-arrays": "^5.0.0",
     "purescript-assert": "^4.0.0",
     "purescript-console": "^4.0.0",
-    "purescript-math": "^2.1.1"
+    "purescript-math": "^2.1.1",
+    "purescript-minibench": "^2.0.0"
   }
 }

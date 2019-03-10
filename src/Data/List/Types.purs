@@ -1,4 +1,10 @@
-module Data.List.Types where
+module Data.List.Types
+  ( List(..)
+  , (:)
+  , NonEmptyList(..)
+  , toList
+  , nelCons
+  ) where
 
 import Prelude
 
@@ -67,7 +73,29 @@ instance monoidList :: Monoid (List a) where
   mempty = Nil
 
 instance functorList :: Functor List where
-  map f = foldr (\x acc -> f x : acc) Nil
+  map = listMap
+
+-- chunked list Functor inspired by OCaml
+-- https://discuss.ocaml.org/t/a-new-list-map-that-is-both-stack-safe-and-fast/865
+-- chunk sizes determined through experimentation
+listMap :: forall a b. (a -> b) -> List a -> List b
+listMap f = chunkedRevMap Nil
+  where
+  chunkedRevMap :: List (List a) -> List a -> List b
+  chunkedRevMap chunksAcc chunk@(x1 : x2 : x3 : xs) =
+    chunkedRevMap (chunk : chunksAcc) xs
+  chunkedRevMap chunksAcc xs =
+    reverseUnrolledMap chunksAcc $ unrolledMap xs
+    where
+    unrolledMap :: List a -> List b
+    unrolledMap (x1 : x2 : Nil) = f x1 : f x2 : Nil
+    unrolledMap (x1 : Nil) = f x1 : Nil
+    unrolledMap _ = Nil
+
+    reverseUnrolledMap :: List (List a) -> List b -> List b
+    reverseUnrolledMap ((x1 : x2 : x3 : _) : cs) acc =
+      reverseUnrolledMap cs (f x1 : f x2 : f x3 : acc)
+    reverseUnrolledMap _ acc = acc
 
 instance functorWithIndexList :: FunctorWithIndex Int List where
   mapWithIndex f = foldrWithIndex (\i x acc -> f i x : acc) Nil
