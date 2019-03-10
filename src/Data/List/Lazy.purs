@@ -767,7 +767,7 @@ foldlWhile f = go
     go acc xs =
       case step xs of
         Nil -> acc
-        (Cons x xs') ->
+        Cons x xs' ->
           case f acc x of
             Left acc' -> acc'
             Right acc' -> go acc' xs'
