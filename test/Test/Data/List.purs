@@ -365,7 +365,7 @@ testList = do
   assert $ (1..5) == map identity (1..5)
 
   log "map should be stack-safe"
-  void $ pure $ map id (1..100000)
+  void $ pure $ map identity (1..100000)
 
   log "map should be correct"
   assert $ (1..1000000) == map (_ + 1) (0..999999)
