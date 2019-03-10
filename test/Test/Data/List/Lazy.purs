@@ -405,6 +405,9 @@ testListLazy = do
              sum = foldlWhile (\acc i -> if i < 5 then Right (i + acc) else Left acc) 0 infs
           in sum == 10
 
+  log "foldlWhile should be stack safe"
+  void $ pure $ foldlWhile (\acc i -> Right (acc + i)) 0 longList
+
   log "can find the first 10 primes using lazy lists"
   let eratos :: List Int -> List Int
       eratos xs = defer \_ ->

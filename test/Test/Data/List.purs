@@ -403,6 +403,9 @@ testList = do
              sum = foldlWhile (\acc i -> Right (i + acc)) 0 ints
           in sum == 55
 
+  log "foldlWhile should be stack-safe"
+  void $ pure $ foldlWhile (\acc i -> Right (i + acc)) 0 (range 1 100000)
+
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing
 step n = Just (Tuple n (n + 1))
