@@ -95,9 +95,7 @@ listMap f = chunkedRevMap Nil
     reverseUnrolledMap :: List (List a) -> List b -> List b
     reverseUnrolledMap ((x1 : x2 : x3 : _) : cs) acc =
       reverseUnrolledMap cs (f x1 : f x2 : f x3 : acc)
-    -- if we pattern match on Nil, we need a Partial constraint,
-    -- which kills TCO
-    reverseUnrolledMap _ acc = acc
+    reverseUnrolledMap _ Nil = Nil
 
 instance functorWithIndexList :: FunctorWithIndex Int List where
   mapWithIndex f = foldrWithIndex (\i x acc -> f i x : acc) Nil
