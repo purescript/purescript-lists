@@ -2,9 +2,10 @@ module Test.Data.List (testList) where
 
 import Prelude
 
+import Data.Either (Either(..))
 import Data.Foldable (foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
-import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, foldlWhile, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -391,6 +392,16 @@ testList = do
 
   log "append should be stack-safe"
   void $ pure $ xs <> xs
+
+  log "foldlWhile halts when a Left value is returned"
+  assert let ints = fromFoldable (range 1 10)
+             sum = foldlWhile (\acc i -> if i < 5 then Right (i + acc) else Left acc) 0 ints
+          in sum == 10
+
+  log "foldlWhile consumes the whole list if Right values are always returned"
+  assert let ints = fromFoldable (range 1 10)
+             sum = foldlWhile (\acc i -> Right (i + acc)) 0 ints
+          in sum == 55
 
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing
