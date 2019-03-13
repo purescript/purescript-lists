@@ -761,16 +761,13 @@ foldrLazy op z = go
 
 -- | Perform a left fold until the list is consumed or the provided function returns a Left value
 foldlWhile :: forall a b. (b -> a -> Either b b) -> b -> List a -> b
-foldlWhile f = go
-  where
-    go :: b -> List a -> b
-    go acc xs =
-      case step xs of
-        Nil -> acc
-        Cons x xs' ->
-          case f acc x of
-            Left acc' -> acc'
-            Right acc' -> go acc' xs'
+foldlWhile f acc xs =
+  case step xs of
+    Nil -> acc
+    Cons x xs' ->
+      case f acc x of
+        Left acc' -> acc'
+        Right acc' -> foldlWhile f acc' xs'
 
 -- | Perform a right scan lazily
 scanrLazy :: forall a b. (a -> b -> b) -> b -> List a -> List b
