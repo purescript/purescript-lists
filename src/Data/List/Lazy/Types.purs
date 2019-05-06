@@ -195,10 +195,10 @@ instance extendList :: Extend List where
       Nil -> nil
       Cons a as ->
         f l : (foldr go { val: nil, acc: nil } as).val
-        where
-        go a { val, acc } =
-          let acc' = a : acc
-          in { val: f acc' : val, acc: acc' }
+    where
+      go a { val, acc } =
+        let acc' = a : acc
+        in { val: f acc' : val, acc: acc' }
 
 newtype NonEmptyList a = NonEmptyList (Lazy (NonEmpty List a))
 
