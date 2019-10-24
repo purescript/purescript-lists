@@ -760,6 +760,6 @@ transpose ((x : xs) : xss) =
 --------------------------------------------------------------------------------
 
 -- | Perform a fold using a monadic step function.
-foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> List b -> m a
-foldM _ a Nil = pure a
-foldM f a (b : bs) = f a b >>= \a' -> foldM f a' bs
+foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> List a -> m b
+foldM _ b Nil = pure b
+foldM f b (a : as) = f b a >>= \b' -> foldM f b' as
