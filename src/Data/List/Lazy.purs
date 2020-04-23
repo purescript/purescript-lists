@@ -326,11 +326,8 @@ findIndex fn = go 0
 findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
 findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 
--- | Insert an element into a list at the specified index, returning a new
--- | list or `Nothing` if the index is out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the element being appended at the _end_ of the list.
+-- | Insert an element into a list at the specified index, or append the element
+-- | to the _end_ of the list if the index is out-of-bounds, returning a new list.
 -- |
 -- | Running time: `O(n)`
 insertAt :: forall a. Int -> a -> List a -> List a
@@ -340,11 +337,8 @@ insertAt n x xs = List (go <$> unwrap xs)
   go Nil = Cons x nil
   go (Cons y ys) = Cons y (insertAt (n - 1) x ys)
 
--- | Delete an element from a list at the specified index, returning a new
--- | list or `Nothing` if the index is out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the original list being returned unchanged.
+-- | Delete an element from a list at the specified index, returning a new list,
+-- | or return the original list unchanged if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 deleteAt :: forall a. Int -> List a -> List a
@@ -354,11 +348,8 @@ deleteAt n xs = List (go n <$> unwrap xs)
   go 0 (Cons y ys) = step ys
   go n' (Cons y ys) = Cons y (deleteAt (n' - 1) ys)
 
--- | Update the element at the specified index, returning a new
--- | list or `Nothing` if the index is out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the original list being returned unchanged.
+-- | Update the element at the specified index, returning a new list,
+-- | or return the original list unchanged if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 updateAt :: forall a. Int -> a -> List a -> List a
@@ -369,22 +360,16 @@ updateAt n x xs = List (go n <$> unwrap xs)
   go n' (Cons y ys) = Cons y (updateAt (n' - 1) x ys)
 
 -- | Update the element at the specified index by applying a function to
--- | the current value, returning a new list or `Nothing` if the index is
--- | out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the original list being returned unchanged.
+-- | the current value, returning a new list, or return the original list unchanged
+-- | if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 modifyAt :: forall a. Int -> (a -> a) -> List a -> List a
 modifyAt n f = alterAt n (Just <<< f)
 
 -- | Update or delete the element at the specified index by applying a
--- | function to the current value, returning a new list or `Nothing` if the
--- | index is out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the original list being returned unchanged.
+-- | function to the current value, returning a new list, or return the
+-- | original list unchanged if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> List a
