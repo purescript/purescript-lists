@@ -327,7 +327,7 @@ findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
 findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 
 -- | Insert an element into a list at the specified index, or append the element
--- | to the _end_ of the list if the index is out-of-bounds, returning a new list.
+-- | to the end of the list if the index is out-of-bounds, returning a new list.
 -- |
 -- | Running time: `O(n)`
 insertAt :: forall a. Int -> a -> List a -> List a
