@@ -89,6 +89,7 @@ module Data.List
   , transpose
 
   , foldM
+  , foldlWhile
 
   , module Exports
   ) where
@@ -101,6 +102,7 @@ import Control.Lazy (class Lazy, defer)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
 
 import Data.Bifunctor (bimap)
+import Data.Either (Either(..))
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List.Types (List(..), (:))
@@ -763,3 +765,11 @@ transpose ((x : xs) : xss) =
 foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> List b -> m a
 foldM _ a Nil = pure a
 foldM f a (b : bs) = f a b >>= \a' -> foldM f a' bs
+
+-- | Perform a left fold until the list is consumed or the provided function returns a Left value
+foldlWhile :: forall a b. (b -> a -> Either b b) -> b -> List a -> b
+foldlWhile _ acc Nil = acc
+foldlWhile f acc (Cons x xs) =
+  case f acc x of
+    Left acc' -> acc'
+    Right acc' -> foldlWhile f acc' xs
