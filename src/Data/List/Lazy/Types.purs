@@ -8,7 +8,6 @@ import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
 import Control.Lazy as Z
 import Control.MonadPlus (class MonadPlus)
-import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
@@ -184,8 +183,6 @@ instance plusList :: Plus List where
   empty = nil
 
 instance alternativeList :: Alternative List
-
-instance monadZeroList :: MonadZero List
 
 instance monadPlusList :: MonadPlus List
 
