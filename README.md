@@ -2,6 +2,7 @@
 
 [![Latest release](http://img.shields.io/github/release/purescript/purescript-lists.svg)](https://github.com/purescript/purescript-lists/releases)
 [![Build status](https://github.com/purescript/purescript-lists/workflows/CI/badge.svg?branch=master)](https://github.com/purescript/purescript-lists/actions?query=workflow%3ACI+branch%3Amaster)
+[![Pursuit](https://pursuit.purescript.org/packages/purescript-lists/badge)](https://pursuit.purescript.org/packages/purescript-lists)
 
 This library defines strict and lazy linked lists, and associated helper functions and type class instances.
 
