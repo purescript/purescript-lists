@@ -299,5 +299,5 @@ zip = zipWith Tuple
 unzip :: forall a b. NonEmptyList (Tuple a b) -> Tuple (NonEmptyList a) (NonEmptyList b)
 unzip ts = Tuple (map fst ts) (map snd ts)
 
-foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> NonEmptyList b -> m a
-foldM f a (NonEmptyList (b :| bs)) = f a b >>= \a' -> L.foldM f a' bs
+foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> NonEmptyList a -> m b
+foldM f b (NonEmptyList (a :| as)) = f b a >>= \b' -> L.foldM f b' as

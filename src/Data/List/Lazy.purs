@@ -727,12 +727,12 @@ transpose xs =
 --------------------------------------------------------------------------------
 
 -- | Perform a fold using a monadic step function.
-foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> List b -> m a
-foldM f a xs =
+foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> List a -> m b
+foldM f b xs =
     case uncons xs of
-         Nothing -> pure a
-         Just { head: b, tail: bs } ->
-                       f a b >>= \a' -> foldM f a' bs
+         Nothing -> pure b
+         Just { head: a, tail: as } ->
+                       f b a >>= \b' -> foldM f b' as
 
 -- | Perform a right fold lazily
 foldrLazy :: forall a b. Z.Lazy b => (a -> b -> b) -> b -> List a -> b
