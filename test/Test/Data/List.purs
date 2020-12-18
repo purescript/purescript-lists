@@ -2,9 +2,11 @@ module Test.Data.List (testList) where
 
 import Prelude
 
+import Data.Array as Array
 import Data.Foldable (foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
-import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubByEq, nubEq, groupBy, group', group, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.Function (on)
+import Data.List (List(..), Pattern(..), addIndexReverse, alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, group', groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, mapReverse, mapWithIndex, modifyAt, nub, nubBy, nubByAdjacentReverse, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, take, takeEnd, takeWhile, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -278,12 +280,19 @@ testList = do
   assert $ partitioned.yes == l [5, 3, 4]
   assert $ partitioned.no == l [1, 2]
 
+  log "nub should remove duplicate elements from the list, keeping the first occurence"
+  assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
+
+  log "nubBy should remove duplicate items from the list using a supplied predicate"
+  let nubPred = compare `on` Array.length
+  assert $ nubBy nubPred (l [[1],[2],[3,4]]) == l [[1],[3,4]]
+
   log "nubEq should remove duplicate elements from the list, keeping the first occurence"
   assert $ nubEq (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
 
   log "nubByEq should remove duplicate items from the list using a supplied predicate"
-  let nubPred = \x y -> if odd x then false else x == y
-  assert $ nubByEq nubPred (l [1, 2, 2, 3, 3, 4, 4, 1]) == l [1, 2, 3, 3, 4, 1]
+  let nubEqPred = \x y -> if odd x then false else x == y
+  assert $ nubByEq nubEqPred (l [1, 2, 2, 3, 3, 4, 4, 1]) == l [1, 2, 3, 3, 4, 1]
 
   log "union should produce the union of two lists"
   assert $ union (l [1, 2, 3]) (l [2, 3, 4]) == l [1, 2, 3, 4]
@@ -397,6 +406,27 @@ testList = do
 
   log "append should be stack-safe"
   void $ pure $ xs <> xs
+
+  log "mapReverse should work the same as slower naive version"
+  --quickCheck mapReverseLaw
+
+  log "naiveAddIndexReverse should work the same as slower naive version"
+  --quickCheck naiveAddIndexReverse
+
+  log "nubByAdjacentReverse should be correct"
+  assert $ nubByAdjacentReverse (on eq Array.length) ([1]:[2]:[3,4]:Nil) == [3,4]:[2]:Nil
+
+naiveMapReverse :: forall a b. (a -> b) -> List a -> List b
+naiveMapReverse f l = map f l # reverse
+
+mapReverseLaw :: (Int -> Int) -> List Int -> Boolean
+mapReverseLaw f l = naiveMapReverse f l == mapReverse f l
+
+naiveAddIndexReverse :: forall a. List a -> List (Tuple Int a)
+naiveAddIndexReverse = mapWithIndex Tuple >>> reverse
+
+addIndexReverseLaw :: List Int -> Boolean
+addIndexReverseLaw l = naiveAddIndexReverse l == addIndexReverse l
 
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing

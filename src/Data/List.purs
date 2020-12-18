@@ -71,6 +71,8 @@ module Data.List
   , groupBy
   , partition
 
+  , nub
+  , nubBy
   , nubEq
   , nubByEq
   , union
@@ -90,6 +92,10 @@ module Data.List
 
   , foldM
 
+  , mapReverse
+  , addIndexReverse
+  , nubByAdjacentReverse
+
   , module Exports
   ) where
 
@@ -99,21 +105,20 @@ import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy (class Lazy, defer)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
-
 import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
+import Data.Function (on)
 import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
-import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..))
-import Data.Unfoldable (class Unfoldable, unfoldr)
-
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Traversable (scanl, scanr) as Exports
+import Data.Traversable (sequence)
+import Data.Tuple (Tuple(..), fst, snd)
+import Data.Unfoldable (class Unfoldable, unfoldr)
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -632,6 +637,45 @@ tails list@(Cons _ tl)= list : tails tl
 --------------------------------------------------------------------------------
 
 -- | Remove duplicate elements from a list.
+-- | Keeps the first duplicates found and preserves ordering otherwise.
+-- |
+-- | ```purescript
+-- | nub 1:2:1:3:3:Nil = 1:2:3:Nil
+-- | ```
+-- |
+-- | Running time: `O(n log n)`
+nub :: forall a. Ord a => List a -> List a
+nub = nubBy compare
+
+-- | Remove duplicate elements from a list based on the provided ordering function.
+-- | Keeps the first duplicates found and preserves ordering otherwise.
+-- |
+-- | ```purescript
+-- | nubBy (compare `on` Array.length) ([1]:[2]:[3,4]:Nil) == [1]:[3,4]:Nil
+-- | ```
+-- |
+-- | Running time: `O(n log n)`
+nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
+nubBy p =
+  -- Add indices so we can recover original order after deduplicating.
+  addIndexReverse
+  -- Sort by original values to cluster duplicates.
+  >>> sortBy (p `on` snd)
+  -- Removing neighboring duplicates.
+  >>> nubByAdjacentReverse (\a b -> (p `on` snd) a b == EQ)
+  -- Sort by index to recover original order.
+  -- Use `flip` to sort in reverse order in anticipation of final `mapReverse`.
+  >>> sortBy (flip compare `on` fst)
+  -- Discard indicies, just keep original values.
+  >>> mapReverse snd
+
+-- | Remove duplicate elements from a list.
+-- | Keeps the first duplicates found and preserves ordering otherwise.
+-- | This less efficient version of `nub` only requires an `Eq` instance.
+-- |
+-- | ```purescript
+-- | nubEq 1:2:1:3:3:Nil = 1:2:3:Nil
+-- | ```
 -- |
 -- | Running time: `O(n^2)`
 nubEq :: forall a. Eq a => List a -> List a
@@ -639,6 +683,14 @@ nubEq = nubByEq eq
 
 -- | Remove duplicate elements from a list, using the specified
 -- | function to determine equality of elements.
+-- | Keeps the first duplicates found and preserves ordering otherwise.
+-- | This less efficient version of `nubBy` only requires an equality
+-- | function, rather than an ordering function.
+-- |
+-- | ```purescript
+-- | mod3eq a b = a `mod` 3 == b `mod` 3
+-- | nubByEq mod3eq 1:3:4:5:6:Nil == 1:3:5:Nil
+-- | ```
 -- |
 -- | Running time: `O(n^2)`
 nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
@@ -763,3 +815,62 @@ transpose ((x : xs) : xss) =
 foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> List a -> m b
 foldM _ b Nil = pure b
 foldM f b (a : as) = f b a >>= \b' -> foldM f b' as
+
+--------------------------------------------------------------------------------
+-- Fast operations which also reverse the list ---------------------------------
+--------------------------------------------------------------------------------
+
+-- | Maps a function to each element in a list
+-- | and reverses the result, but faster than
+-- | running each separately. Equivalent to:
+-- |
+-- | ```purescript
+-- | \f l = map f l # reverse
+-- | ```
+-- |
+-- | Running time: `O(n)`
+mapReverse :: forall a b. (a -> b) -> List a -> List b
+mapReverse f = go Nil
+  where
+  go :: List b -> List a -> List b
+  go acc Nil = acc
+  go acc (x : xs) = go (f x : acc) xs
+
+-- | Converts each element to a Tuple containing its index,
+-- | and reverses the result, but faster than running separately.
+-- | Equivalent to:
+-- |
+-- | ```purescript
+-- | mapWithIndex Tuple >>> reverse
+-- | ```
+-- |
+-- | Running time: `O(n)`
+addIndexReverse :: forall a. List a -> List (Tuple Int a)
+addIndexReverse = go 0 Nil
+  where
+  go :: Int -> List (Tuple Int a) -> List a -> List (Tuple Int a)
+  go i acc Nil = acc
+  go i acc (x : xs) = go (i + 1) ((Tuple i x) : acc) xs
+
+-- | Removes neighboring duplicate items from a list
+-- | based on an equality predicate.
+-- | Keeps the LAST element if duplicates are encountered.
+-- | Returned list is reversed (this is to improve performance).
+-- |
+-- | ```purescript
+-- | nubByAdjacentReverse (on eq length) ([1]:[2]:[3,4]:Nil) == [3,4]:[2]:Nil`
+-- | ```
+-- |
+-- | Running time: `O(n)`
+nubByAdjacentReverse :: forall a. (a -> a -> Boolean) -> List a -> List a
+nubByAdjacentReverse p = go Nil
+  where
+    go :: List a -> List a -> List a
+    -- empty output
+    go Nil (x : xs) = go (x : Nil) xs
+    -- checking for duplicates
+    go acc@(a : as) (x : xs)
+      | p a x = go (x : as) xs
+      | otherwise = go (x : acc) xs
+    -- empty input
+    go acc Nil = acc
