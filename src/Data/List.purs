@@ -92,10 +92,6 @@ module Data.List
 
   , foldM
 
-  , mapReverse
-  , addIndexReverse
-  , nubByAdjacentReverse
-
   , module Exports
   ) where
 
@@ -637,18 +633,20 @@ tails list@(Cons _ tl)= list : tails tl
 --------------------------------------------------------------------------------
 
 -- | Remove duplicate elements from a list.
--- | Keeps the first duplicates found and preserves ordering otherwise.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
 -- |
 -- | ```purescript
--- | nub 1:2:1:3:3:Nil = 1:2:3:Nil
+-- | nub 1:2:1:3:3:Nil == 1:2:3:Nil
 -- | ```
 -- |
 -- | Running time: `O(n log n)`
 nub :: forall a. Ord a => List a -> List a
 nub = nubBy compare
 
--- | Remove duplicate elements from a list based on the provided ordering function.
--- | Keeps the first duplicates found and preserves ordering otherwise.
+-- | Remove duplicate elements from a list based on the provided comparison function.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
 -- |
 -- | ```purescript
 -- | nubBy (compare `on` Array.length) ([1]:[2]:[3,4]:Nil) == [1]:[3,4]:Nil
@@ -666,29 +664,30 @@ nubBy p =
   -- Sort by index to recover original order.
   -- Use `flip` to sort in reverse order in anticipation of final `mapReverse`.
   >>> sortBy (flip compare `on` fst)
-  -- Discard indicies, just keep original values.
+  -- Discard indices, just keep original values.
   >>> mapReverse snd
 
 -- | Remove duplicate elements from a list.
--- | Keeps the first duplicates found and preserves ordering otherwise.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
 -- | This less efficient version of `nub` only requires an `Eq` instance.
 -- |
 -- | ```purescript
--- | nubEq 1:2:1:3:3:Nil = 1:2:3:Nil
+-- | nubEq 1:2:1:3:3:Nil == 1:2:3:Nil
 -- | ```
 -- |
 -- | Running time: `O(n^2)`
 nubEq :: forall a. Eq a => List a -> List a
 nubEq = nubByEq eq
 
--- | Remove duplicate elements from a list, using the specified
--- | function to determine equality of elements.
--- | Keeps the first duplicates found and preserves ordering otherwise.
--- | This less efficient version of `nubBy` only requires an equality
+-- | Remove duplicate elements from a list, using the provided equivalence function.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- | This less efficient version of `nubBy` only requires an equivalence
 -- | function, rather than an ordering function.
 -- |
 -- | ```purescript
--- | mod3eq a b = a `mod` 3 == b `mod` 3
+-- | mod3eq = eq `on` \n -> mod n 3
 -- | nubByEq mod3eq 1:3:4:5:6:Nil == 1:3:5:Nil
 -- | ```
 -- |
