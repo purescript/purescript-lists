@@ -71,8 +71,8 @@ module Data.List
   , groupBy
   , partition
 
-  , nub
-  , nubBy
+  , nubEq
+  , nubByEq
   , union
   , unionBy
   , delete
@@ -634,16 +634,16 @@ tails list@(Cons _ tl)= list : tails tl
 -- | Remove duplicate elements from a list.
 -- |
 -- | Running time: `O(n^2)`
-nub :: forall a. Eq a => List a -> List a
-nub = nubBy eq
+nubEq :: forall a. Eq a => List a -> List a
+nubEq = nubByEq eq
 
 -- | Remove duplicate elements from a list, using the specified
 -- | function to determine equality of elements.
 -- |
 -- | Running time: `O(n^2)`
-nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubBy _     Nil = Nil
-nubBy eq' (x : xs) = x : nubBy eq' (filter (\y -> not (eq' x y)) xs)
+nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
+nubByEq _     Nil = Nil
+nubByEq eq' (x : xs) = x : nubByEq eq' (filter (\y -> not (eq' x y)) xs)
 
 -- | Calculate the union of two lists.
 -- |
@@ -656,7 +656,7 @@ union = unionBy (==)
 -- |
 -- | Running time: `O(n^2)`
 unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
-unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
+unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubByEq eq ys) xs
 
 -- | Delete the first occurrence of an element from a list.
 -- |

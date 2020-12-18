@@ -179,12 +179,12 @@ testNonEmptyList = do
   assert $ partitioned.yes == l [5, 3, 4]
   assert $ partitioned.no == l [1, 2]
 
-  log "nub should remove duplicate elements from the list, keeping the first occurence"
-  assert $ NEL.nub (nel 1 [2, 2, 3, 4, 1]) == nel 1 [2, 3, 4]
+  log "nubEq should remove duplicate elements from the list, keeping the first occurence"
+  assert $ NEL.nubEq (nel 1 [2, 2, 3, 4, 1]) == nel 1 [2, 3, 4]
 
-  log "nubBy should remove duplicate items from the list using a supplied predicate"
+  log "nubByEq should remove duplicate items from the list using a supplied predicate"
   let nubPred = \x y -> if odd x then false else x == y
-  assert $ NEL.nubBy nubPred (nel 1 [2, 2, 3, 3, 4, 4, 1]) == nel 1 [2, 3, 3, 4, 1]
+  assert $ NEL.nubByEq nubPred (nel 1 [2, 2, 3, 3, 4, 4, 1]) == nel 1 [2, 3, 3, 4, 1]
 
   log "union should produce the union of two lists"
   assert $ NEL.union (nel 1 [2, 3]) (nel 2 [3, 4]) == nel 1 [2, 3, 4]

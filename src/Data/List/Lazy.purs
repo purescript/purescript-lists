@@ -70,8 +70,8 @@ module Data.List.Lazy
   , groupBy
   , partition
 
-  , nub
-  , nubBy
+  , nubEq
+  , nubByEq
   , union
   , unionBy
   , delete
@@ -593,18 +593,18 @@ partition f = foldr go {yes: nil, no: nil}
 -- | Remove duplicate elements from a list.
 -- |
 -- | Running time: `O(n^2)`
-nub :: forall a. Eq a => List a -> List a
-nub = nubBy eq
+nubEq :: forall a. Eq a => List a -> List a
+nubEq = nubByEq eq
 
 -- | Remove duplicate elements from a list, using the specified
 -- | function to determine equality of elements.
 -- |
 -- | Running time: `O(n^2)`
-nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubBy eq = List <<< map go <<< unwrap
+nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
+nubByEq eq = List <<< map go <<< unwrap
   where
   go Nil = Nil
-  go (Cons x xs) = Cons x (nubBy eq (filter (\y -> not (eq x y)) xs))
+  go (Cons x xs) = Cons x (nubByEq eq (filter (\y -> not (eq x y)) xs))
 
 -- | Calculate the union of two lists.
 -- |
@@ -617,7 +617,7 @@ union = unionBy (==)
 -- |
 -- | Running time: `O(n^2)`
 unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
-unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
+unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubByEq eq ys) xs
 
 -- | Delete the first occurrence of an element from a list.
 -- |
