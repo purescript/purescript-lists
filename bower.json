@@ -37,6 +37,7 @@
     "purescript-assert": "master",
     "purescript-console": "master",
     "purescript-math": "master",
-    "purescript-minibench": "master"
+    "purescript-minibench": "master",
+    "purescript-quickcheck": "master"
   }
 }
