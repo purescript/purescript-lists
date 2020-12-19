@@ -61,12 +61,14 @@ module Data.List.Lazy
   , stripPrefix
   , slice
   , take
+  , takeEnd
   , takeWhile
   , drop
   , dropWhile
   , span
   , group
   -- , group'
+  , groupAll
   , groupBy
   , partition
 
@@ -115,6 +117,7 @@ import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
+import Partial.Unsafe (unsafeCrashWith)
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -506,6 +509,12 @@ take n = if n <= 0
   go _ Nil = Nil
   go n' (Cons x xs) = Cons x (take (n' - 1) xs)
 
+-- | Take the specified number of elements from the end of a list.
+-- |
+-- | Running time: Todo
+takeEnd :: forall a. Int -> List a -> List a
+takeEnd _ _ = unsafeCrashWith "todo takeEnd for Lazy List"
+
 -- | Take those elements from the front of a list which match a predicate.
 -- |
 -- | Running time (worst case): `O(n)`
@@ -521,7 +530,7 @@ takeWhile p = List <<< map go <<< unwrap
 drop :: forall a. Int -> List a -> List a
 drop n = List <<< map (go n) <<< unwrap
   where
-  go 0 xs = xs
+  go n' xs | n' < 1 = xs
   go _ Nil = Nil
   go n' (Cons _ xs) = go (n' - 1) (step xs)
 
@@ -565,6 +574,14 @@ span p xs =
 -- | Running time: `O(n)`
 group :: forall a. Eq a => List a -> List (NEL.NonEmptyList a)
 group = groupBy (==)
+
+-- | Group equal elements of a list into lists.
+-- |
+-- | Todo - fix documentation mismatch of above `group` with non-lazy version.
+-- | ```
+groupAll :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
+groupAll = unsafeCrashWith "todo groupAll for Lazy List"
+--groupAll = group <<< sort
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.

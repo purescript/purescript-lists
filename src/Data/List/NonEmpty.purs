@@ -5,6 +5,7 @@ module Data.List.NonEmpty
   , fromList
   , toList
   , singleton
+  , (..), range
   , length
   , cons
   , cons'
@@ -36,6 +37,7 @@ module Data.List.NonEmpty
   , sort
   , sortBy
   , take
+  , takeEnd
   , takeWhile
   , drop
   , dropWhile
@@ -69,13 +71,13 @@ import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
 import Data.Semigroup.Traversable (sequence1)
 import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unfoldable (class Unfoldable, unfoldr)
-import Partial.Unsafe (unsafeCrashWith)
+import Partial.Unsafe (unsafeCrashWith, unsafePartial)
 
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
@@ -132,6 +134,14 @@ toList (NonEmptyList (x :| xs)) = x : xs
 
 singleton :: forall a. a -> NonEmptyList a
 singleton = NonEmptyList <<< NE.singleton
+
+-- | An infix synonym for `range`.
+infix 8 range as ..
+
+-- | Create a list containing a range of integers, including both endpoints.
+-- Todo, rewrite this without unsafe workaround (if necessary)
+range :: Int -> Int -> NonEmptyList Int
+range start end = unsafePartial fromJust $ fromList $ L.range start end
 
 cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
 cons y (NonEmptyList (x :| xs)) = NonEmptyList (y :| x : xs)
@@ -249,6 +259,9 @@ sortBy = wrappedOperation "sortBy" <<< L.sortBy
 
 take :: forall a. Int -> NonEmptyList a -> L.List a
 take = lift <<< L.take
+
+takeEnd :: forall a. Int -> NonEmptyList a -> L.List a
+takeEnd = lift <<< L.takeEnd
 
 takeWhile :: forall a. (a -> Boolean) -> NonEmptyList a -> L.List a
 takeWhile = lift <<< L.takeWhile
