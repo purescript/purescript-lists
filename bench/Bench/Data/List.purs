@@ -1,9 +1,10 @@
 module Bench.Data.List where
 
 import Prelude
-import Data.Maybe (fromMaybe)
 import Data.Foldable (maximum)
-import Data.List (List(..), take, range, foldr, length, (:))
+import Data.Int (pow)
+import Data.List (List(..), take, range, foldr, length)
+import Data.Maybe (fromMaybe)
 import Data.Traversable (traverse_)
 import Effect (Effect)
 import Effect.Console (log)
@@ -16,7 +17,7 @@ benchList = do
 
   where
 
-  listSizes = 0 : 1 : 1000 : 2000 : 5000 : 10000 : 100000 : Nil
+  listSizes = Cons 0 $ map (pow 10) $ range 0 5
   nats = range 0 $ (fromMaybe 0 $ maximum listSizes) - 1
   lists = map (\n -> take n nats) listSizes
 
