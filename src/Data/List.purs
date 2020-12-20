@@ -67,8 +67,10 @@ module Data.List
   , dropWhile
   , span
   , group
+  , groupAll
   , group'
   , groupBy
+  , groupAllBy
   , partition
 
   , nub
@@ -114,6 +116,8 @@ import Data.Unfoldable (class Unfoldable, unfoldr)
 
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Traversable (scanl, scanr) as Exports
+
+import Prim.TypeError (class Warn, Text)
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -583,29 +587,56 @@ span _ xs = { init: Nil, rest: xs }
 -- | For example,
 -- |
 -- | ```purescript
--- | group (1 : 1 : 2 : 2 : 1 : Nil) == (1 : 1 : Nil) : (2 : 2 : Nil) : (1 : Nil) : Nil
+-- | group (1 : 1 : 2 : 2 : 1 : Nil) ==
+-- |   (NonEmptyList (NonEmpty 1 (1 : Nil))) : (NonEmptyList (NonEmpty 2 (2 : Nil))) : (NonEmptyList (NonEmpty 1 Nil)) : Nil
 -- | ```
 -- |
 -- | Running time: `O(n)`
 group :: forall a. Eq a => List a -> List (NEL.NonEmptyList a)
 group = groupBy (==)
 
--- | Sort and then group the elements of a list into lists.
+-- | Group equal elements of a list into lists.
+-- |
+-- | For example,
 -- |
 -- | ```purescript
--- | group' [1,1,2,2,1] == [[1,1,1],[2,2]]
+-- | groupAll (1 : 1 : 2 : 2 : 1 : Nil) ==
+-- |   (NonEmptyList (NonEmpty 1 (1 : 1 : Nil))) : (NonEmptyList (NonEmpty 2 (2 : Nil))) : Nil
 -- | ```
-group' :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
-group' = group <<< sort
+groupAll :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
+groupAll = group <<< sort
+
+-- | Deprecated previous name of `groupAll`.
+group' :: forall a. Warn (Text "'group\'' is deprecated, use groupAll instead") => Ord a => List a -> List (NEL.NonEmptyList a)
+group' = groupAll
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.
+-- |
+-- | For example,
+-- |
+-- | ```purescript
+-- | groupBy (\a b -> odd a && odd b) (1 : 3 : 2 : 4 : 3 : 3 : Nil) ==
+-- |   (NonEmptyList (NonEmpty 1 (3 : Nil))) : (NonEmptyList (NonEmpty 2 Nil)) : (NonEmptyList (NonEmpty 4 Nil)) : (NonEmptyList (NonEmpty 3 (3 : Nil))) : Nil
+-- | ```
 -- |
 -- | Running time: `O(n)`
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
 groupBy _ Nil = Nil
 groupBy eq (x : xs) = case span (eq x) xs of
   { init: ys, rest: zs } -> NEL.NonEmptyList (x :| ys) : groupBy eq zs
+
+-- | Group equal elements of a list into lists, using the specified
+-- | equivalence relation to determine equality.
+-- |
+-- | For example,
+-- |
+-- | ```purescript
+-- | groupAllBy (\a b -> odd a && odd b) (1 : 3 : 2 : 4 : 3 : 3 : Nil) ==
+-- |    (NonEmptyList (NonEmpty 1 Nil)) : (NonEmptyList (NonEmpty 2 Nil)) : (NonEmptyList (NonEmpty 3 (3 : 3 : Nil))) : (NonEmptyList (NonEmpty 4 Nil)) : Nil
+-- | ```
+groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
+groupAllBy p = groupBy p <<< sort
 
 -- | Returns a lists of elements which do and do not satisfy a predicate.
 -- |
