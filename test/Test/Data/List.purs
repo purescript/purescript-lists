@@ -4,7 +4,7 @@ import Prelude
 
 import Data.Foldable (foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
-import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, group, groupAll, groupBy, groupAllBy, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -267,11 +267,14 @@ testList = do
   log "group should group consecutive equal elements into lists"
   assert $ group (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.singleton 1, NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3]), NEL.singleton 1]
 
-  log "group' should sort then group consecutive equal elements into lists"
-  assert $ group' (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3])]
+  log "groupAll should group equal elements into lists"
+  assert $ groupAll (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3])]
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
   assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.singleton 2, NEL.singleton 2, NEL.NonEmptyList (3 :| l [3])]
+
+  log "groupAllBy should group equal elements into lists based on an equivalence relation"
+  assert $ groupAllBy (\x y -> odd x && odd y) (l [1, 3, 2, 4, 3, 3]) == l [NEL.singleton 1, NEL.singleton 2, NEL.NonEmptyList (3 :| l [3, 3]), NEL.singleton 4]
 
   log "partition should separate a list into a tuple of lists that do and do not satisfy a predicate"
   let partitioned = partition (_ > 2) (l [1, 5, 3, 2, 4])

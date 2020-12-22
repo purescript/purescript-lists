@@ -41,8 +41,10 @@ module Data.List.NonEmpty
   , dropWhile
   , span
   , group
+  , groupAll
   , group'
   , groupBy
+  , groupAllBy
   , partition
   , nub
   , nubBy
@@ -77,6 +79,8 @@ import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, f
 import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
 import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
 import Data.Traversable (scanl, scanr) as Exports
+
+import Prim.TypeError (class Warn, Text)
 
 -- | Internal function: any operation on a list that is guaranteed not to delete
 -- | all elements also applies to a NEL, this function is a helper for defining
@@ -259,11 +263,17 @@ span = lift <<< L.span
 group :: forall a. Eq a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
 group = wrappedOperation "group" L.group
 
-group' :: forall a. Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
-group' = wrappedOperation "group'" L.group'
+groupAll :: forall a. Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
+groupAll = wrappedOperation "groupAll" L.groupAll
+
+group' :: forall a. Warn (Text "'group\'' is deprecated, use groupAll instead") => Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
+group' = groupAll
 
 groupBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupBy = wrappedOperation "groupBy" <<< L.groupBy
+
+groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
+groupAllBy = wrappedOperation "groupAllBy" <<< L.groupAllBy
 
 partition :: forall a. (a -> Boolean) -> NonEmptyList a -> { yes :: L.List a, no :: L.List a }
 partition = lift <<< L.partition
