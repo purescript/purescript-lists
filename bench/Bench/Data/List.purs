@@ -1,48 +1,32 @@
 module Bench.Data.List where
 
 import Prelude
+import Data.Foldable (maximum)
+import Data.Int (pow)
+import Data.List (List(..), take, range, foldr, length)
+import Data.Maybe (fromMaybe)
+import Data.Traversable (traverse_)
 import Effect (Effect)
 import Effect.Console (log)
 import Performance.Minibench (bench)
 
-import Data.List as L
-
 benchList :: Effect Unit
 benchList = do
-  log "map"
-  log "---"
-  benchMap
+  benchLists "map" $ map (_ + 1)
+  benchLists "foldr" $ foldr add 0
 
   where
 
-  benchMap = do
-    let nats = L.range 0 999999
-        mapFn = map (_ + 1)
-        list1000    = L.take 1000 nats
-        list2000    = L.take 2000 nats
-        list5000    = L.take 5000 nats
-        list10000   = L.take 10000 nats
-        list100000  = L.take 100000 nats
+  listSizes = Cons 0 $ map (pow 10) $ range 0 5
+  nats = range 0 $ (fromMaybe 0 $ maximum listSizes) - 1
+  lists = map (\n -> take n nats) listSizes
 
-    log "map: empty list"
-    let emptyList = L.Nil
-    bench \_ -> mapFn emptyList
+  benchLists :: forall b. String -> (List Int -> b) -> Effect Unit
+  benchLists label func =
+    traverse_ (benchAList label func) lists
 
-    log "map: singleton list"
-    let singletonList = L.Cons 0 L.Nil
-    bench \_ -> mapFn singletonList
-
-    log $ "map: list (" <> show (L.length list1000) <> " elems)"
-    bench \_ -> mapFn list1000
-
-    log $ "map: list (" <> show (L.length list2000) <> " elems)"
-    bench \_ -> mapFn list2000
-
-    log $ "map: list (" <> show (L.length list5000) <> " elems)"
-    bench \_ -> mapFn list5000
-
-    log $ "map: list (" <> show (L.length list10000) <> " elems)"
-    bench \_ -> mapFn list10000
-
-    log $ "map: list (" <> show (L.length list100000) <> " elems)"
-    bench \_ -> mapFn list100000
+  benchAList :: forall a b. String -> (List a -> b) -> List a -> Effect Unit
+  benchAList label func list = do
+    log "---"
+    log $ label <> ": list (" <> show (length list) <> " elems)"
+    bench \_ -> func list
