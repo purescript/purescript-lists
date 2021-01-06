@@ -686,17 +686,17 @@ nub = nubBy compare
 -- | Running time: `O(n log n)`
 nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
 nubBy p =
-  -- Add indices so we can recover original order after deduplicating.
-  addIndexReverse
-  -- Sort by original values to cluster duplicates.
-  >>> sortBy (p `on` snd)
-  -- Removing neighboring duplicates.
-  >>> nubByAdjacentReverse (\a b -> (p `on` snd) a b == EQ)
+  -- Discard indices, just keep original values.
+  mapReverse snd
   -- Sort by index to recover original order.
   -- Use `flip` to sort in reverse order in anticipation of final `mapReverse`.
-  >>> sortBy (flip compare `on` fst)
-  -- Discard indices, just keep original values.
-  >>> mapReverse snd
+  <<< sortBy (flip compare `on` fst)
+  -- Removing neighboring duplicates.
+  <<< nubByAdjacentReverse (\a b -> (p `on` snd) a b == EQ)
+  -- Sort by original values to cluster duplicates.
+  <<< sortBy (p `on` snd)
+  -- Add indices so we can recover original order after deduplicating.
+  <<< addIndexReverse
 
 -- | Remove duplicate elements from a list.
 -- | Keeps the first occurrence of each element in the input list,
@@ -871,7 +871,7 @@ mapReverse f = go Nil
 -- | Equivalent to:
 -- |
 -- | ```purescript
--- | mapWithIndex Tuple >>> reverse
+-- | reverse <<< mapWithIndex Tuple
 -- | ```
 -- |
 -- | Running time: `O(n)`
