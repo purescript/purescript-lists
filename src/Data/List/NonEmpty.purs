@@ -46,6 +46,8 @@ module Data.List.NonEmpty
   , groupBy
   , groupAllBy
   , partition
+  , nub
+  , nubBy
   , nubEq
   , nubByEq
   , union
@@ -277,6 +279,12 @@ groupAllBy = wrappedOperation "groupAllBy" <<< L.groupAllBy
 
 partition :: forall a. (a -> Boolean) -> NonEmptyList a -> { yes :: L.List a, no :: L.List a }
 partition = lift <<< L.partition
+
+nub :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
+nub = wrappedOperation "nub" L.nub
+
+nubBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
+nubBy = wrappedOperation "nubBy" <<< L.nubBy
 
 nubEq :: forall a. Eq a => NonEmptyList a -> NonEmptyList a
 nubEq = wrappedOperation "nubEq" L.nubEq
