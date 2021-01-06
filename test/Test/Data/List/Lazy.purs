@@ -6,7 +6,7 @@ import Control.Lazy (defer)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
-import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nubEq, nubByEq, null, partition, range, repeat, replicate, replicateM, reverse, scanrLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
+import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nubEq, nubByEq, null, partition, range, repeat, replicate, replicateM, reverse, scanlLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -394,10 +394,13 @@ testListLazy = do
              infs' = foldrLazy cons nil infs
           in take 1000 infs == take 1000 infs'
 
-  log "scanrLazy should work ok on infinite lists"
+  log "scanlLazy should work ok on infinite lists"
   assert let infs = iterate (_ + 1) 1
-             infs' = scanrLazy (\i _ -> i) 0 infs
+             infs' = scanlLazy (\_ i -> i) 0 infs
           in take 1000 infs == take 1000 infs'
+
+  log "scanlLazy folds to the left"
+  assert $ scanlLazy (+) 5 (1..4) == l [6, 8, 11, 15]
 
   log "can find the first 10 primes using lazy lists"
   let eratos :: List Int -> List Int

@@ -103,7 +103,10 @@ instance functorWithIndexList :: FunctorWithIndex Int List where
 instance foldableList :: Foldable List where
   foldr f b = foldl (flip f) b <<< rev
     where
-    rev = foldl (flip Cons) Nil
+    rev = go Nil
+      where
+      go acc Nil = acc
+      go acc (x : xs) = go (x : acc) xs
   foldl f = go
     where
     go b = case _ of

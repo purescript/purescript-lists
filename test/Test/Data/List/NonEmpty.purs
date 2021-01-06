@@ -168,11 +168,14 @@ testNonEmptyList = do
   log "group should group consecutive equal elements into lists"
   assert $ NEL.group (nel 1 [2, 2, 3, 3, 3, 1]) == nel (nel 1 []) [nel 2 [2], nel 3 [3, 3], nel 1 []]
 
-  log "group' should sort then group consecutive equal elements into lists"
-  assert $ NEL.group' (nel 1 [2, 2, 3, 3, 3, 1]) == nel (nel 1 [1]) [nel 2 [2], nel 3 [3, 3]]
+  log "groupAll should group equal elements into lists"
+  assert $ NEL.groupAll (nel 1 [2, 2, 3, 3, 3, 1]) == nel (nel 1 [1]) [nel 2 [2], nel 3 [3, 3]]
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
   assert $ NEL.groupBy (\x y -> odd x && odd y) (nel 1 [1, 2, 2, 3, 3]) == nel (nel 1 [1]) [nel 2 [], nel 2 [], nel 3 [3]]
+
+  log "groupAllBy should group equal elements into lists based on an equivalence relation"
+  assert $ NEL.groupAllBy (\x y -> odd x && odd y) (nel 1 [3, 2, 4, 3, 3]) == nel (nel 1 []) [nel 2 [], nel 3 [3, 3], nel 4 []]
 
   log "partition should separate a list into a tuple of lists that do and do not satisfy a predicate"
   let partitioned = NEL.partition (_ > 2) (nel 1 [5, 3, 2, 4])
