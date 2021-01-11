@@ -688,15 +688,15 @@ nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
 nubBy p =
   -- Discard indices, just keep original values.
   mapReverse snd
-  -- Sort by index to recover original order.
-  -- Use `flip` to sort in reverse order in anticipation of final `mapReverse`.
-  <<< sortBy (flip compare `on` fst)
-  -- Removing neighboring duplicates.
-  <<< nubByAdjacentReverse (\a b -> (p `on` snd) a b == EQ)
-  -- Sort by original values to cluster duplicates.
-  <<< sortBy (p `on` snd)
-  -- Add indices so we can recover original order after deduplicating.
-  <<< addIndexReverse
+    -- Sort by index to recover original order.
+    -- Use `flip` to sort in reverse order in anticipation of final `mapReverse`.
+    <<< sortBy (flip compare `on` fst)
+    -- Removing neighboring duplicates.
+    <<< nubByAdjacentReverse (\a b -> (p `on` snd) a b == EQ)
+    -- Sort by original values to cluster duplicates.
+    <<< sortBy (p `on` snd)
+    -- Add indices so we can recover original order after deduplicating.
+    <<< addIndexReverse
 
 -- | Remove duplicate elements from a list.
 -- | Keeps the first occurrence of each element in the input list,
@@ -895,12 +895,12 @@ addIndexReverse = go 0 Nil
 nubByAdjacentReverse :: forall a. (a -> a -> Boolean) -> List a -> List a
 nubByAdjacentReverse p = go Nil
   where
-    go :: List a -> List a -> List a
-    -- empty output
-    go Nil (x : xs) = go (x : Nil) xs
-    -- checking for duplicates
-    go acc@(a : as) (x : xs)
-      | p a x = go (x : as) xs
-      | otherwise = go (x : acc) xs
-    -- empty input
-    go acc Nil = acc
+  go :: List a -> List a -> List a
+  -- empty output
+  go Nil (x : xs) = go (x : Nil) xs
+  -- checking for duplicates
+  go acc@(a : as) (x : xs)
+    | p a x = go (x : as) xs
+    | otherwise = go (x : acc) xs
+  -- empty input
+  go acc Nil = acc
