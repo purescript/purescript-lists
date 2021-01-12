@@ -340,7 +340,7 @@ group' = groupAll
 groupBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupBy = wrappedOperation "groupBy" <<< L.groupBy
 
-groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
+groupAllBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupAllBy = wrappedOperation "groupAllBy" <<< L.groupAllBy
 
 partition :: forall a. (a -> Boolean) -> NonEmptyList a -> { yes :: L.List a, no :: L.List a }
