@@ -1,4 +1,4 @@
-module Data.List.Internal where
+module Data.List.Internal (Set, insertAndLookup) where
 
 import Prelude
 
@@ -29,25 +29,25 @@ fromZipper (Cons x ctx) tree =
 data KickUp k = KickUp (Set k) k (Set k)
 
 -- | Insert or replace a key/value pair in a map
-insert :: forall k. Ord k => k -> Set k -> Set k
-insert k = down Nil
+insertAndLookup :: forall k. Ord k => k -> Set k -> { found :: Boolean, result :: Set k }
+insertAndLookup k orig = down Nil orig
   where
   comp :: k -> k -> Ordering
   comp = compare
 
-  down :: List (TreeContext k) -> Set k -> Set k
-  down ctx Leaf = up ctx (KickUp Leaf k Leaf)
+  down :: List (TreeContext k) -> Set k -> { found :: Boolean, result :: Set k }
+  down ctx Leaf = { found: false, result: up ctx (KickUp Leaf k Leaf) }
   down ctx (Two left k1 right) =
     case comp k k1 of
-      EQ -> fromZipper ctx (Two left k right)
+      EQ -> { found: true, result: orig }
       LT -> down (Cons (TwoLeft k1 right) ctx) left
       _  -> down (Cons (TwoRight left k1) ctx) right
   down ctx (Three left k1 mid k2 right) =
     case comp k k1 of
-      EQ -> fromZipper ctx (Three left k mid k2 right)
+      EQ -> { found: true, result: orig }
       c1 ->
         case c1, comp k k2 of
-          _ , EQ -> fromZipper ctx (Three left k1 mid k right)
+          _ , EQ -> { found: true, result: orig }
           LT, _  -> down (Cons (ThreeLeft k1 mid k2 right) ctx) left
           GT, LT -> down (Cons (ThreeMiddle left k1 k2 right) ctx) mid
           _ , _  -> down (Cons (ThreeRight left k1 mid k2) ctx) right
