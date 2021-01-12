@@ -106,7 +106,6 @@ import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
 import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
-import Data.Function (on)
 import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
@@ -116,7 +115,7 @@ import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..), fst, snd)
+import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Prim.TypeError (class Warn, Text)
 
@@ -841,62 +840,3 @@ transpose ((x : xs) : xss) =
 foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> List a -> m b
 foldM _ b Nil = pure b
 foldM f b (a : as) = f b a >>= \b' -> foldM f b' as
-
---------------------------------------------------------------------------------
--- Fast operations which also reverse the list ---------------------------------
---------------------------------------------------------------------------------
-
--- | Maps a function to each element in a list
--- | and reverses the result, but faster than
--- | running each separately. Equivalent to:
--- |
--- | ```purescript
--- | \f l = map f l # reverse
--- | ```
--- |
--- | Running time: `O(n)`
-mapReverse :: forall a b. (a -> b) -> List a -> List b
-mapReverse f = go Nil
-  where
-  go :: List b -> List a -> List b
-  go acc Nil = acc
-  go acc (x : xs) = go (f x : acc) xs
-
--- | Converts each element to a Tuple containing its index,
--- | and reverses the result, but faster than running separately.
--- | Equivalent to:
--- |
--- | ```purescript
--- | reverse <<< mapWithIndex Tuple
--- | ```
--- |
--- | Running time: `O(n)`
-addIndexReverse :: forall a. List a -> List (Tuple Int a)
-addIndexReverse = go 0 Nil
-  where
-  go :: Int -> List (Tuple Int a) -> List a -> List (Tuple Int a)
-  go i acc Nil = acc
-  go i acc (x : xs) = go (i + 1) ((Tuple i x) : acc) xs
-
--- | Removes neighboring duplicate items from a list
--- | based on an equality predicate.
--- | Keeps the LAST element if duplicates are encountered.
--- | Returned list is reversed (this is to improve performance).
--- |
--- | ```purescript
--- | nubByAdjacentReverse (on eq length) ([1]:[2]:[3,4]:Nil) == [3,4]:[2]:Nil`
--- | ```
--- |
--- | Running time: `O(n)`
-nubByAdjacentReverse :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubByAdjacentReverse p = go Nil
-  where
-  go :: List a -> List a -> List a
-  -- empty output
-  go Nil (x : xs) = go (x : Nil) xs
-  -- checking for duplicates
-  go acc@(a : as) (x : xs)
-    | p a x = go (x : as) xs
-    | otherwise = go (x : acc) xs
-  -- empty input
-  go acc Nil = acc
