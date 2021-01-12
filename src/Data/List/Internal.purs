@@ -1,4 +1,4 @@
-module Data.List.Internal (Set, insertAndLookup) where
+module Data.List.Internal (Set, emptySet, insertAndLookupBy) where
 
 import Prelude
 
@@ -9,6 +9,9 @@ data Set k
   | Two (Set k) k (Set k)
   | Three (Set k) k (Set k) k (Set k)
 
+emptySet :: forall k. Set k
+emptySet = Leaf
+
 data TreeContext k
   = TwoLeft k (Set k)
   | TwoRight (Set k) k
@@ -16,7 +19,7 @@ data TreeContext k
   | ThreeMiddle (Set k) k k (Set k)
   | ThreeRight (Set k) k (Set k) k
 
-fromZipper :: forall k. Ord k => List (TreeContext k) -> Set k -> Set k
+fromZipper :: forall k. List (TreeContext k) -> Set k -> Set k
 fromZipper Nil tree = tree
 fromZipper (Cons x ctx) tree =
   case x of
@@ -29,12 +32,9 @@ fromZipper (Cons x ctx) tree =
 data KickUp k = KickUp (Set k) k (Set k)
 
 -- | Insert or replace a key/value pair in a map
-insertAndLookup :: forall k. Ord k => k -> Set k -> { found :: Boolean, result :: Set k }
-insertAndLookup k orig = down Nil orig
+insertAndLookupBy :: forall k. (k -> k -> Ordering) -> k -> Set k -> { found :: Boolean, result :: Set k }
+insertAndLookupBy comp k orig = down Nil orig
   where
-  comp :: k -> k -> Ordering
-  comp = compare
-
   down :: List (TreeContext k) -> Set k -> { found :: Boolean, result :: Set k }
   down ctx Leaf = { found: false, result: up ctx (KickUp Leaf k Leaf) }
   down ctx (Two left k1 right) =

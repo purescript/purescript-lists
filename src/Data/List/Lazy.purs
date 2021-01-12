@@ -103,6 +103,7 @@ import Control.Monad.Rec.Class as Rec
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Lazy (defer)
+import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Lazy.Types (List(..), Step(..), step, nil, cons, (:))
 import Data.List.Lazy.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..), isNothing)
@@ -589,6 +590,30 @@ partition f = foldr go {yes: nil, no: nil}
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
 --------------------------------------------------------------------------------
+
+-- | Remove duplicate elements from a list.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- |
+-- | Running time: `O(n log n)`
+nub :: forall a. Ord a => List a -> List a
+nub = nubBy compare
+
+-- | Remove duplicate elements from a list based on the provided comparison function.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- |
+-- | Running time: `O(n log n)`
+nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
+nubBy p = go emptySet
+  where
+    go s (List l) = List (map (goStep s) l)
+    goStep _ Nil = Nil
+    goStep s (Cons a as) =
+      let { found, result: s' } = insertAndLookupBy p a s
+      in if found
+        then step (go s' as)
+        else Cons a (go s' as)
 
 -- | Remove duplicate elements from a list.
 -- |

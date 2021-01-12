@@ -108,6 +108,7 @@ import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Function (on)
 import Data.FunctorWithIndex (mapWithIndex) as FWI
+import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..))
@@ -117,7 +118,6 @@ import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unfoldable (class Unfoldable, unfoldr)
-
 import Prim.TypeError (class Warn, Text)
 
 -- | Convert a list into any unfoldable structure.
@@ -685,18 +685,14 @@ nub = nubBy compare
 -- |
 -- | Running time: `O(n log n)`
 nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
-nubBy p =
-  -- Discard indices, just keep original values.
-  mapReverse snd
-    -- Sort by index to recover original order.
-    -- Use `flip` to sort in reverse order in anticipation of final `mapReverse`.
-    <<< sortBy (flip compare `on` fst)
-    -- Removing neighboring duplicates.
-    <<< nubByAdjacentReverse (\a b -> (p `on` snd) a b == EQ)
-    -- Sort by original values to cluster duplicates.
-    <<< sortBy (p `on` snd)
-    -- Add indices so we can recover original order after deduplicating.
-    <<< addIndexReverse
+nubBy p = go emptySet
+  where
+    go _ Nil = Nil
+    go s (a : as) =
+      let { found, result: s' } = insertAndLookupBy p a s
+      in if found
+        then go s' as
+        else a : go s' as
 
 -- | Remove duplicate elements from a list.
 -- | Keeps the first occurrence of each element in the input list,
