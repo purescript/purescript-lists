@@ -586,7 +586,7 @@ span _ xs = { init: Nil, rest: xs }
 -- |
 -- | ```purescript
 -- | group (3 : 3 : 2 : 2 : 1 : 3 : Nil) ==
--- |   (3 :|| 3 : Nil) : (2 :|| 2 : Nil) : (1 :|| Nil) : (3 :|| Nil) : Nil
+-- |   NonEmptyList (3 :| 3 : Nil) : NonEmptyList (2 :| 2 : Nil) : NonEmptyList (1 :| Nil) : NonEmptyList (3 :| Nil) : Nil
 -- | ```
 -- |
 -- | Running time: `O(n)`
@@ -597,7 +597,7 @@ group = groupBy (==)
 -- |
 -- | ```purescript
 -- | groupAll (3 : 3 : 2 : 2 : 1 : 3 : Nil) ==
--- |   (1 :|| Nil) : (2 :|| 2 : Nil) : (3 :|| 3 : 3 : Nil) : Nil
+-- |   NonEmptyList (1 :| Nil) : NonEmptyList (2 :| 2 : Nil) : NonEmptyList (3 :| 3 : 3 : Nil) : Nil
 -- | ```
 -- |
 -- | Running time: `O(n log n)`
@@ -613,7 +613,7 @@ group' = groupAll
 -- |
 -- | ```purescript
 -- | groupBy (eq `on` (_ `div` 10)) (32 : 31 : 21 : 22 : 11 : 33 : Nil) ==
--- |   (32 :|| 31 : Nil) : (21 :|| 22 : Nil) : (11 :|| Nil) : (33 :|| Nil) : Nil
+-- |   NonEmptyList (32 :| 31 : Nil) : NonEmptyList (21 :| 22 : Nil) : NonEmptyList (11 :| Nil) : NonEmptyList (33 :| Nil) : Nil
 -- | ```
 -- |
 -- | Running time: `O(n)`
@@ -626,7 +626,7 @@ groupBy eq (x : xs) = case span (eq x) xs of
 -- |
 -- | ```purescript
 -- | groupAllBy (compare `on` (_ `div` 10)) (32 : 31 : 21 : 22 : 11 : 33 : Nil) ==
--- |   (11 :|| Nil) : (21 :|| 22 : Nil) : (32 :|| 31 : 33) : Nil
+-- |   NonEmptyList (11 :| Nil) : NonEmptyList (21 :| 22 : Nil) : NonEmptyList (32 :| 31 : 33) : Nil
 -- | ```
 -- |
 -- | Running time: `O(n log n)`
