@@ -684,14 +684,14 @@ nub = nubBy compare
 -- |
 -- | Running time: `O(n log n)`
 nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
-nubBy p = go emptySet
+nubBy p = reverse <<< go emptySet Nil
   where
-    go _ Nil = Nil
-    go s (a : as) =
+    go _ acc Nil = acc
+    go s acc (a : as) =
       let { found, result: s' } = insertAndLookupBy p a s
       in if found
-        then go s' as
-        else a : go s' as
+        then go s' acc as
+        else go s' (a : acc) as
 
 -- | Remove duplicate elements from a list.
 -- | Keeps the first occurrence of each element in the input list,
