@@ -11,6 +11,7 @@ Breaking changes:
 
 New features:
 - Add `groupAllBy` (#182, #191) 
+- Added `Eq1` and `Ord1` instances to `NonEmptyList` and `LazyNonEmptyList` (#188)
 
 Bugfixes:
 
