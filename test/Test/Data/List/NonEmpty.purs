@@ -167,13 +167,13 @@ testNonEmptyList = do
   assert $ spanResult.rest == l [4, 5, 6, 7]
 
   log "group should group consecutive equal elements into lists"
-  assert $ NEL.group (nel 3 [3, 2, 2, 1, 3]) == nel (nel 3 [3]) [nel 2 [2], nel 1 [], nel 3 []]
+  assert $ NEL.group (nel 1 [2, 2, 3, 3, 3, 1]) == nel (nel 1 []) [nel 2 [2], nel 3 [3, 3], nel 1 []]
 
-  log "groupAll should sort then group equal elements into lists"
-  assert $ NEL.groupAll (nel 3 [3, 2, 2, 1, 3]) == nel (nel 1 []) [nel 2 [2], nel 3 [3, 3]]
+  log "groupAll should group equal elements into lists"
+  assert $ NEL.groupAll (nel 1 [2, 2, 3, 3, 3, 1]) == nel (nel 1 [1]) [nel 2 [2], nel 3 [3, 3]]
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
-  assert $ NEL.groupBy (eq `on` (_ `div` 10)) (nel 32 [31, 21, 22, 11, 33]) == nel (nel 32 [31]) [nel 21 [22], nel 11 [], nel 33 []]
+  assert $ NEL.groupBy (\x y -> odd x && odd y) (nel 1 [1, 2, 2, 3, 3]) == nel (nel 1 [1]) [nel 2 [], nel 2 [], nel 3 [3]]
 
   log "groupAllBy should sort then group equal elements into lists based on a comparison function"
   assert $ NEL.groupAllBy (compare `on` (_ `div` 10)) (nel 32 [31, 21, 22, 11, 33]) == nel (nel 11 []) [nel 21 [22], nel 32 [31, 33]]

@@ -584,23 +584,25 @@ span _ xs = { init: Nil, rest: xs }
 
 -- | Group equal, consecutive elements of a list into lists.
 -- |
+-- | For example,
+-- |
 -- | ```purescript
--- | group (3 : 3 : 2 : 2 : 1 : 3 : Nil) ==
--- |   NonEmptyList (3 :| 3 : Nil) : NonEmptyList (2 :| 2 : Nil) : NonEmptyList (1 :| Nil) : NonEmptyList (3 :| Nil) : Nil
+-- | group (1 : 1 : 2 : 2 : 1 : Nil) ==
+-- |   (NonEmptyList (NonEmpty 1 (1 : Nil))) : (NonEmptyList (NonEmpty 2 (2 : Nil))) : (NonEmptyList (NonEmpty 1 Nil)) : Nil
 -- | ```
 -- |
 -- | Running time: `O(n)`
 group :: forall a. Eq a => List a -> List (NEL.NonEmptyList a)
 group = groupBy (==)
 
--- | Sort, then group equal elements of a list into lists.
+-- | Group equal elements of a list into lists.
+-- |
+-- | For example,
 -- |
 -- | ```purescript
--- | groupAll (3 : 3 : 2 : 2 : 1 : 3 : Nil) ==
--- |   NonEmptyList (1 :| Nil) : NonEmptyList (2 :| 2 : Nil) : NonEmptyList (3 :| 3 : 3 : Nil) : Nil
+-- | groupAll (1 : 1 : 2 : 2 : 1 : Nil) ==
+-- |   (NonEmptyList (NonEmpty 1 (1 : 1 : Nil))) : (NonEmptyList (NonEmpty 2 (2 : Nil))) : Nil
 -- | ```
--- |
--- | Running time: `O(n log n)`
 groupAll :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
 groupAll = group <<< sort
 
@@ -608,12 +610,14 @@ groupAll = group <<< sort
 group' :: forall a. Warn (Text "'group\'' is deprecated, use groupAll instead") => Ord a => List a -> List (NEL.NonEmptyList a)
 group' = groupAll
 
--- | Group equal, consecutive elements of a list into lists, using the provided
--- | equivalence function to determine equality.
+-- | Group equal, consecutive elements of a list into lists, using the specified
+-- | equivalence relation to determine equality.
+-- |
+-- | For example,
 -- |
 -- | ```purescript
--- | groupBy (eq `on` (_ `div` 10)) (32 : 31 : 21 : 22 : 11 : 33 : Nil) ==
--- |   NonEmptyList (32 :| 31 : Nil) : NonEmptyList (21 :| 22 : Nil) : NonEmptyList (11 :| Nil) : NonEmptyList (33 :| Nil) : Nil
+-- | groupBy (\a b -> odd a && odd b) (1 : 3 : 2 : 4 : 3 : 3 : Nil) ==
+-- |   (NonEmptyList (NonEmpty 1 (3 : Nil))) : (NonEmptyList (NonEmpty 2 Nil)) : (NonEmptyList (NonEmpty 4 Nil)) : (NonEmptyList (NonEmpty 3 (3 : Nil))) : Nil
 -- | ```
 -- |
 -- | Running time: `O(n)`
