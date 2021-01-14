@@ -5,6 +5,7 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
+- Change `groupAllBy` to use a comparison function (#191)
 
 New features:
 
