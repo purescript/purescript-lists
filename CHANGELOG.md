@@ -5,8 +5,10 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
+- Convert `nub`/`nubBy` to use ordering, rather than equality (#179)
 
 New features:
+- Add `nubEq`/`nubByEq` (#179)
 
 Bugfixes:
 
