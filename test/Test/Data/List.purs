@@ -270,13 +270,13 @@ testList = do
   assert $ spanResult.rest == l [4, 5, 6, 7]
 
   log "group should group consecutive equal elements into lists"
-  assert $ group (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.singleton 1, NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3]), NEL.singleton 1]
+  assert $ group (l [3, 3, 2, 2, 1, 3]) == l [nel 3 [3], nel 2 [2], nel 1 [], nel 3 []]
 
-  log "groupAll should group equal elements into lists"
-  assert $ groupAll (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3])]
+  log "groupAll should sort then group equal elements into lists"
+  assert $ groupAll (l [3, 3, 2, 2, 1, 3]) == l [nel 1 [], nel 2 [2], nel 3 [3, 3]]
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
-  assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.singleton 2, NEL.singleton 2, NEL.NonEmptyList (3 :| l [3])]
+  assert $ groupBy (eq `on` (_ `div` 10)) (l [32, 31, 21, 22, 11, 33]) == l [nel 32 [31], nel 21 [22], nel 11 [], nel 33 []]
 
   log "groupAllBy should sort then group equal elements into lists based on a comparison function"
   assert $ groupAllBy (compare `on` (_ `div` 10)) (l [32, 31, 21, 22, 11, 33]) == l [nel 11 [], nel 21 [22], nel 32 [31, 33]]
