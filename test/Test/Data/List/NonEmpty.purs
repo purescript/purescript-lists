@@ -184,14 +184,14 @@ testNonEmptyList = do
   assert $ partitioned.yes == l [5, 3, 4]
   assert $ partitioned.no == l [1, 2]
 
-  log "nub should remove duplicate elements from the list, keeping the first occurence"
+  log "nub should remove duplicate elements from the list, keeping the first occurrence"
   assert $ NEL.nub (nel 1 [2, 2, 3, 4, 1]) == nel 1 [2, 3, 4]
 
   log "nubBy should remove duplicate items from the list using a supplied predicate"
   let nubPred = compare `on` Array.length
   assert $ NEL.nubBy nubPred (nel [1] [[2],[3,4]]) == nel [1] [[3,4]]
 
-  log "nubEq should remove duplicate elements from the list, keeping the first occurence"
+  log "nubEq should remove duplicate elements from the list, keeping the first occurrence"
   assert $ NEL.nubEq (nel 1 [2, 2, 3, 4, 1]) == nel 1 [2, 3, 4]
 
   log "nubByEq should remove duplicate items from the list using a supplied predicate"
