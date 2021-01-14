@@ -70,6 +70,8 @@ module Data.List.Lazy
   , groupBy
   , partition
 
+  , nub
+  , nubBy
   , nubEq
   , nubByEq
   , union

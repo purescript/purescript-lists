@@ -3,10 +3,12 @@ module Test.Data.List.Lazy (testListLazy) where
 import Prelude
 
 import Control.Lazy (defer)
+import Data.Array as Array
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
+import Data.Function (on)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
-import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nubEq, nubByEq, null, partition, range, repeat, replicate, replicateM, reverse, scanlLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
+import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, nubEq, nubByEq, null, partition, range, repeat, replicate, replicateM, reverse, scanlLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -328,12 +330,19 @@ testListLazy = do
   log "iterate on nonempty lazy list should apply supplied function correctly"
   assert $ (take 3 $ NEL.toList $ NEL.iterate (_ + 1) 0) == l [0, 1, 2]
 
+  log "nub should remove duplicate elements from the list, keeping the first occurence"
+  assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
+
+  log "nubBy should remove duplicate items from the list using a supplied predicate"
+  let nubPred = compare `on` Array.length
+  assert $ nubBy nubPred (l [[1],[2],[3,4]]) == l [[1],[3,4]]
+
   log "nubEq should remove duplicate elements from the list, keeping the first occurence"
   assert $ nubEq (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
 
   log "nubByEq should remove duplicate items from the list using a supplied predicate"
-  let nubPred = \x y -> if odd x then false else x == y
-  assert $ nubByEq nubPred (l [1, 2, 2, 3, 3, 4, 4, 1]) == l [1, 2, 3, 3, 4, 1]
+  let mod3eq = eq `on` \n -> mod n 3
+  assert $ nubByEq mod3eq (l [1, 3, 4, 5, 6]) == l [1, 3, 5]
 
   log "union should produce the union of two lists"
   assert $ union (l [1, 2, 3]) (l [2, 3, 4]) == l [1, 2, 3, 4]
