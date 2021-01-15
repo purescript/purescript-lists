@@ -16,6 +16,7 @@ New features:
 Bugfixes:
 
 Other improvements:
+- Improve consistency and clarity of docs and tests for `group*` functions (#193)
 - Fix Lazy List docs where original list is returned instead of Nothing (#169)
 - Migrate to GitHub Actions (#177)
 - Change `foldM` type signature to more closely match `foldl` (#165)
