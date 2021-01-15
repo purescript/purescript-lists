@@ -11,6 +11,7 @@ New features:
 Bugfixes:
 
 Other improvements:
+- Improve consistency and clarity of docs and tests for `group*` functions (#193)
 
 ## [v5.4.1](https://github.com/purescript/purescript-lists/releases/tag/v5.4.1) - 2019-05-06
 
