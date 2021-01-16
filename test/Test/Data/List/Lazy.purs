@@ -343,6 +343,9 @@ testListLazy = do
   log "nubEq should remove duplicate elements from the list, keeping the first occurrence"
   assert $ nubEq (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
 
+  log "nubEq should not consume more of the input list than necessary"
+  assert $ (take 3 $ nubEq $ cycle $ l [1,2,3]) == l [1,2,3]
+
   log "nubByEq should remove duplicate items from the list using a supplied predicate"
   let mod3eq = eq `on` \n -> mod n 3
   assert $ nubByEq mod3eq (l [1, 3, 4, 5, 6]) == l [1, 3, 5]
