@@ -8,7 +8,7 @@ import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Function (on)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
-import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, nubEq, nubByEq, null, partition, range, repeat, replicate, replicateM, reverse, scanlLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
+import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cycle, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, nubEq, nubByEq, null, partition, range, repeat, replicate, replicateM, reverse, scanlLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -332,6 +332,9 @@ testListLazy = do
 
   log "nub should remove duplicate elements from the list, keeping the first occurence"
   assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
+
+  log "nub should not consume more of the input list than necessary"
+  assert $ (take 3 $ nub $ cycle $ l [1,2,3]) == l [1,2,3]
 
   log "nubBy should remove duplicate items from the list using a supplied predicate"
   let nubPred = compare `on` Array.length
