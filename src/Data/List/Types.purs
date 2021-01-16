@@ -202,6 +202,9 @@ derive instance newtypeNonEmptyList :: Newtype (NonEmptyList a) _
 derive newtype instance eqNonEmptyList :: Eq a => Eq (NonEmptyList a)
 derive newtype instance ordNonEmptyList :: Ord a => Ord (NonEmptyList a)
 
+derive newtype instance eq1NonEmptyList :: Eq1 NonEmptyList
+derive newtype instance ord1NonEmptyList :: Ord1 NonEmptyList
+
 instance showNonEmptyList :: Show a => Show (NonEmptyList a) where
   show (NonEmptyList nel) = "(NonEmptyList " <> show nel <> ")"
 
