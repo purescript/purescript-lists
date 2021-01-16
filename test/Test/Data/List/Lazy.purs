@@ -104,7 +104,7 @@ testListLazy = do
   log "range should be lazy"
   assert $ head (range 0 100000000) == Just 0
 
-  log "replicate should produce an list containg an item a specified number of times"
+  log "replicate should produce an list containing an item a specified number of times"
   assert $ replicate 3 true == l [true, true, true]
   assert $ replicate 1 "foo" == l ["foo"]
   assert $ replicate 0 "foo" == l []
@@ -330,7 +330,7 @@ testListLazy = do
   log "iterate on nonempty lazy list should apply supplied function correctly"
   assert $ (take 3 $ NEL.toList $ NEL.iterate (_ + 1) 0) == l [0, 1, 2]
 
-  log "nub should remove duplicate elements from the list, keeping the first occurence"
+  log "nub should remove duplicate elements from the list, keeping the first occurrence"
   assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
 
   log "nub should not consume more of the input list than necessary"
@@ -340,7 +340,7 @@ testListLazy = do
   let nubPred = compare `on` Array.length
   assert $ nubBy nubPred (l [[1],[2],[3,4]]) == l [[1],[3,4]]
 
-  log "nubEq should remove duplicate elements from the list, keeping the first occurence"
+  log "nubEq should remove duplicate elements from the list, keeping the first occurrence"
   assert $ nubEq (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
 
   log "nubByEq should remove duplicate items from the list using a supplied predicate"
