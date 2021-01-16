@@ -20,9 +20,9 @@ import Test.Assert (assert)
 testNonEmptyList :: Effect Unit
 testNonEmptyList = do
   let
-    nel :: ∀ f a. Foldable f => a -> f a -> NEL.NonEmptyList a
+    nel :: forall f a. Foldable f => a -> f a -> NEL.NonEmptyList a
     nel x xs = NEL.NonEmptyList $ x :| L.fromFoldable xs
-    l :: ∀ f a. Foldable f => f a -> L.List a
+    l :: forall f a. Foldable f => f a -> L.List a
     l = L.fromFoldable
 
   log "singleton should construct a non-empty list with a single value"

@@ -25,7 +25,7 @@ testList = do
   let
     l = fromFoldable
 
-    nel :: ∀ f a. Foldable f => a -> f a -> NEL.NonEmptyList a
+    nel :: forall f a. Foldable f => a -> f a -> NEL.NonEmptyList a
     nel x xs = NEL.NonEmptyList $ x :| fromFoldable xs
 
   log "strip prefix"
