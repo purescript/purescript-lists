@@ -75,6 +75,8 @@ module Data.List
 
   , nub
   , nubBy
+  , nubEq
+  , nubByEq
   , union
   , unionBy
   , delete
@@ -101,22 +103,20 @@ import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy (class Lazy, defer)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
-
 import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.FunctorWithIndex (mapWithIndex) as FWI
+import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
+import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
-
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
-import Data.Traversable (scanl, scanr) as Exports
-
 import Prim.TypeError (class Warn, Text)
 
 -- | Convert a list into any unfoldable structure.
@@ -663,18 +663,64 @@ tails list@(Cons _ tl)= list : tails tl
 --------------------------------------------------------------------------------
 
 -- | Remove duplicate elements from a list.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
 -- |
--- | Running time: `O(n^2)`
-nub :: forall a. Eq a => List a -> List a
-nub = nubBy eq
+-- | ```purescript
+-- | nub 1:2:1:3:3:Nil == 1:2:3:Nil
+-- | ```
+-- |
+-- | Running time: `O(n log n)`
+nub :: forall a. Ord a => List a -> List a
+nub = nubBy compare
 
--- | Remove duplicate elements from a list, using the specified
--- | function to determine equality of elements.
+-- | Remove duplicate elements from a list based on the provided comparison function.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- |
+-- | ```purescript
+-- | nubBy (compare `on` Array.length) ([1]:[2]:[3,4]:Nil) == [1]:[3,4]:Nil
+-- | ```
+-- |
+-- | Running time: `O(n log n)`
+nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
+nubBy p = reverse <<< go emptySet Nil
+  where
+    go _ acc Nil = acc
+    go s acc (a : as) =
+      let { found, result: s' } = insertAndLookupBy p a s
+      in if found
+        then go s' acc as
+        else go s' (a : acc) as
+
+-- | Remove duplicate elements from a list.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- | This less efficient version of `nub` only requires an `Eq` instance.
+-- |
+-- | ```purescript
+-- | nubEq 1:2:1:3:3:Nil == 1:2:3:Nil
+-- | ```
 -- |
 -- | Running time: `O(n^2)`
-nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubBy _     Nil = Nil
-nubBy eq' (x : xs) = x : nubBy eq' (filter (\y -> not (eq' x y)) xs)
+nubEq :: forall a. Eq a => List a -> List a
+nubEq = nubByEq eq
+
+-- | Remove duplicate elements from a list, using the provided equivalence function.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- | This less efficient version of `nubBy` only requires an equivalence
+-- | function, rather than an ordering function.
+-- |
+-- | ```purescript
+-- | mod3eq = eq `on` \n -> mod n 3
+-- | nubByEq mod3eq 1:3:4:5:6:Nil == 1:3:5:Nil
+-- | ```
+-- |
+-- | Running time: `O(n^2)`
+nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
+nubByEq _     Nil = Nil
+nubByEq eq' (x : xs) = x : nubByEq eq' (filter (\y -> not (eq' x y)) xs)
 
 -- | Calculate the union of two lists.
 -- |
@@ -687,7 +733,7 @@ union = unionBy (==)
 -- |
 -- | Running time: `O(n^2)`
 unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
-unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
+unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubByEq eq ys) xs
 
 -- | Delete the first occurrence of an element from a list.
 -- |

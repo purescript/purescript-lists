@@ -3,10 +3,12 @@ module Test.Data.List.Lazy (testListLazy) where
 import Prelude
 
 import Control.Lazy (defer)
+import Data.Array as Array
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
+import Data.Function (on)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
-import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, null, partition, range, repeat, replicate, replicateM, reverse, scanlLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
+import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cycle, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, nubEq, nubByEq, null, partition, range, repeat, replicate, replicateM, reverse, scanlLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -102,7 +104,7 @@ testListLazy = do
   log "range should be lazy"
   assert $ head (range 0 100000000) == Just 0
 
-  log "replicate should produce an list containg an item a specified number of times"
+  log "replicate should produce an list containing an item a specified number of times"
   assert $ replicate 3 true == l [true, true, true]
   assert $ replicate 1 "foo" == l ["foo"]
   assert $ replicate 0 "foo" == l []
@@ -328,12 +330,25 @@ testListLazy = do
   log "iterate on nonempty lazy list should apply supplied function correctly"
   assert $ (take 3 $ NEL.toList $ NEL.iterate (_ + 1) 0) == l [0, 1, 2]
 
-  log "nub should remove duplicate elements from the list, keeping the first occurence"
+  log "nub should remove duplicate elements from the list, keeping the first occurrence"
   assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
 
+  log "nub should not consume more of the input list than necessary"
+  assert $ (take 3 $ nub $ cycle $ l [1,2,3]) == l [1,2,3]
+
   log "nubBy should remove duplicate items from the list using a supplied predicate"
-  let nubPred = \x y -> if odd x then false else x == y
-  assert $ nubBy nubPred (l [1, 2, 2, 3, 3, 4, 4, 1]) == l [1, 2, 3, 3, 4, 1]
+  let nubPred = compare `on` Array.length
+  assert $ nubBy nubPred (l [[1],[2],[3,4]]) == l [[1],[3,4]]
+
+  log "nubEq should remove duplicate elements from the list, keeping the first occurrence"
+  assert $ nubEq (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
+
+  log "nubEq should not consume more of the input list than necessary"
+  assert $ (take 3 $ nubEq $ cycle $ l [1,2,3]) == l [1,2,3]
+
+  log "nubByEq should remove duplicate items from the list using a supplied predicate"
+  let mod3eq = eq `on` \n -> mod n 3
+  assert $ nubByEq mod3eq (l [1, 3, 4, 5, 6]) == l [1, 3, 5]
 
   log "union should produce the union of two lists"
   assert $ union (l [1, 2, 3]) (l [2, 3, 4]) == l [1, 2, 3, 4]

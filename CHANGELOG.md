@@ -5,22 +5,24 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
-- Rename `scanrLazy` to `scanlLazy` and fix parameter ordering (#161)
-- Rename `group'` to `groupAll` (#182)
-- Change `Alt ZipList` to satisfy distributivity (#150)
+- Converted `nub`/`nubBy` to use ordering, rather than equality (#179)
+- Renamed `scanrLazy` to `scanlLazy` and fixed parameter ordering (#161)
+- Renamed `group'` to `groupAll` (#182)
+- Changed `Alt ZipList` to satisfy distributivity (#150)
 
 New features:
-- Add `groupAllBy` (#182, #191) 
+- Added `nubEq`/`nubByEq` (#179)
+- Added `groupAllBy` (#182, #191) 
 - Added `Eq1` and `Ord1` instances to `NonEmptyList` and `LazyNonEmptyList` (#188)
 
 Bugfixes:
 
 Other improvements:
-- Fix Lazy List docs where original list is returned instead of Nothing (#169)
-- Migrate to GitHub Actions (#177)
-- Change `foldM` type signature to more closely match `foldl` (#165)
-- Improve `foldr` performance on large lists (#180)
-- Generate changelog and add PR template (#187) 
+- Fixed Lazy List docs where original list is returned instead of Nothing (#169)
+- Migrated to GitHub Actions (#177)
+- Changed `foldM` type signature to more closely match `foldl` (#165)
+- Improved `foldr` performance on large lists (#180)
+- Generated changelog and add PR template (#187) 
 
 ## [v5.4.1](https://github.com/purescript/purescript-lists/releases/tag/v5.4.1) - 2019-05-06
 
