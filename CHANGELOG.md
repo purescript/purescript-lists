@@ -9,6 +9,7 @@ Breaking changes:
 - Renamed `scanrLazy` to `scanlLazy` and fixed parameter ordering (#161)
 - Renamed `group'` to `groupAll` (#182)
 - Changed `Alt ZipList` to satisfy distributivity (#150)
+- Updated the `Show` instances for (non empty) lazy lists (#181)
 
 New features:
 - Added `nubEq`/`nubByEq` (#179)
