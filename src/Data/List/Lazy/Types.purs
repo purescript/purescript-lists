@@ -34,6 +34,10 @@ newtype List a = List (Lazy (Step a))
 -- | `Cons` constructor).
 data Step a = Nil | Cons a (List a)
 
+instance showStep :: Show a => Show (Step a) where
+  show Nil = "Nil"
+  show (Cons x xs) = "(" <> show x <> " : " <> show xs <> ")"
+
 -- | Unwrap a lazy linked list
 step :: forall a. List a -> Step a
 step = force <<< unwrap
@@ -59,10 +63,12 @@ infixr 6 cons as :
 derive instance newtypeList :: Newtype (List a) _
 
 instance showList :: Show a => Show (List a) where
-  show xs = "fromStrict (" <> go (step xs) <> ")"
-    where
-    go Nil = "Nil"
-    go (Cons x xs') = "(Cons " <> show x <> " " <> go (step xs') <> ")"
+  show xs = "(fromFoldable ["
+         <> case step xs of
+              Nil -> ""
+              Cons x xs' ->
+                show x <> foldl (\shown x' -> shown <> "," <> show x') "" xs'
+         <> "])"
 
 instance eqList :: Eq a => Eq (List a) where
   eq = eq1
