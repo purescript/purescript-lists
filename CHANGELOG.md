@@ -5,6 +5,16 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
+
+New features:
+
+Bugfixes:
+
+Other improvements:
+
+## [v6.0.0](https://github.com/purescript/purescript-lists/releases/tag/v6.0.0) - 2021-02-26
+
+Breaking changes:
 - Converted `nub`/`nubBy` to use ordering, rather than equality (#179)
 - Renamed `scanrLazy` to `scanlLazy` and fixed parameter ordering (#161)
 - Renamed `group'` to `groupAll` (#182)
