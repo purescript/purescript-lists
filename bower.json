@@ -7,7 +7,7 @@
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
-    "url": "git://github.com/purescript/purescript-lists.git"
+    "url": "https://github.com/purescript/purescript-lists.git"
   },
   "ignore": [
     "**/.*",
