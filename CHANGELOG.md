@@ -11,7 +11,11 @@ New features:
 Bugfixes:
 
 Other improvements:
-- Fix warnings revealed by v0.14.1 PS release (#198)
+
+## [v6.0.1](https://github.com/purescript/purescript-lists/releases/tag/v6.0.1) - 2021-04-19
+
+Other improvements:
+- Fixed warnings revealed by v0.14.1 PS release (#198 by @JordanMartinez)
 
 ## [v6.0.0](https://github.com/purescript/purescript-lists/releases/tag/v6.0.0) - 2021-02-26
 
