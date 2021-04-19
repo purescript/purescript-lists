@@ -271,7 +271,7 @@ uncons (x : xs) = Just { head: x, tail: xs }
 unsnoc :: forall a. List a -> Maybe { init :: List a, last :: a }
 unsnoc lst = (\h -> { init: reverse h.revInit, last: h.last }) <$> go lst Nil
   where
-  go Nil acc = Nothing
+  go Nil _ = Nothing
   go (x : Nil) acc = Just { revInit: acc, last: x }
   go (x : xs) acc = go xs (x : acc)
 
@@ -325,7 +325,7 @@ insertAt _ _ _  = Nothing
 -- |
 -- | Running time: `O(n)`
 deleteAt :: forall a. Int -> List a -> Maybe (List a)
-deleteAt 0 (y : ys) = Just ys
+deleteAt 0 (_ : ys) = Just ys
 deleteAt n (y : ys) = (y : _) <$> deleteAt (n - 1) ys
 deleteAt _ _  = Nothing
 
@@ -547,7 +547,7 @@ takeWhile p = go Nil
 drop :: forall a. Int -> List a -> List a
 drop n xs | n < 1 = xs
 drop _ Nil = Nil
-drop n (x : xs) = drop (n - 1) xs
+drop n (_ : xs) = drop (n - 1) xs
 
 -- | Drop the specified number of elements from the end of a list.
 -- |

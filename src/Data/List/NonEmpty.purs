@@ -167,7 +167,7 @@ unsnoc (NonEmptyList (x :| xs)) = case L.unsnoc xs of
   Just un -> { init: x : un.init, last: un.last }
 
 length :: forall a. NonEmptyList a -> Int
-length (NonEmptyList (x :| xs)) = 1 + L.length xs
+length (NonEmptyList (_ :| xs)) = 1 + L.length xs
 
 index :: forall a. NonEmptyList a -> Int -> Maybe a
 index (NonEmptyList (x :| xs)) i

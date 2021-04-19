@@ -348,7 +348,7 @@ deleteAt :: forall a. Int -> List a -> List a
 deleteAt n xs = List (go n <$> unwrap xs)
   where
   go _ Nil = Nil
-  go 0 (Cons y ys) = step ys
+  go 0 (Cons _ ys) = step ys
   go n' (Cons y ys) = Cons y (deleteAt (n' - 1) ys)
 
 -- | Update the element at the specified index, returning a new list,
@@ -523,7 +523,7 @@ drop n = List <<< map (go n) <<< unwrap
   where
   go 0 xs = xs
   go _ Nil = Nil
-  go n' (Cons x xs) = go (n' - 1) (step xs)
+  go n' (Cons _ xs) = go (n' - 1) (step xs)
 
 -- | Drop those elements from the front of a list which match a predicate.
 -- |
