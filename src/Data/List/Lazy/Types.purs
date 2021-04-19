@@ -199,7 +199,7 @@ instance extendList :: Extend List where
   extend f l =
     case step l of
       Nil -> nil
-      Cons a as ->
+      Cons _ as ->
         f l : (foldr go { val: nil, acc: nil } as).val
     where
       go a { val, acc } =

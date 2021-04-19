@@ -73,7 +73,7 @@ uncons :: forall a. NonEmptyList a -> { head :: a, tail :: L.List a }
 uncons (NonEmptyList nel) = case force nel of x :| xs -> { head: x, tail: xs }
 
 length :: forall a. NonEmptyList a -> Int
-length (NonEmptyList nel) = case force nel of x :| xs -> 1 + L.length xs
+length (NonEmptyList nel) = case force nel of _ :| xs -> 1 + L.length xs
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
