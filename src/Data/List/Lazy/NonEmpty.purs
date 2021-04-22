@@ -43,6 +43,7 @@ module Data.List.Lazy.NonEmpty
   , range
   , reverse
   , snoc
+  , snoc'
   , span
   , take
   , takeEnd
