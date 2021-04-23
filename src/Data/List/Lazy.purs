@@ -96,6 +96,18 @@ module Data.List.Lazy
   , scanlLazy
 
   , module Exports
+
+  -- additions
+  , appendFoldable
+  , someRec
+  , sort
+  , sortBy
+
+  , cons'
+  , dropEnd
+  , groupAllBy
+  , snoc'
+
   ) where
 
 import Prelude
@@ -104,6 +116,7 @@ import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy as Z
 import Control.Monad.Rec.Class as Rec
+import Control.Monad.Rec.Class (class MonadRec)
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Lazy (defer)
@@ -118,6 +131,26 @@ import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Partial.Unsafe (unsafeCrashWith)
+
+-- Additions
+appendFoldable :: forall t a. Foldable t => List a -> t a -> List a
+appendFoldable _ _ = unsafeCrashWith "todo appendFoldable for Lazy List"
+someRec :: forall f a. MonadRec f => Alternative f => f a -> f (List a)
+someRec _ = unsafeCrashWith "todo someRec for Lazy List"
+sort :: forall a. Ord a => List a -> List a
+sort _ = unsafeCrashWith "todo sort for Lazy List"
+sortBy :: forall a. (a -> a -> Ordering) -> List a -> List a
+sortBy _ _ = unsafeCrashWith "todo sortBy for Lazy List"
+
+cons' :: forall a. a -> NEL.NonEmptyList a -> List a
+cons' _ _ = unsafeCrashWith "todo cons' for Lazy List"
+dropEnd :: forall a. Int -> List a -> List a
+dropEnd _ _ = unsafeCrashWith "todo dropEnd for Lazy List"
+groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
+groupAllBy _ _ = unsafeCrashWith "todo groupAllBy for Lazy List"
+snoc' :: forall a. NEL.NonEmptyList a -> a -> List a
+snoc' _ _ = unsafeCrashWith "todo snoc' for Lazy List"
+
 
 -- | Convert a list into any unfoldable structure.
 -- |

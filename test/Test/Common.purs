@@ -3,7 +3,10 @@ module Test.Common where
 import Prelude
 
 import Control.Alt (class Alt, (<|>))
+import Control.Alternative (class Alternative)
 import Control.Extend (class Extend, (<<=))
+import Control.Lazy (class Lazy)
+import Control.Monad.Rec.Class (class MonadRec)
 import Data.Array as Array
 import Data.Eq (class Eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, sum)
@@ -84,9 +87,10 @@ class (
   , TraversableWithIndex Int c
   , Unfoldable1 c
 ) <= Common c where
+  makeContainer :: forall f a. Foldable f => f a -> c a
+
   concat :: forall a. c (c a) -> c a
   concatMap :: forall a. forall b. (a -> c b) -> c a -> c b
-  -- Should basic list have a cons function wrapping the Cons constructor?
   cons :: forall a. a -> c a -> c a
   elemIndex :: forall a. Eq a => a -> c a -> Maybe Int
   elemLastIndex :: forall a. Eq a => a -> c a -> Maybe Int
@@ -99,24 +103,35 @@ class (
   length :: forall a. c a -> Int
   nubEq :: forall a. Eq a => c a -> c a
   nubByEq :: forall a. (a -> a -> Boolean) -> c a -> c a
+  range :: Int -> Int -> c Int
   reverse :: c ~> c
   singleton :: forall a. a -> c a
   snoc :: forall a. c a -> a -> c a
   toUnfoldable :: forall f a. Unfoldable f => c a -> f a
   union :: forall a. Eq a => c a -> c a -> c a
   unionBy :: forall a. (a -> a -> Boolean) -> c a -> c a -> c a
-  -- Types don't have to be all a
-  -- Todo - double check this requirement
   unzip :: forall a b. c (Tuple a b) -> Tuple (c a) (c b)
   zip :: forall a b. c a -> c b -> c (Tuple a b)
   zipWith :: forall a b d. (a -> b -> d) -> c a -> c b -> c d
   zipWithA :: forall a b d m. Applicative m => (a -> b -> m d) -> c a -> c b -> m (c d)
 
-  -- Todo - add to
-  -- NonEmpty
-  range :: Int -> Int -> c Int
+  appendFoldable :: forall t a. Foldable t => c a -> t a -> c a
+  insert :: forall a. Ord a => a -> c a -> c a
+  insertBy :: forall a. (a -> a -> Ordering) -> a -> c a -> c a
+  nub :: forall a. Ord a => c a -> c a
+  nubBy :: forall a. (a -> a -> Ordering) -> c a -> c a
+  -- This constructor is probably best to be set in diff empty
+  -- pattern :: forall a. (c a) -> Pattern a
+  replicate :: forall a. Int -> a -> c a
+  replicateM :: forall m a. Monad m => Int -> m a -> m (c a)
+  some :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
+  someRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
+  sort :: forall a. Ord a => c a -> c a
+  sortBy :: forall a. (a -> a -> Ordering) -> c a -> c a
+  transpose :: forall a. c (c a) -> c (c a)
 
-  makeContainer :: forall f a. Foldable f => f a -> c a
+
+
 
 -- Don't know how to define this in Test.Data.List
 -- Wrapping is tricky.
@@ -125,7 +140,7 @@ instance commonList :: Common L.List where
 
   concat = L.concat
   concatMap = L.concatMap
-  cons = L.Cons
+  cons = L.Cons -- Should basic list have a cons function wrapping the Cons constructor?
   elemIndex = L.elemIndex
   elemLastIndex = L.elemLastIndex
   findIndex = L.findIndex
@@ -148,6 +163,20 @@ instance commonList :: Common L.List where
   zip = L.zip
   zipWith = L.zipWith
   zipWithA = L.zipWithA
+
+  appendFoldable = L.appendFoldable
+  insert = L.insert
+  insertBy = L.insertBy
+  nub = L.nub
+  nubBy = L.nubBy
+  -- pattern = L.Pattern
+  replicate = L.replicate
+  replicateM = L.replicateM
+  some = L.some
+  someRec = L.someRec
+  sort = L.sort
+  sortBy = L.sortBy
+  transpose = L.transpose
 
 instance commonNonEmptyList :: Common NEL.NonEmptyList where
   makeContainer = unsafePartial fromJust <<< NEL.fromFoldable
@@ -178,6 +207,20 @@ instance commonNonEmptyList :: Common NEL.NonEmptyList where
   zipWith = NEL.zipWith
   zipWithA = NEL.zipWithA
 
+  appendFoldable = NEL.appendFoldable
+  insert = NEL.insert
+  insertBy = NEL.insertBy
+  nub = NEL.nub
+  nubBy = NEL.nubBy
+  --pattern = NEL.Pattern
+  replicate = NEL.replicate
+  replicateM = NEL.replicateM
+  some = NEL.some
+  someRec = NEL.someRec
+  sort = NEL.sort
+  sortBy = NEL.sortBy
+  transpose = NEL.transpose
+
 instance commonLazyList :: Common LL.List where
   makeContainer = LL.fromFoldable
 
@@ -207,6 +250,20 @@ instance commonLazyList :: Common LL.List where
   zipWith = LL.zipWith
   zipWithA = LL.zipWithA
 
+  appendFoldable = LL.appendFoldable
+  insert = LL.insert
+  insertBy = LL.insertBy
+  nub = LL.nub
+  nubBy = LL.nubBy
+  --pattern = LL.Pattern
+  replicate = LL.replicate
+  replicateM = LL.replicateM
+  some = LL.some
+  someRec = LL.someRec
+  sort = LL.sort
+  sortBy = LL.sortBy
+  transpose = LL.transpose
+
 instance commonLazyNonEmptyList :: Common LNEL.NonEmptyList where
   makeContainer = unsafePartial fromJust <<< LNEL.fromFoldable
 
@@ -235,6 +292,20 @@ instance commonLazyNonEmptyList :: Common LNEL.NonEmptyList where
   zip = LNEL.zip
   zipWith = LNEL.zipWith
   zipWithA = LNEL.zipWithA
+
+  appendFoldable = LNEL.appendFoldable
+  insert = LNEL.insert
+  insertBy = LNEL.insertBy
+  nub = LNEL.nub
+  nubBy = LNEL.nubBy
+  -- pattern = LNEL.Pattern
+  replicate = LNEL.replicate
+  replicateM = LNEL.replicateM
+  some = LNEL.some
+  someRec = LNEL.someRec
+  sort = LNEL.sort
+  sortBy = LNEL.sortBy
+  transpose = LNEL.transpose
 
 testCommon :: forall c.
   Common c =>

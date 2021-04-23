@@ -62,16 +62,37 @@ module Data.List.NonEmpty
   , unzip
   , foldM
   , module Exports
+  -- additions
+  , insert
+  , insertBy
+  , Pattern(..)
+  , replicate
+  , replicateM
+  , some
+  , someRec
+  , transpose
+
+  , delete
+  , deleteBy
+  , difference
+  , dropEnd
+  , slice
+  , stripPrefix
+
   ) where
 
 import Prelude
 
+import Control.Alternative (class Alternative)
+import Control.Lazy (class Lazy)
+import Control.Monad.Rec.Class (class MonadRec)
 import Data.Foldable (class Foldable)
 import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe)
+import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
 import Data.Semigroup.Traversable (sequence1)
@@ -85,6 +106,36 @@ import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Ex
 import Data.Traversable (scanl, scanr) as Exports
 
 import Prim.TypeError (class Warn, Text)
+
+--- Sorted additions ------
+
+insert :: forall a. Ord a => a -> NonEmptyList a -> NonEmptyList a
+insert _ _ = unsafeCrashWith "todo insert for NonEmptyList"
+insertBy :: forall a. (a -> a -> Ordering) -> a -> NonEmptyList a -> NonEmptyList a
+insertBy _ _ _ = unsafeCrashWith "todo insertBy for NonEmptyList"
+replicate :: forall a. Int -> a -> NonEmptyList a
+replicate _ _ = unsafeCrashWith "todo replicate for NonEmptyList"
+replicateM :: forall m a. Monad m => Int -> m a -> m (NonEmptyList a)
+replicateM _ _ = unsafeCrashWith "todo replicateM for NonEmptyList"
+some :: forall f a. Alternative f => Lazy (f (NonEmptyList a)) => f a -> f (NonEmptyList a)
+some _ = unsafeCrashWith "todo some for NonEmptyList"
+someRec :: forall f a. MonadRec f => Alternative f => f a -> f (NonEmptyList a)
+someRec _ = unsafeCrashWith "todo someRec for NonEmptyList"
+transpose :: forall a. NonEmptyList (NonEmptyList a) -> NonEmptyList (NonEmptyList a)
+transpose _ = unsafeCrashWith "todo transpose for NonEmptyList"
+
+delete :: forall a. Eq a => a -> NonEmptyList a -> L.List a
+delete _ _ = unsafeCrashWith "todo delete for NonEmptyList"
+deleteBy :: forall a. (a -> a -> Boolean) -> a -> NonEmptyList a -> L.List a
+deleteBy _ _ _ = unsafeCrashWith "todo deleteBy for NonEmptyList"
+difference :: forall a. Eq a => NonEmptyList a -> NonEmptyList a -> L.List a
+difference _ _ = unsafeCrashWith "todo difference for NonEmptyList"
+dropEnd :: forall a. Int -> NonEmptyList a -> L.List a
+dropEnd _ _ = unsafeCrashWith "todo dropEnd for NonEmptyList"
+slice :: Int -> Int -> NonEmptyList ~> L.List
+slice _ _ = unsafeCrashWith "todo slice for NonEmptyList"
+stripPrefix :: forall a. Eq a => Pattern a -> NonEmptyList a -> Maybe (L.List a)
+stripPrefix _ _ = unsafeCrashWith "todo stripPrefix for NonEmptyList"
 
 -- | Internal function: any operation on a list that is guaranteed not to delete
 -- | all elements also applies to a NEL, this function is a helper for defining
@@ -332,3 +383,13 @@ unzip ts = Tuple (map fst ts) (map snd ts)
 
 foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> NonEmptyList a -> m b
 foldM f b (NonEmptyList (a :| as)) = f b a >>= \b' -> L.foldM f b' as
+
+-- | A newtype used in cases where there is a list to be matched.
+newtype Pattern a = Pattern (NonEmptyList a)
+
+derive instance eqPattern :: Eq a => Eq (Pattern a)
+derive instance ordPattern :: Ord a => Ord (Pattern a)
+derive instance newtypePattern :: Newtype (Pattern a) _
+
+instance showPattern :: Show a => Show (Pattern a) where
+  show (Pattern s) = "(Pattern " <> show s <> ")"

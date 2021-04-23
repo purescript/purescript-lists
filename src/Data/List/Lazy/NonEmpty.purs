@@ -56,17 +56,42 @@ module Data.List.Lazy.NonEmpty
   , zipWith
   , zipWithA
 
+  , insert
+  , insertBy
+  , nub
+  , nubBy
+  , Pattern(..)
+  , replicate
+  , replicateM
+  , some
+  , someRec
+  , sort
+  , sortBy
+  , transpose
+
+  , cons'
+  , delete
+  , deleteBy
+  , difference
+  , dropEnd
+  , groupAllBy
+  , slice
+  , stripPrefix
 
   ) where
 
 import Prelude
 
+import Control.Alternative (class Alternative)
+import Control.Lazy (class Lazy)
+import Control.Monad.Rec.Class (class MonadRec)
 import Data.Foldable (class Foldable)
 import Data.Lazy (force, defer)
 import Data.List.Lazy ((:))
 import Data.List.Lazy as L
 import Data.List.Lazy.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
+import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
@@ -191,6 +216,47 @@ zipWith _ _ _ = unsafeCrashWith "todo zipWith for Lazy NonEmptyList"
 zipWithA :: forall m a b c. Applicative m => (a -> b -> m c) -> NonEmptyList a -> NonEmptyList b -> m (NonEmptyList c)
 zipWithA _ _ _ = unsafeCrashWith "todo zipWithA for Lazy NonEmptyList"
 
+
+insert :: forall a. Ord a => a -> NonEmptyList a -> NonEmptyList a
+insert _ _ = unsafeCrashWith "todo insert for Lazy NonEmptyList"
+insertBy :: forall a. (a -> a -> Ordering) -> a -> NonEmptyList a -> NonEmptyList a
+insertBy _ _ _ = unsafeCrashWith "todo insertBy for Lazy NonEmptyList"
+nub :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
+nub _ = unsafeCrashWith "todo nub for Lazy NonEmptyList"
+nubBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
+nubBy _ _ = unsafeCrashWith "todo nubBy for Lazy NonEmptyList"
+replicate :: forall a. Int -> a -> NonEmptyList a
+replicate _ _ = unsafeCrashWith "todo replicate for Lazy NonEmptyList"
+replicateM :: forall m a. Monad m => Int -> m a -> m (NonEmptyList a)
+replicateM _ _ = unsafeCrashWith "todo replicateM for Lazy NonEmptyList"
+some :: forall f a. Alternative f => Lazy (f (NonEmptyList a)) => f a -> f (NonEmptyList a)
+some _ = unsafeCrashWith "todo some for Lazy NonEmptyList"
+someRec :: forall f a. MonadRec f => Alternative f => f a -> f (NonEmptyList a)
+someRec _ = unsafeCrashWith "todo someRec for Lazy NonEmptyList"
+sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
+sort _ = unsafeCrashWith "todo sort for Lazy NonEmptyList"
+sortBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
+sortBy _ _ = unsafeCrashWith "todo sortBy for Lazy NonEmptyList"
+transpose :: forall a. NonEmptyList (NonEmptyList a) -> NonEmptyList (NonEmptyList a)
+transpose _ = unsafeCrashWith "todo transpose for Lazy NonEmptyList"
+
+cons' :: forall a. a -> L.List a -> NonEmptyList a
+cons' _ _ = unsafeCrashWith "todo cons' for LazyNonEmptyList"
+delete :: forall a. Eq a => a -> NonEmptyList a -> L.List a
+delete _ _ = unsafeCrashWith "todo delete for LazyNonEmptyList"
+deleteBy :: forall a. (a -> a -> Boolean) -> a -> NonEmptyList a -> L.List a
+deleteBy _ _ _ = unsafeCrashWith "todo deleteBy for LazyNonEmptyList"
+difference :: forall a. Eq a => NonEmptyList a -> NonEmptyList a -> L.List a
+difference _ _ = unsafeCrashWith "todo difference for LazyNonEmptyList"
+dropEnd :: forall a. Int -> NonEmptyList a -> L.List a
+dropEnd _ _ = unsafeCrashWith "todo dropEnd for LazyNonEmptyList"
+groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
+groupAllBy _ _ = unsafeCrashWith "todo groupAllBy for LazyNonEmptyList"
+slice :: Int -> Int -> NonEmptyList ~> L.List
+slice _ _ = unsafeCrashWith "todo slice for LazyNonEmptyList"
+stripPrefix :: forall a. Eq a => Pattern a -> NonEmptyList a -> Maybe (L.List a)
+stripPrefix _ _ = unsafeCrashWith "todo stripPrefix for LazyNonEmptyList"
+
 -----------
 
 toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
@@ -251,3 +317,13 @@ concatMap = flip bind
 appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyList a
 appendFoldable nel ys =
   NonEmptyList (defer \_ -> head nel :| tail nel <> L.fromFoldable ys)
+
+-- | A newtype used in cases where there is a list to be matched.
+newtype Pattern a = Pattern (NonEmptyList a)
+
+derive instance eqPattern :: Eq a => Eq (Pattern a)
+derive instance ordPattern :: Ord a => Ord (Pattern a)
+derive instance newtypePattern :: Newtype (Pattern a) _
+
+instance showPattern :: Show a => Show (Pattern a) where
+  show (Pattern s) = "(Pattern " <> show s <> ")"

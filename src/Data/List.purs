@@ -95,6 +95,15 @@ module Data.List
   , foldM
 
   , module Exports
+
+  -- additions
+  , appendFoldable
+  , replicate
+  , replicateM
+
+  , cons'
+  , snoc'
+
   ) where
 
 import Prelude
@@ -117,7 +126,58 @@ import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
+import Partial.Unsafe (unsafeCrashWith)
 import Prim.TypeError (class Warn, Text)
+
+
+----------  Additions
+
+appendFoldable :: forall t a. Foldable t => List a -> t a -> List a
+appendFoldable _ _ = unsafeCrashWith "todo appendFoldable for Basic List"
+replicate :: forall a. Int -> a -> List a
+replicate _ _ = unsafeCrashWith "todo replicate for Basic List"
+replicateM :: forall m a. Monad m => Int -> m a -> m (List a)
+replicateM _ _ = unsafeCrashWith "todo replicateM for Basic List"
+
+
+{-
+, cons'
+, delete
+, deleteBy
+, difference
+, dropEnd
+, groupAllBy
+, pattern
+, slice
+, snoc'
+, stripPrefix
+-}
+
+{-
+cons' :: forall a. a -> cInverse a -> c a
+cons' _ _ = unsafeCrashWith "todo cons' for todorename"
+delete :: forall a. Eq a => a -> c a -> canEmpty a
+delete _ _ = unsafeCrashWith "todo delete for todorename"
+deleteBy :: forall a. (a -> a -> Boolean) -> a -> c a -> canEmpty a
+deleteBy _ _ _ = unsafeCrashWith "todo deleteBy for todorename"
+difference :: forall a. Eq a => c a -> c a -> canEmpty a
+difference _ _ = unsafeCrashWith "todo difference for todorename"
+dropEnd :: forall a. Int -> c a -> canEmpty a
+dropEnd _ _ = unsafeCrashWith "todo dropEnd for todorename"
+groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> c a -> c (nonEmpty a)
+groupAllBy _ _ = unsafeCrashWith "todo groupAllBy for todorename"
+slice :: Int -> Int -> c ~> canEmpty
+slice _ _ = unsafeCrashWith "todo slice for todorename"
+snoc' :: forall a. cInverse a -> a -> c a
+snoc' _ _ = unsafeCrashWith "todo snoc' for todorename"
+stripPrefix :: forall a. Eq a => Pattern a -> c a -> Maybe (canEmpty a)
+stripPrefix _ _ = unsafeCrashWith "todo stripPrefix for todorename"
+-}
+
+cons' :: forall a. a -> NEL.NonEmptyList a -> List a
+cons' _ _ = unsafeCrashWith "todo cons' for Basic List"
+snoc' :: forall a. NEL.NonEmptyList a -> a -> List a
+snoc' _ _ = unsafeCrashWith "todo snoc' for Basic List"
 
 -- | Convert a list into any unfoldable structure.
 -- |

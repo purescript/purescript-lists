@@ -4,18 +4,16 @@ import Prelude
 
 import Data.Foldable (class Foldable)
 import Data.Function (on)
+import Data.List as L
+import Data.List.Lazy as LL
+import Data.List.Lazy.NonEmpty as LNEL
+import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), fromJust)
 import Effect (Effect)
 import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
 import Test.Assert (assert)
-
 import Test.Common (class Common, SkipBroken(..), assertSkipHelper, printTestType, makeContainer, range)
-
-import Data.List as L
-import Data.List.NonEmpty as NEL
-import Data.List.Lazy as LL
-import Data.List.Lazy.NonEmpty as LNEL
 
 {-
 This is for testing common functions that have slightly different
@@ -50,7 +48,7 @@ But creating an "identity" type alias doesn't work because:
 
 class (
   Eq (c Int)
-) <= CommonDiffEmptiability c canEmpty nonEmpty | c -> canEmpty nonEmpty where
+) <= CommonDiffEmptiability c cInverse canEmpty nonEmpty cPattern | c -> cInverse canEmpty nonEmpty cPattern where
 
   toCanEmpty :: forall a. c a -> canEmpty a
   toNonEmpty :: forall a. c a -> nonEmpty a
@@ -70,8 +68,20 @@ class (
   takeEnd :: forall a. Int -> c a -> canEmpty a
   takeWhile :: forall a. (a -> Boolean) -> c a -> canEmpty a
 
+  cons' :: forall a. a -> cInverse a -> c a
+  delete :: forall a. Eq a => a -> c a -> canEmpty a
+  deleteBy :: forall a. (a -> a -> Boolean) -> a -> c a -> canEmpty a
+  difference :: forall a. Eq a => c a -> c a -> canEmpty a
+  dropEnd :: forall a. Int -> c a -> canEmpty a
+  -- There's a pending PR to update this signature
+  -- groupAllBy :: forall a. (a -> a -> Ordering) -> c a -> c (nonEmpty a)
+  groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> c a -> c (nonEmpty a)
+  pattern :: forall a. c a -> cPattern a
+  slice :: Int -> Int -> c ~> canEmpty
+  snoc' :: forall a. cInverse a -> a -> c a
+  stripPrefix :: forall a. Eq a => cPattern a -> c a -> Maybe (canEmpty a)
 
-instance commonDiffEmptiabilityCanEmptyList :: CommonDiffEmptiability L.List L.List NEL.NonEmptyList where
+instance commonDiffEmptiabilityCanEmptyList :: CommonDiffEmptiability L.List NEL.NonEmptyList L.List NEL.NonEmptyList L.Pattern where
 
   toCanEmpty = identity
   toNonEmpty = unsafePartial fromJust <<< NEL.fromList
@@ -91,7 +101,18 @@ instance commonDiffEmptiabilityCanEmptyList :: CommonDiffEmptiability L.List L.L
   takeEnd = L.takeEnd
   takeWhile = L.takeWhile
 
-instance commonDiffEmptiabilityNonEmptyList :: CommonDiffEmptiability NEL.NonEmptyList L.List NEL.NonEmptyList where
+  cons' = L.cons'
+  delete = L.delete
+  deleteBy = L.deleteBy
+  difference = L.difference
+  dropEnd = L.dropEnd
+  groupAllBy = L.groupAllBy
+  pattern = L.Pattern
+  slice = L.slice
+  snoc' = L.snoc'
+  stripPrefix = L.stripPrefix
+
+instance commonDiffEmptiabilityNonEmptyList :: CommonDiffEmptiability NEL.NonEmptyList L.List L.List NEL.NonEmptyList NEL.Pattern where
 
   toCanEmpty = NEL.toList
   toNonEmpty = identity
@@ -111,7 +132,18 @@ instance commonDiffEmptiabilityNonEmptyList :: CommonDiffEmptiability NEL.NonEmp
   takeEnd = NEL.takeEnd
   takeWhile = NEL.takeWhile
 
-instance commonDiffEmptiabilityCanEmptyLazyList :: CommonDiffEmptiability LL.List LL.List LNEL.NonEmptyList where
+  cons' = NEL.cons'
+  delete = NEL.delete
+  deleteBy = NEL.deleteBy
+  difference = NEL.difference
+  dropEnd = NEL.dropEnd
+  groupAllBy = NEL.groupAllBy
+  pattern = NEL.Pattern
+  slice = NEL.slice
+  snoc' = NEL.snoc'
+  stripPrefix = NEL.stripPrefix
+
+instance commonDiffEmptiabilityCanEmptyLazyList :: CommonDiffEmptiability LL.List LNEL.NonEmptyList LL.List LNEL.NonEmptyList LL.Pattern where
 
   toCanEmpty = identity
   toNonEmpty = unsafePartial fromJust <<< LNEL.fromList
@@ -131,7 +163,18 @@ instance commonDiffEmptiabilityCanEmptyLazyList :: CommonDiffEmptiability LL.Lis
   takeEnd = LL.takeEnd
   takeWhile = LL.takeWhile
 
-instance commonDiffEmptiabilityLazyNonEmptyList :: CommonDiffEmptiability LNEL.NonEmptyList LL.List LNEL.NonEmptyList where
+  cons' = LL.cons'
+  delete = LL.delete
+  deleteBy = LL.deleteBy
+  difference = LL.difference
+  dropEnd = LL.dropEnd
+  groupAllBy = LL.groupAllBy
+  pattern = LL.Pattern
+  slice = LL.slice
+  snoc' = LL.snoc'
+  stripPrefix = LL.stripPrefix
+
+instance commonDiffEmptiabilityLazyNonEmptyList :: CommonDiffEmptiability LNEL.NonEmptyList LL.List LL.List LNEL.NonEmptyList LNEL.Pattern where
 
   toCanEmpty = LNEL.toList
   toNonEmpty = identity
@@ -151,9 +194,20 @@ instance commonDiffEmptiabilityLazyNonEmptyList :: CommonDiffEmptiability LNEL.N
   takeEnd = LNEL.takeEnd
   takeWhile = LNEL.takeWhile
 
-testCommonDiffEmptiability :: forall c canEmpty nonEmpty.
+  cons' = LNEL.cons'
+  delete = LNEL.delete
+  deleteBy = LNEL.deleteBy
+  difference = LNEL.difference
+  dropEnd = LNEL.dropEnd
+  groupAllBy = LNEL.groupAllBy
+  pattern = LNEL.Pattern
+  slice = LNEL.slice
+  snoc' = LNEL.snoc'
+  stripPrefix = LNEL.stripPrefix
+
+testCommonDiffEmptiability :: forall c cInverse canEmpty nonEmpty cPattern.
   Common c =>
-  CommonDiffEmptiability c canEmpty nonEmpty =>
+  CommonDiffEmptiability c cInverse canEmpty nonEmpty cPattern =>
   Eq (c (nonEmpty Int)) =>
   Eq (canEmpty Int) =>
   SkipBroken -> c Int -> canEmpty Int -> nonEmpty Int -> Effect Unit
