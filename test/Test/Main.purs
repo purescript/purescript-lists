@@ -16,6 +16,7 @@ main :: Effect Unit
 main = do
   --originalTests
   updatedTests
+  pure unit
 
 originalTests :: Effect Unit
 originalTests = do

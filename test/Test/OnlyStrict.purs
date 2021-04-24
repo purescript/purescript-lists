@@ -25,6 +25,7 @@ unsnoc
 -}
 
   -- Same names, but different APIs (with Maybe)
+  alterAt :: forall a. Int -> (a -> Maybe a) -> c a -> Maybe (c a)
   insertAt :: forall a. Int -> a -> c a -> Maybe (c a)
   modifyAt :: forall a. Int -> (a -> a) -> c a -> Maybe (c a)
   updateAt :: forall a. Int -> a -> c a -> Maybe (c a)
@@ -35,11 +36,13 @@ unsnoc
   --nubBy :: forall a. (a -> a -> Ordering) -> c a -> c a
 
 instance onlyStrictList :: OnlyStrict L.List where
+  alterAt = L.alterAt
   insertAt = L.insertAt
   modifyAt = L.modifyAt
   updateAt = L.updateAt
 
 instance onlyStrictNonEmptyList :: OnlyStrict NEL.NonEmptyList where
+  alterAt = NEL.alterAt
   insertAt = NEL.insertAt
   modifyAt = NEL.modifyAt
   updateAt = NEL.updateAt

@@ -3,6 +3,7 @@ module Test.OnlyLazy where
 import Prelude
 
 import Data.Foldable (class Foldable)
+import Data.Maybe (Maybe(..))
 import Control.Lazy (class Lazy)
 import Effect (Effect)
 import Effect.Console (log)
@@ -22,16 +23,19 @@ class (
 class OnlyLazy c where
 
 -- Same names, but different APIs (without Maybe)
+  alterAt :: forall a. Int -> (a -> Maybe a) -> c a -> c a
   insertAt :: forall a. Int -> a -> c a -> c a
   modifyAt :: forall a. Int -> (a -> a) -> c a -> c a
   updateAt :: forall a. Int -> a -> c a -> c a
 
 instance onlyLazyList :: OnlyLazy LL.List where
+  alterAt = LL.alterAt
   insertAt = LL.insertAt
   modifyAt = LL.modifyAt
   updateAt = LL.updateAt
 
 instance onlyLazyNonEmptyList :: OnlyLazy LNEL.NonEmptyList where
+  alterAt = LNEL.alterAt
   insertAt = LNEL.insertAt
   modifyAt = LNEL.modifyAt
   updateAt = LNEL.updateAt

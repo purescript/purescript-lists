@@ -2,19 +2,18 @@ module Test.UpdatedTests(updatedTests) where
 
 import Prelude
 
-import Effect (Effect)
-
-import Test.Common (testCommon, SkipBroken(..), printContainerType)
-import Test.CommonDiffEmptiability (testCommonDiffEmptiability)
-import Test.OnlyCanEmpty(testOnlyCanEmpty)
-import Test.OnlyNonEmpty(testOnlyNonEmpty)
-import Test.OnlyStrict(testOnlyStrict)
-import Test.OnlyLazy(testOnlyLazy)
---
 import Data.List as L
 import Data.List.Lazy as LL
-import Data.List.NonEmpty as NEL
 import Data.List.Lazy.NonEmpty as LNEL
+import Data.List.NonEmpty as NEL
+import Effect (Effect)
+import Test.Common (testCommon, SkipBroken(..), printContainerType)
+import Test.CommonDiffEmptiability (testCommonDiffEmptiability)
+import Test.NoOverlap (testOnlyLazyCanEmpty, testOnlyLazyNonEmpty, testOnlyStrictCanEmpty, testOnlyStrictNonEmpty)
+import Test.OnlyCanEmpty (testOnlyCanEmpty)
+import Test.OnlyLazy (testOnlyLazy)
+import Test.OnlyNonEmpty (testOnlyNonEmpty)
+import Test.OnlyStrict (testOnlyStrict)
 
 
 {-
@@ -22,8 +21,10 @@ import Data.List.Lazy.NonEmpty as LNEL
 
 rebase
 - fix "an list" -> "a list"
-  - or even "a container / collection"
-- cleanup constraints
+  - or even "a collection"
+- rename makeContainer to makeCollection
+- upgrade to assertEqual
+
 
 -}
 
@@ -46,6 +47,7 @@ testBasicList = do
   testCommonDiffEmptiability RunAll nil nil nonEmpty
   testOnlyCanEmpty nil nonEmpty
   testOnlyStrict nil
+  testOnlyStrictCanEmpty
 
 testNonEmptyList :: Effect Unit
 testNonEmptyList = do
@@ -56,6 +58,7 @@ testNonEmptyList = do
   testCommonDiffEmptiability RunAll nonEmpty nil nonEmpty
   testOnlyNonEmpty nonEmpty nil
   testOnlyStrict nonEmpty
+  testOnlyStrictNonEmpty
 
 testLazyList :: Effect Unit
 testLazyList = do
@@ -66,6 +69,7 @@ testLazyList = do
   testCommonDiffEmptiability SkipBrokenLazyCanEmpty lazyNil lazyNil lazyNonEmpty
   testOnlyCanEmpty lazyNil lazyNonEmpty
   testOnlyLazy lazyNil
+  testOnlyLazyCanEmpty
 
 testLazyNonEmptyList :: Effect Unit
 testLazyNonEmptyList = do
@@ -78,6 +82,7 @@ testLazyNonEmptyList = do
   testCommonDiffEmptiability RunAll lazyNonEmpty lazyNil lazyNonEmpty
   testOnlyNonEmpty lazyNonEmpty lazyNil
   testOnlyLazy lazyNonEmpty
+  testOnlyLazyNonEmpty
 
 -- nil is passed instead of a singleton,
 -- because some of the functions use this

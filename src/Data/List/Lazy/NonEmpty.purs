@@ -77,6 +77,8 @@ module Data.List.Lazy.NonEmpty
   , groupAllBy
   , slice
   , stripPrefix
+  , deleteAt
+  , alterAt
 
   ) where
 
@@ -256,6 +258,12 @@ slice :: Int -> Int -> NonEmptyList ~> L.List
 slice _ _ = unsafeCrashWith "todo slice for LazyNonEmptyList"
 stripPrefix :: forall a. Eq a => Pattern a -> NonEmptyList a -> Maybe (L.List a)
 stripPrefix _ _ = unsafeCrashWith "todo stripPrefix for LazyNonEmptyList"
+
+deleteAt :: forall a. Int -> NonEmptyList a -> L.List a
+deleteAt _ _ = unsafeCrashWith "todo deleteAt for LazyNonEmptyList"
+
+alterAt :: forall a. Int -> (a -> Maybe a) -> NonEmptyList a -> NonEmptyList a
+alterAt _ _ _ = unsafeCrashWith "todo alterAt for LazyNonEmptyList"
 
 -----------
 

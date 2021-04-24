@@ -78,6 +78,8 @@ module Data.List.NonEmpty
   , dropEnd
   , slice
   , stripPrefix
+  , deleteAt
+  , alterAt
 
   ) where
 
@@ -136,6 +138,12 @@ slice :: Int -> Int -> NonEmptyList ~> L.List
 slice _ _ = unsafeCrashWith "todo slice for NonEmptyList"
 stripPrefix :: forall a. Eq a => Pattern a -> NonEmptyList a -> Maybe (L.List a)
 stripPrefix _ _ = unsafeCrashWith "todo stripPrefix for NonEmptyList"
+
+deleteAt :: forall a. Int -> NonEmptyList a -> Maybe (L.List a)
+deleteAt _ _ = unsafeCrashWith "todo deleteAt for NonEmptyList"
+
+alterAt :: forall a. Int -> (a -> Maybe a) -> NonEmptyList a -> Maybe (NonEmptyList a)
+alterAt _ _ _ = unsafeCrashWith "todo alterAt for NonEmptyList"
 
 -- | Internal function: any operation on a list that is guaranteed not to delete
 -- | all elements also applies to a NEL, this function is a helper for defining
