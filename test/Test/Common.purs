@@ -14,6 +14,10 @@ import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldlW
 import Data.Function (on)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Int (odd)
+import Data.List as L
+import Data.List.Lazy as LL
+import Data.List.Lazy.NonEmpty as LNEL
+import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Monoid.Additive (Additive(..))
 import Data.Ord (class Ord1)
@@ -25,12 +29,7 @@ import Data.Unfoldable1 (class Unfoldable1, unfoldr1)
 import Effect (Effect)
 import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
-import Test.Assert (assert)
-
-import Data.List as L
-import Data.List.NonEmpty as NEL
-import Data.List.Lazy as LL
-import Data.List.Lazy.NonEmpty as LNEL
+import Test.Assert (assert, assertEqual, assertEqual')
 
 {-
 This is temporarily being used during development.
@@ -72,7 +71,7 @@ class (
   , Apply c
   , Bind c
   , Eq (c Int)
-  --, Eq1 c -- missing from NonEmptyList, LazyNonEmptyList
+  , Eq1 c
   , Extend c
   , Foldable c
   , FoldableWithIndex Int c
@@ -80,7 +79,7 @@ class (
   , FunctorWithIndex Int c
   , Monad c
   , Ord (c Int)
-  --, Ord1 c -- missing from NonEmptyList, LazyNonEmptyList
+  , Ord1 c
   , Semigroup (c Int)
   , Show (c Int)
   , Traversable c
@@ -120,8 +119,6 @@ class (
   insertBy :: forall a. (a -> a -> Ordering) -> a -> c a -> c a
   nub :: forall a. Ord a => c a -> c a
   nubBy :: forall a. (a -> a -> Ordering) -> c a -> c a
-  -- This constructor is probably best to be set in diff empty
-  -- pattern :: forall a. (c a) -> Pattern a
   replicate :: forall a. Int -> a -> c a
   replicateM :: forall m a. Monad m => Int -> m a -> m (c a)
   some :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
@@ -312,6 +309,9 @@ testCommon :: forall c.
   Eq (c String) =>
   Eq (c (Tuple Int String)) =>
   Eq (c (c String)) =>
+  Show (c String) =>
+  Show (c (Tuple Int String)) =>
+  Show (c (c String)) =>
   c Int -> Effect Unit
 -- Would likely be better to pass a proxy type
 testCommon _ = do
@@ -329,10 +329,9 @@ testCommon _ = do
 
   -- Duplicating this test out of alphabetical order, since many other tests rely on it.
   log "range should create an inclusive container of integers for the specified start and end"
-  assert $ (range 3 3) == l [3]
-  --assertSkip \_ -> (range 3 3) == l [3]
-  assert $ (range 0 5) == l [0, 1, 2, 3, 4, 5]
-  assert $ (range 2 (-3)) == l [2, 1, 0, -1, -2, -3]
+  assertEqual { actual: range 3 3, expected: l [3] }
+  assertEqual { actual: range 0 5, expected: l [0, 1, 2, 3, 4, 5] }
+  assertEqual { actual: range 2 (-3), expected: l [2, 1, 0, -1, -2, -3] }
 
   -- ======= Typeclass tests ========
 
@@ -340,12 +339,12 @@ testCommon _ = do
   --   alt :: forall a. f a -> f a -> f a
   -- Don't know in what situations this is different than append
   log "Alt's alt (<|>) should append containers"
-  assert $ (l [1,2] <|> l [3,4]) == l [1,2,3,4]
+  assertEqual { actual: l [1,2] <|> l [3,4], expected: l [1,2,3,4] }
 
   -- Applicative
   --   pure :: forall a. a -> f a
   log "Applicative's pure should construct a container with a single value"
-  assert $ pure 5 == l [5]
+  assertEqual { actual: pure 5, expected: l [5] }
 
   -- Apply
   --   apply :: forall a b. f (a -> b) -> f a -> f b
@@ -356,15 +355,15 @@ testCommon _ = do
   --   bind :: forall a b. m a -> (a -> m b) -> m b
   log "Bind's bind (>>=) should append the results of a container-generating function\
   \applied to each element in the container"
-  assert $ (l [1,2,3] >>= \x -> l [x,10+x]) == l [1,11,2,12,3,13]
+  assertEqual { actual: l [1,2,3] >>= \x -> l [x,10+x], expected: l [1,11,2,12,3,13] }
 
   -- Eq
   --   eq :: a -> a -> Boolean
   log "Eq's eq (==) should correctly test containers for equality"
-  assert $ l [1,2] == l [1,2]
-  assert $ not $ l [1,2] == l [2,2]
+  assertEqual' "Equality failed" { actual: l [1,2] == l [1,2], expected: true }
+  assertEqual' "Inequality failed" { actual: l [1,2] == l [2,2], expected: false }
 
-  -- Eq1 -- missing from NonEmptyList, LazyNonEmptyList
+  -- Eq1
   --   eq1 :: forall a. Eq a => f a -> f a -> Boolean
   -- Todo
 
@@ -373,7 +372,7 @@ testCommon _ = do
   log "Extend's extend (<<=) should create a container containing the results\
   \of a function that is applied to increasingly smaller chunks of an input\
   \container. Each iteration drops an element from the front of the input container."
-  assert $ (sum <<= l [1,2,3,4]) == l [10,9,7,4]
+  assertEqual { actual: sum <<= l [1,2,3,4], expected: l [10,9,7,4] }
 
   -- Foldable
   --   foldr :: forall a b. (a -> b -> b) -> b -> f a -> b
@@ -388,7 +387,7 @@ testCommon _ = do
   void $ pure $ foldMap Additive k100
 
   log "foldMap should be left-to-right"
-  assert $ foldMap show (rg 1 5) == "12345"
+  assertEqual { actual: foldMap show $ rg 1 5, expected: "12345" }
 
   -- FoldableWithIndex
   --   foldrWithIndex :: forall a b. (i -> a -> b -> b) -> b -> f a -> b
@@ -397,13 +396,13 @@ testCommon _ = do
   -- Todo - Existing tests, opportunities for improvement
 
   log "foldlWithIndex should be correct"
-  assert $ foldlWithIndex (\i b _ -> i + b) 0 (rg 0 10000) == 50005000
+  assertEqual { actual: foldlWithIndex (\i b _ -> i + b) 0 $ rg 0 10000, expected: 50005000 }
 
   log "foldlWithIndex should be stack-safe"
   void $ pure $ foldlWithIndex (\i b _ -> i + b) 0 k100
 
   log "foldrWithIndex should be correct"
-  assert $ foldrWithIndex (\i _ b -> i + b) 0 (rg 0 10000) == 50005000
+  assertEqual { actual: foldrWithIndex (\i _ b -> i + b) 0 $ rg 0 10000, expected: 50005000 }
 
   log "foldrWithIndex should be stack-safe"
   void $ pure $ foldrWithIndex (\i _ b -> i + b) 0 k100
@@ -412,20 +411,20 @@ testCommon _ = do
   void $ pure $ foldMapWithIndex (\i _ -> Additive i) k100
 
   log "foldMapWithIndex should be left-to-right"
-  assert $ foldMapWithIndex (\i _ -> show i) (l [0, 0, 0]) == "012"
+  assertEqual { actual: foldMapWithIndex (\i _ -> show i) (l [0, 0, 0]), expected: "012" }
 
   -- Functor
   --   map :: forall a b. (a -> b) -> f a -> f b
 
   log "map should maintain order"
-  assert $ rg 1 5 == (map identity $ rg 1 5)
+  assertEqual { actual: rg 1 5, expected: map identity $ rg 1 5 }
 
   log "map should be stack-safe"
   void $ pure $ map identity k100
   -- Todo - The below test also performs the same stack-safety check
 
   log "map should be correct"
-  assert $ rg 1 100000 == (map (_ + 1) $ rg 0 99999)
+  assertEqual { actual: rg 1 100000, expected: map (_ + 1) $ rg 0 99999 }
 
 
   -- FunctorWithIndex
@@ -433,7 +432,7 @@ testCommon _ = do
   -- Todo - improve pre-existing
 
   log "mapWithIndex should take a container of values and apply a function which also takes the index into account"
-  assert $ mapWithIndex add (l [0, 1, 2, 3]) == l [0, 2, 4, 6]
+  assertEqual { actual: mapWithIndex add $ l [0, 1, 2, 3], expected: l [0, 2, 4, 6] }
 
   -- Monad
   --   indicates Applicative and Bind
@@ -443,7 +442,7 @@ testCommon _ = do
   --   compare :: a -> a -> Ordering
   -- Todo - add tests
 
-  -- Ord1 -- missing from NonEmptyList, LazyNonEmptyList
+  -- Ord1
   --   compare1 :: forall a. Ord a => f a -> f a -> Ordering
   -- Todo - add tests
 
@@ -451,7 +450,7 @@ testCommon _ = do
   --   append :: a -> a -> a
 
   log "append should concatenate two containers"
-  assert $ (l [1, 2]) <> (l [3, 4]) == (l [1, 2, 3, 4])
+  assertEqual { actual: l [1, 2] <> l [3, 4], expected: l [1, 2, 3, 4] }
 
   log "append should be stack-safe"
   void $ pure $ k100 <> k100
@@ -467,152 +466,151 @@ testCommon _ = do
   -- Todo - add sequence test
 
   log "traverse should be stack-safe"
-  assert $ traverse Just k100 == Just k100
+  assertEqual { actual: traverse Just k100, expected: Just k100 }
 
   -- TraversableWithIndex
   --   traverseWithIndex :: forall a b m. Applicative m => (i -> a -> m b) -> t a -> m (t b)
 
   log "traverseWithIndex should be stack-safe"
-  assert $ traverseWithIndex (const Just) k100 == Just k100
+  assertEqual { actual: traverseWithIndex (const Just) k100, expected: Just k100 }
 
   log "traverseWithIndex should be correct"
-  assert $ traverseWithIndex (\i a -> Just $ i + a) (l [2, 2, 2])
-           == Just (l [2, 3, 4])
+  assertEqual { actual: traverseWithIndex (\i a -> Just $ i + a) (l [2, 2, 2]), expected: Just $ l [2, 3, 4] }
 
   -- Unfoldable1
   --   unfoldr1 :: forall a b. (b -> Tuple a (Maybe b)) -> b -> t a
 
   let
     step1 :: Int -> Tuple Int (Maybe Int)
-    step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))
+    step1 n = Tuple n $ if n >= 5 then Nothing else Just $ n + 1
 
   log "unfoldr1 should maintain order"
-  assert $ rg 1 5 == unfoldr1 step1 1
+  assertEqual { actual: rg 1 5, expected: unfoldr1 step1 1 }
 
   -- ===========   Functions   ===========
 
   -- Todo - split
   -- log "catMaybe should take a container of Maybe values and throw out Nothings"
-  -- assert $ catMaybes (l [Nothing, Just 2, Nothing, Just 4]) == l [2, 4]
+  -- assertEqual { actual: catMaybes (l [Nothing, Just 2, Nothing, Just 4]), expected: l [2, 4] }
 
   log "concat should join a container of containers"
-  assert $ (concat (l [l [1, 2], l [3, 4]])) == l [1, 2, 3, 4]
+  assertEqual { actual: concat $ l [l [1, 2], l [3, 4]], expected: l [1, 2, 3, 4] }
 
   let
     doubleAndOrig :: Int -> c Int
     doubleAndOrig x = cons (x * 2) $ singleton x
 
   log "concatMap should be equivalent to (concat <<< map)"
-  assert $ concatMap doubleAndOrig (l [1, 2, 3]) == concat (map doubleAndOrig (l [1, 2, 3]))
+  assertEqual { actual: concatMap doubleAndOrig $ l [1, 2, 3], expected: concat $ map doubleAndOrig $ l [1, 2, 3] }
 
   log "cons should add an element to the front of the container"
-  assert $ cons 1 (l [2, 3]) == l [1,2,3]
+  assertEqual { actual: cons 1 $ l [2, 3], expected: l [1,2,3] }
 
   log "elemIndex should return the index of an item that a predicate returns true for in a container"
-  assert $ elemIndex 1 (l [1, 2, 1]) == Just 0
-  assert $ elemIndex 4 (l [1, 2, 1]) == Nothing
+  assertEqual { actual: elemIndex 1 $ l [1, 2, 1], expected: Just 0 }
+  assertEqual { actual: elemIndex 4 $ l [1, 2, 1], expected: Nothing }
 
   log "elemLastIndex should return the last index of an item in a container"
-  assert $ elemLastIndex 1 (l [1, 2, 1]) == Just 2
-  assert $ elemLastIndex 4 (l [1, 2, 1]) == Nothing
+  assertEqual { actual: elemLastIndex 1 $ l [1, 2, 1], expected: Just 2 }
+  assertEqual { actual: elemLastIndex 4 $ l [1, 2, 1], expected: Nothing }
 
   -- Todo split
   -- log "filter should remove items that don't match a predicate"
-  -- assert $ filter odd (range 0 10) == l [1, 3, 5, 7, 9]
+  -- assertEqual { actual: filter odd $ range 0 10, expected: l [1, 3, 5, 7, 9] }
 
   --log "filterM should remove items that don't match a predicate while using a monadic behaviour"
-  --assert $ filterM (Just <<< odd) (range 0 10) == Just (l [1, 3, 5, 7, 9])
-  --assert $ filterM (const Nothing) (rg 0 10) == Nothing
+  --assertEqual { actual: filterM (Just <<< odd) $ range 0 10, expected: Just $ l [1, 3, 5, 7, 9] }
+  --assertEqual { actual: filterM (const Nothing) $ rg 0 10, expected: Nothing }
 
   log "findIndex should return the index of an item that a predicate returns true for in a container"
-  assert $ findIndex (_ /= 1) (l [1, 2, 1]) == Just 1
-  assert $ findIndex (_ == 3) (l [1, 2, 1]) == Nothing
+  assertEqual { actual: findIndex (_ /= 1) $ l [1, 2, 1], expected: Just 1 }
+  assertEqual { actual: findIndex (_ == 3) $ l [1, 2, 1], expected: Nothing }
 
   log "findLastIndex should return the last index of an item in a container"
-  assert $ findLastIndex (_ /= 1) (l [2, 1, 2]) == Just 2
-  assert $ findLastIndex (_ == 3) (l [2, 1, 2]) == Nothing
+  assertEqual { actual: findLastIndex (_ /= 1) $ l [2, 1, 2], expected: Just 2 }
+  assertEqual { actual: findLastIndex (_ == 3) $ l [2, 1, 2], expected: Nothing }
 
   log "foldM should perform a fold using a monadic step function"
-  assert $ foldM (\x y -> Just (x + y)) 0 (rg 1 10) == Just 55
-  assert $ foldM (\_ _ -> Nothing) 0 (rg 1 10) == Nothing
+  assertEqual { actual: foldM (\x y -> Just $ x + y) 0 $ rg 1 10, expected: Just 55 }
+  assertEqual { actual: foldM (\_ _ -> Nothing) 0 $ rg 1 10, expected: Nothing }
 
   log "index (!!) should return Just x when the index is within the bounds of the container"
-  assert $ l [1, 2, 3] `index` 0 == (Just 1)
-  assert $ l [1, 2, 3] `index` 1 == (Just 2)
-  assert $ l [1, 2, 3] `index` 2 == (Just 3)
+  assertEqual { actual: l [1, 2, 3] `index` 0, expected: Just 1 }
+  assertEqual { actual: l [1, 2, 3] `index` 1, expected: Just 2 }
+  assertEqual { actual: l [1, 2, 3] `index` 2, expected: Just 3 }
 
   log "index (!!) should return Nothing when the index is outside of the bounds of the container"
-  assert $ l [1, 2, 3] `index` 6 == Nothing
-  assert $ l [1, 2, 3] `index` (-1) == Nothing
+  assertEqual { actual: l [1, 2, 3] `index` 6, expected: Nothing }
+  assertEqual { actual: l [1, 2, 3] `index` (-1), expected: Nothing }
 
   -- todo split
   -- log "insertAt should add an item at the specified index"
-  -- assert $ (insertAt 0 1 (l [2, 3])) == Just (l [1, 2, 3])
-  -- assert $ (insertAt 1 1 (l [2, 3])) == Just (l [2, 1, 3])
-  -- assert $ (insertAt 2 1 (l [2, 3])) == Just (l [2, 3, 1])
+  -- assertEqual { actual: insertAt 0 1 $ l [2, 3], expected: Just $ l [1, 2, 3] }
+  -- assertEqual { actual: insertAt 1 1 $ l [2, 3], expected: Just $ l [2, 1, 3] }
+  -- assertEqual { actual: insertAt 2 1 $ l [2, 3], expected: Just $ l [2, 3, 1] }
 
   -- log "insertAt should return Nothing if the index is out of range"
-  -- assert $ (insertAt 7 8 $ l [1,2,3]) == Nothing
+  -- assertEqual { actual: insertAt 7 8 $ l [1,2,3], expected: Nothing }
 
   log "intersect should return the intersection of two containers"
-  assert $ intersect (l [1, 2, 3, 4, 3, 2, 1]) (l [1, 1, 2, 3]) == l [1, 2, 3, 3, 2, 1]
+  assertEqual { actual: intersect (l [1, 2, 3, 4, 3, 2, 1]) $ l [1, 1, 2, 3], expected: l [1, 2, 3, 3, 2, 1] }
 
   log "intersectBy should return the intersection of two containers using the specified equivalence relation"
-  assert $ intersectBy (\x y -> (x * 2) == y) (l [1, 2, 3]) (l [2, 6]) == l [1, 3]
+  assertEqual { actual: intersectBy (\x y -> x * 2 == y) (l [1, 2, 3]) $ l [2, 6], expected: l [1, 3] }
 
   log "length should return the number of items in a container"
-  assert $ length (l [1]) == 1
-  assert $ length (l [1, 2, 3, 4, 5]) == 5
+  assertEqual { actual: length $ l [1], expected: 1 }
+  assertEqual { actual: length $ l [1, 2, 3, 4, 5], expected: 5 }
 
   log "length should be stack-safe"
   void $ pure $ length k100
 
   -- todo split
   -- log "modifyAt should update an item at the specified index"
-  -- assert $ (modifyAt 0 (_ + 1) (l [1, 2, 3])) == Just (l [2, 2, 3])
-  -- assert $ (modifyAt 1 (_ + 1) (l [1, 2, 3])) == Just (l [1, 3, 3])
+  -- assertEqual { actual: modifyAt 0 (_ + 1) $ l [1, 2, 3], expected: Just $ l [2, 2, 3] }
+  -- assertEqual { actual: modifyAt 1 (_ + 1) $ l [1, 2, 3], expected: Just $ l [1, 3, 3] }
 
   -- log "modifyAt should return Nothing if the index is out of range"
-  -- assert $ (modifyAt 7 (_ + 1) $ l [1,2,3]) == Nothing
+  -- assertEqual { actual: modifyAt 7 (_ + 1) $ l [1,2,3], expected: Nothing }
 
   log "nubEq should remove duplicate elements from the container, keeping the first occurence"
-  assert $ nubEq (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
+  assertEqual { actual: nubEq $ l [1, 2, 2, 3, 4, 1], expected: l [1, 2, 3, 4] }
 
   log "nubByEq should remove duplicate items from the container using a supplied predicate"
   let mod3eq = eq `on` \n -> mod n 3
-  assert $ nubByEq mod3eq (l [1, 3, 4, 5, 6]) == l [1, 3, 5]
+  assertEqual { actual: nubByEq mod3eq $ l [1, 3, 4, 5, 6], expected: l [1, 3, 5] }
 
   log "range should create an inclusive container of integers for the specified start and end"
-  assert $ (range 3 3) == l [3]
-  assert $ (range 0 5) == l [0, 1, 2, 3, 4, 5]
-  assert $ (range 2 (-3)) == l [2, 1, 0, -1, -2, -3]
+  assertEqual { actual: range 3 3, expected: l [3] }
+  assertEqual { actual: range 0 5, expected: l [0, 1, 2, 3, 4, 5] }
+  assertEqual { actual: range 2 (-3), expected: l [2, 1, 0, -1, -2, -3] }
 
   log "reverse should reverse the order of items in a container"
-  assert $ (reverse (l [1, 2, 3])) == l [3, 2, 1]
+  assertEqual { actual: reverse $ l [1, 2, 3], expected: l [3, 2, 1] }
 
   log "singleton should construct a container with a single value"
-  assert $ singleton 5 == l [5]
+  assertEqual { actual: singleton 5, expected: l [5] }
 
   log "snoc should add an item to the end of a container"
-  assert $ l [1, 2, 3] `snoc` 4 == l [1, 2, 3, 4]
+  assertEqual { actual: l [1, 2, 3] `snoc` 4, expected: l [1, 2, 3, 4] }
 
   -- Todo toUnfoldable
 
   log "union should produce the union of two containers"
-  assert $ union (l [1, 2, 3]) (l [2, 3, 4]) == l [1, 2, 3, 4]
-  assert $ union (l [1, 1, 2, 3]) (l [2, 3, 4]) == l [1, 1, 2, 3, 4]
+  assertEqual { actual: union (l [1, 2, 3]) $ l [2, 3, 4], expected: l [1, 2, 3, 4] }
+  assertEqual { actual: union (l [1, 1, 2, 3]) $ l [2, 3, 4], expected: l [1, 1, 2, 3, 4] }
 
   log "unionBy should produce the union of two containers using the specified equality relation"
-  assert $ unionBy (\_ y -> y < 5) (l [1, 2, 3]) (l [2, 3, 4, 5, 6]) == l [1, 2, 3, 5, 6]
+  assertEqual { actual: unionBy (\_ y -> y < 5) (l [1, 2, 3]) $ l [2, 3, 4, 5, 6], expected: l [1, 2, 3, 5, 6] }
 
   log "unzip should deconstruct a container of tuples into a tuple of containers"
-  assert $ unzip (l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"]) == Tuple (l [1, 2, 3]) (l ["a", "b", "c"])
+  assertEqual { actual: unzip $ l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"], expected: Tuple (l [1, 2, 3]) $ l ["a", "b", "c"] }
 
   log "zip should use the specified function to zip two containers together"
-  assert $ zip (l [1, 2, 3]) (l ["a", "b", "c"]) == l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"]
+  assertEqual { actual: zip (l [1, 2, 3]) $ l ["a", "b", "c"], expected: l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"] }
 
   log "zipWith should use the specified function to zip two containers together"
-  assert $ zipWith (\x y -> l [show x, y]) (l [1, 2, 3]) (l ["a", "b", "c"]) == l [l ["1", "a"], l ["2", "b"], l ["3", "c"]]
+  assertEqual { actual: zipWith (\x y -> l [show x, y]) (l [1, 2, 3]) $ l ["a", "b", "c"], expected: l [l ["1", "a"], l ["2", "b"], l ["3", "c"]] }
 
   log "zipWithA should use the specified function to zip two containers together"
-  assert $ zipWithA (\x y -> Just $ Tuple x y) (l [1, 2, 3]) (l ["a", "b", "c"]) == Just (l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"])
+  assertEqual { actual: zipWithA (\x y -> Just $ Tuple x y) (l [1, 2, 3]) $ l ["a", "b", "c"], expected: Just $ l [Tuple 1 "a", Tuple 2 "b", Tuple 3 "c"] }
