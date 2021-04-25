@@ -80,6 +80,10 @@ module Data.List.Lazy.NonEmpty
   , deleteAt
   , alterAt
 
+  , cycle
+  , foldrLazy
+  , scanlLazy
+
   ) where
 
 import Prelude
@@ -264,6 +268,13 @@ deleteAt _ _ = unsafeCrashWith "todo deleteAt for LazyNonEmptyList"
 
 alterAt :: forall a. Int -> (a -> Maybe a) -> NonEmptyList a -> NonEmptyList a
 alterAt _ _ _ = unsafeCrashWith "todo alterAt for LazyNonEmptyList"
+
+cycle :: forall a. NonEmptyList a -> NonEmptyList a
+cycle _ = unsafeCrashWith "todo cycle for LazyNonEmptyList"
+foldrLazy :: forall a b. Lazy b => (a -> b -> b) -> b -> NonEmptyList a -> b
+foldrLazy _ _ _ = unsafeCrashWith "todo foldrLazy for LazyNonEmptyList"
+scanlLazy :: forall a b. (b -> a -> b) -> b -> NonEmptyList a -> NonEmptyList b
+scanlLazy _ _ _ = unsafeCrashWith "todo scanlLazy for LazyNonEmptyList"
 
 -----------
 

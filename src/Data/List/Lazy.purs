@@ -107,6 +107,7 @@ module Data.List.Lazy
   , dropEnd
   , groupAllBy
   , snoc'
+  , manyRec
 
   ) where
 
@@ -151,6 +152,8 @@ groupAllBy _ _ = unsafeCrashWith "todo groupAllBy for Lazy List"
 snoc' :: forall a. NEL.NonEmptyList a -> a -> List a
 snoc' _ _ = unsafeCrashWith "todo snoc' for Lazy List"
 
+manyRec :: forall f a. MonadRec f => Alternative f => f a -> f (List a)
+manyRec _ = unsafeCrashWith "todo manyRec for Lazy List"
 
 -- | Convert a list into any unfoldable structure.
 -- |

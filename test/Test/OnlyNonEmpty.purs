@@ -4,19 +4,17 @@ import Prelude
 
 import Control.Comonad (class Comonad)
 import Data.Foldable (class Foldable, foldMap, foldl)
-import Data.Maybe (Maybe)
+import Data.List as L
+import Data.List.Lazy as LL
+import Data.List.Lazy.NonEmpty as LNEL
+import Data.List.NonEmpty as NEL
+import Data.Maybe (Maybe(..))
 import Data.Semigroup.Foldable (class Foldable1)
 import Data.Semigroup.Traversable (class Traversable1)
 import Effect (Effect)
 import Effect.Console (log)
-import Test.Assert (assert)
-
+import Test.Assert (assert, assertEqual)
 import Test.Common (class Common, SkipBroken(..), assertSkipHelper, printTestType, makeContainer)
-
-import Data.List as L
-import Data.List.Lazy as LL
-import Data.List.NonEmpty as NEL
-import Data.List.Lazy.NonEmpty as LNEL
 
 class (
   Comonad c
@@ -38,6 +36,10 @@ class (
   tail :: forall a. c a -> canEmpty a
   uncons :: forall a. c a -> { head :: a, tail :: canEmpty a }
 
+  -- These are only available for NonEmpty collections
+
+  fromList :: forall a. canEmpty a -> Maybe (c a)
+  toList :: c ~> canEmpty
 
 instance onlyNonEmptyList :: OnlyNonEmpty NEL.NonEmptyList L.List where
 
@@ -50,6 +52,9 @@ instance onlyNonEmptyList :: OnlyNonEmpty NEL.NonEmptyList L.List where
   tail = NEL.tail
   uncons = NEL.uncons
 
+  fromList = NEL.fromList
+  toList = NEL.toList
+
 instance onlyNonEmptyLazyList :: OnlyNonEmpty LNEL.NonEmptyList LL.List where
 
   makeCanEmptyContainer = LL.fromFoldable
@@ -61,11 +66,15 @@ instance onlyNonEmptyLazyList :: OnlyNonEmpty LNEL.NonEmptyList LL.List where
   tail = LNEL.tail
   uncons = LNEL.uncons
 
+  fromList = LNEL.fromList
+  toList = LNEL.toList
+
 testOnlyNonEmpty :: forall c canEmpty.
   Common c =>
   OnlyNonEmpty c canEmpty =>
   Eq (c Int) =>
   Eq (canEmpty Int) =>
+  Show (canEmpty Int) =>
   c Int -> canEmpty Int -> Effect Unit
 testOnlyNonEmpty _ _ = do
   let
@@ -87,8 +96,13 @@ testOnlyNonEmpty _ _ = do
 
   -- ======= Functions tests ========
 
-  --fromFoldable :: forall f a. Foldable f => f a -> Maybe (c a)
-  --already extensively checked in common tests
+  log "fromList should convert from a List to a NonEmptyList"
+  assertEqual { actual: fromList $ cel [1, 2, 3], expected: Just $ l [1, 2, 3] }
+  assertEqual { actual: fromList $ cel ([] :: _ Int), expected: Nothing }
+
+  log "toList should convert from a NonEmptyList to a List"
+  assertEqual { actual: toList $ l [1, 2, 3], expected: cel [1, 2, 3] }
+
 
   -- These are the remaining functions that can't be deduplicated due to use of Maybe
 

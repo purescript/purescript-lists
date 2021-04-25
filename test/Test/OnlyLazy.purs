@@ -28,17 +28,37 @@ class OnlyLazy c where
   modifyAt :: forall a. Int -> (a -> a) -> c a -> c a
   updateAt :: forall a. Int -> a -> c a -> c a
 
+  -- These are only available for Lazy collections
+  iterate :: forall a. (a -> a) -> a -> c a
+  repeat :: forall a. a -> c a
+  cycle :: forall a. c a -> c a
+  foldrLazy :: forall a b. Lazy b => (a -> b -> b) -> b -> c a -> b
+  scanlLazy :: forall a b. (b -> a -> b) -> b -> c a -> c b
+
+
 instance onlyLazyList :: OnlyLazy LL.List where
   alterAt = LL.alterAt
   insertAt = LL.insertAt
   modifyAt = LL.modifyAt
   updateAt = LL.updateAt
 
+  iterate = LL.iterate
+  repeat = LL.repeat
+  cycle = LL.cycle
+  foldrLazy = LL.foldrLazy
+  scanlLazy = LL.scanlLazy
+
 instance onlyLazyNonEmptyList :: OnlyLazy LNEL.NonEmptyList where
   alterAt = LNEL.alterAt
   insertAt = LNEL.insertAt
   modifyAt = LNEL.modifyAt
   updateAt = LNEL.updateAt
+
+  iterate = LNEL.iterate
+  repeat = LNEL.repeat
+  cycle = LNEL.cycle
+  foldrLazy = LNEL.foldrLazy
+  scanlLazy = LNEL.scanlLazy
 
 testOnlyLazy :: forall c.
   Common c =>

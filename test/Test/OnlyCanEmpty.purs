@@ -3,10 +3,16 @@ module Test.OnlyCanEmpty where
 import Prelude
 
 import Control.Alternative (class Alternative)
+import Control.Lazy (class Lazy)
+import Control.Monad.Rec.Class (class MonadRec)
 import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus, empty)
 import Data.Foldable (class Foldable)
+import Data.List as L
+import Data.List.Lazy as LL
+import Data.List.Lazy.NonEmpty as LNEL
+import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), fromJust, isNothing)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
@@ -14,13 +20,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
 import Test.Assert (assert)
-
-import Test.Common (class Common, SkipBroken(..), assertSkipHelper, printTestType, makeContainer, range)
-
-import Data.List as L
-import Data.List.NonEmpty as NEL
-import Data.List.Lazy as LL
-import Data.List.Lazy.NonEmpty as LNEL
+import Test.Common (class Common, makeContainer, printTestType, range)
 
 class (
   Alternative c
@@ -44,6 +44,11 @@ class (
   tail :: forall a. c a -> Maybe (c a)
   uncons :: forall a. c a -> Maybe { head :: a, tail :: c a }
 
+  -- These are not available for non-empty collections
+  null :: forall a. c a -> Boolean
+  many :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
+  manyRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
+
 instance onlyCanEmptyList :: OnlyCanEmpty L.List NEL.NonEmptyList where
 
   makeNonEmptyContainer = unsafePartial fromJust <<< NEL.fromFoldable
@@ -55,6 +60,10 @@ instance onlyCanEmptyList :: OnlyCanEmpty L.List NEL.NonEmptyList where
   tail = L.tail
   uncons = L.uncons
 
+  null = L.null
+  many = L.many
+  manyRec = L.manyRec
+
 instance onlyCanEmptyLazyList :: OnlyCanEmpty LL.List LNEL.NonEmptyList where
 
   makeNonEmptyContainer = unsafePartial fromJust <<< LNEL.fromFoldable
@@ -65,6 +74,10 @@ instance onlyCanEmptyLazyList :: OnlyCanEmpty LL.List LNEL.NonEmptyList where
   last = LL.last
   tail = LL.tail
   uncons = LL.uncons
+
+  null = LL.null
+  many = LL.many
+  manyRec = LL.manyRec
 
 
 testOnlyCanEmpty :: forall c nonEmpty.
