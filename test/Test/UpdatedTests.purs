@@ -7,7 +7,7 @@ import Data.List.Lazy as LL
 import Data.List.Lazy.NonEmpty as LNEL
 import Data.List.NonEmpty as NEL
 import Effect (Effect)
-import Test.Common (testCommon, SkipBroken(..), printContainerType)
+import Test.Common (testCommon, SkipBroken(..), printCollectionType)
 import Test.CommonDiffEmptiability (testCommonDiffEmptiability)
 import Test.NoOverlap (testOnlyLazyCanEmpty, testOnlyLazyNonEmpty, testOnlyStrictCanEmpty, testOnlyStrictNonEmpty)
 import Test.OnlyCanEmpty (testOnlyCanEmpty)
@@ -22,7 +22,6 @@ import Test.OnlyStrict (testOnlyStrict)
 rebase
 - fix "an list" -> "a list"
   - or even "a collection"
-- rename makeContainer to makeCollection
 - upgrade to assertEqual
 
 
@@ -35,13 +34,23 @@ updatedTests = do
   testLazyList
   --testLazyNonEmptyList -- Lots of stuff to fix here
 
-  -- testZipList
+  -- Just using original ZipList tests
+  {-
+  Todo
+  This is a wrapper on Lazy list. Should this be clarified in
+  the name, and should there be a zip wrapper for non-lazy lists?
+  Also, it doesn't seem like all instances are tested. Should
+  testing be expanded?
+  -}
+  --testZipList
+
+  -- Just using original ListPartial tests
   -- testListPartial
 
 testBasicList :: Effect Unit
 testBasicList = do
 
-  printContainerType "Basic List"
+  printCollectionType "Basic List"
 
   testCommon nil
   testCommonDiffEmptiability RunAll nil nil nonEmpty
@@ -52,7 +61,7 @@ testBasicList = do
 testNonEmptyList :: Effect Unit
 testNonEmptyList = do
 
-  printContainerType "NonEmpty List"
+  printCollectionType "NonEmpty List"
 
   testCommon nonEmpty
   testCommonDiffEmptiability RunAll nonEmpty nil nonEmpty
@@ -63,7 +72,7 @@ testNonEmptyList = do
 testLazyList :: Effect Unit
 testLazyList = do
 
-  printContainerType "Lazy List"
+  printCollectionType "Lazy List"
 
   testCommon lazyNil
   testCommonDiffEmptiability SkipBrokenLazyCanEmpty lazyNil lazyNil lazyNonEmpty
@@ -74,9 +83,9 @@ testLazyList = do
 testLazyNonEmptyList :: Effect Unit
 testLazyNonEmptyList = do
 
-  printContainerType "Lazy NonEmpty List"
+  printCollectionType "Lazy NonEmpty List"
 
-  -- So much stuff is unsupported for this container that it's not yet
+  -- So much stuff is unsupported for this collection that it's not yet
   -- worth using the assertSkip strategy
   testCommon lazyNonEmpty
   testCommonDiffEmptiability RunAll lazyNonEmpty lazyNil lazyNonEmpty

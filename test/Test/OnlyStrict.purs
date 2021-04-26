@@ -8,7 +8,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Test.Assert (assert)
 
-import Test.Common (class Common, SkipBroken(..), assertSkipHelper, printTestType, makeContainer)
+import Test.Common (class Common, SkipBroken(..), assertSkipHelper, printTestType, makeCollection)
 
 import Data.List as L
 import Data.List.NonEmpty as NEL
@@ -57,7 +57,7 @@ testOnlyStrict _ = do
 
   let
     l :: forall f a. Foldable f => f a -> c a
-    l = makeContainer
+    l = makeCollection
 
   printTestType "Only Strict"
 

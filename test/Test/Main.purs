@@ -25,3 +25,4 @@ originalTests = do
   testZipList
   testListPartial
   testNonEmptyList
+  -- Missing testLazyNonEmptyList

@@ -20,7 +20,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
 import Test.Assert (assert)
-import Test.Common (class Common, makeContainer, printTestType, range)
+import Test.Common (class Common, makeCollection, printTestType, range)
 
 class (
   Alternative c
@@ -31,7 +31,7 @@ class (
   , Unfoldable c
 ) <= OnlyCanEmpty c nonEmpty | c -> nonEmpty, nonEmpty -> c where
 
-  makeNonEmptyContainer :: forall f a. Foldable f => f a -> nonEmpty a
+  makeNonEmptyCollection :: forall f a. Foldable f => f a -> nonEmpty a
 
   -- These are the same function names as the NonEmpty versions,
   -- but the signatures are different and can't be merged in the
@@ -51,7 +51,7 @@ class (
 
 instance onlyCanEmptyList :: OnlyCanEmpty L.List NEL.NonEmptyList where
 
-  makeNonEmptyContainer = unsafePartial fromJust <<< NEL.fromFoldable
+  makeNonEmptyCollection = unsafePartial fromJust <<< NEL.fromFoldable
 
   fromFoldable = L.fromFoldable
   head = L.head
@@ -66,7 +66,7 @@ instance onlyCanEmptyList :: OnlyCanEmpty L.List NEL.NonEmptyList where
 
 instance onlyCanEmptyLazyList :: OnlyCanEmpty LL.List LNEL.NonEmptyList where
 
-  makeNonEmptyContainer = unsafePartial fromJust <<< LNEL.fromFoldable
+  makeNonEmptyCollection = unsafePartial fromJust <<< LNEL.fromFoldable
 
   fromFoldable = LL.fromFoldable
   head = LL.head
@@ -89,10 +89,10 @@ testOnlyCanEmpty :: forall c nonEmpty.
 testOnlyCanEmpty nil _ = do
   let
     l :: forall f a. Foldable f => f a -> c a
-    l = makeContainer
+    l = makeCollection
 
     nel :: forall f a. Foldable f => f a -> nonEmpty a
-    nel = makeNonEmptyContainer
+    nel = makeNonEmptyCollection
 
     rg :: Int -> Int -> c Int
     rg = range
@@ -116,14 +116,14 @@ testOnlyCanEmpty nil _ = do
 
   -- Monoid
   -- mempty :: c
-  log "mempty should not change the container it is appended to"
+  log "mempty should not change the collection it is appended to"
   assert $ l [5] <> mempty == l [5]
-  log "mempty should be an empty container"
+  log "mempty should be an empty collection"
   assert $ l [] == (mempty :: c Int)
 
   -- Plus
   -- empty :: forall a. c a
-  log "empty should create an empty container"
+  log "empty should create an empty collection"
   assert $ l [] == (empty :: c Int)
 
   -- Unfoldable

@@ -14,7 +14,7 @@ import Data.Semigroup.Traversable (class Traversable1)
 import Effect (Effect)
 import Effect.Console (log)
 import Test.Assert (assert, assertEqual)
-import Test.Common (class Common, SkipBroken(..), assertSkipHelper, printTestType, makeContainer)
+import Test.Common (class Common, SkipBroken(..), assertSkipHelper, printTestType, makeCollection)
 
 class (
   Comonad c
@@ -22,7 +22,7 @@ class (
   --, Traversable1 c -- missing from LazyNonEmptyList
 ) <= OnlyNonEmpty c canEmpty | c -> canEmpty, canEmpty -> c where
 
-  makeCanEmptyContainer :: forall f a. Foldable f => f a -> canEmpty a
+  makeCanEmptyCollection :: forall f a. Foldable f => f a -> canEmpty a
 
   -- These are the same function names as the CanEmpty versions,
   -- but the signatures are different and can't be merged in the
@@ -43,7 +43,7 @@ class (
 
 instance onlyNonEmptyList :: OnlyNonEmpty NEL.NonEmptyList L.List where
 
-  makeCanEmptyContainer = L.fromFoldable
+  makeCanEmptyCollection = L.fromFoldable
 
   fromFoldable = NEL.fromFoldable
   head = NEL.head
@@ -57,7 +57,7 @@ instance onlyNonEmptyList :: OnlyNonEmpty NEL.NonEmptyList L.List where
 
 instance onlyNonEmptyLazyList :: OnlyNonEmpty LNEL.NonEmptyList LL.List where
 
-  makeCanEmptyContainer = LL.fromFoldable
+  makeCanEmptyCollection = LL.fromFoldable
 
   fromFoldable = LNEL.fromFoldable
   head = LNEL.head
@@ -79,10 +79,10 @@ testOnlyNonEmpty :: forall c canEmpty.
 testOnlyNonEmpty _ _ = do
   let
     l :: forall f a. Foldable f => f a -> c a
-    l = makeContainer
+    l = makeCollection
 
     cel :: forall f a. Foldable f => f a -> canEmpty a
-    cel = makeCanEmptyContainer
+    cel = makeCanEmptyCollection
 
   printTestType "Only nonEmpty"
 

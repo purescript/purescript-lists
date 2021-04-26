@@ -98,8 +98,6 @@ module Data.List
 
   -- additions
   , appendFoldable
-  , replicate
-  , replicateM
 
   , cons'
   , snoc'
@@ -134,10 +132,6 @@ import Prim.TypeError (class Warn, Text)
 
 appendFoldable :: forall t a. Foldable t => List a -> t a -> List a
 appendFoldable _ _ = unsafeCrashWith "todo appendFoldable for Basic List"
-replicate :: forall a. Int -> a -> List a
-replicate _ _ = unsafeCrashWith "todo replicate for Basic List"
-replicateM :: forall m a. Monad m => Int -> m a -> m (List a)
-replicateM _ _ = unsafeCrashWith "todo replicateM for Basic List"
 
 cons' :: forall a. a -> NEL.NonEmptyList a -> List a
 cons' _ _ = unsafeCrashWith "todo cons' for Basic List"

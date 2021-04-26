@@ -13,11 +13,11 @@ import Effect (Effect)
 import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
 import Test.Assert (assert)
-import Test.Common (class Common, SkipBroken(..), assertSkipHelper, printTestType, makeContainer, range)
+import Test.Common (class Common, SkipBroken(..), assertSkipHelper, printTestType, makeCollection, range)
 
 {-
 This is for testing common functions that have slightly different
-signatures depending on whether the container may be empty or not.
+signatures depending on whether the collection may be empty or not.
 For example:
  CanEmpty (as `c`):
   drop :: forall a. Int -> c a -> c a
@@ -214,7 +214,7 @@ testCommonDiffEmptiability :: forall c cInverse canEmpty nonEmpty cPattern.
 testCommonDiffEmptiability skip _ nil _ = do
   let
     l :: forall f a. Foldable f => f a -> c a
-    l = makeContainer
+    l = makeCollection
 
     cel :: forall f a. Foldable f => f a -> canEmpty a
     cel = toCanEmpty <<< l

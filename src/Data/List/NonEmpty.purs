@@ -66,8 +66,6 @@ module Data.List.NonEmpty
   , insert
   , insertBy
   , Pattern(..)
-  , replicate
-  , replicateM
   , some
   , someRec
   , transpose
@@ -115,10 +113,6 @@ insert :: forall a. Ord a => a -> NonEmptyList a -> NonEmptyList a
 insert _ _ = unsafeCrashWith "todo insert for NonEmptyList"
 insertBy :: forall a. (a -> a -> Ordering) -> a -> NonEmptyList a -> NonEmptyList a
 insertBy _ _ _ = unsafeCrashWith "todo insertBy for NonEmptyList"
-replicate :: forall a. Int -> a -> NonEmptyList a
-replicate _ _ = unsafeCrashWith "todo replicate for NonEmptyList"
-replicateM :: forall m a. Monad m => Int -> m a -> m (NonEmptyList a)
-replicateM _ _ = unsafeCrashWith "todo replicateM for NonEmptyList"
 some :: forall f a. Alternative f => Lazy (f (NonEmptyList a)) => f a -> f (NonEmptyList a)
 some _ = unsafeCrashWith "todo some for NonEmptyList"
 someRec :: forall f a. MonadRec f => Alternative f => f a -> f (NonEmptyList a)
