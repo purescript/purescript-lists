@@ -7,14 +7,11 @@ import Data.List.Lazy as LL
 import Data.List.Lazy.NonEmpty as LNEL
 import Data.List.NonEmpty as NEL
 import Effect (Effect)
-import Test.Common (testCommon, SkipBroken(..), printCollectionType)
-import Test.CommonDiffEmptiability (testCommonDiffEmptiability)
-import Test.NoOverlap (testOnlyLazyCanEmpty, testOnlyLazyNonEmpty, testOnlyStrictCanEmpty, testOnlyStrictNonEmpty)
-import Test.OnlyCanEmpty (testOnlyCanEmpty)
-import Test.OnlyLazy (testOnlyLazy)
-import Test.OnlyNonEmpty (testOnlyNonEmpty)
-import Test.OnlyStrict (testOnlyStrict)
-
+import Test.AllTests as T
+import Test.Args.LazyList as LLA
+import Test.Args.LazyNonEmptyList as LNELA
+import Test.Args.List as LA
+import Test.Args.NonEmptyList as NELA
 
 {-
 ---  Next steps:
@@ -50,48 +47,48 @@ updatedTests = do
 testBasicList :: Effect Unit
 testBasicList = do
 
-  printCollectionType "Basic List"
+  T.printCollectionType "Basic List"
 
-  testCommon nil
-  testCommonDiffEmptiability RunAll nil nil nonEmpty
-  testOnlyCanEmpty nil nonEmpty
-  testOnlyStrict nil
-  testOnlyStrictCanEmpty
+  T.testCommon LA.common
+  T.testCommonDiffEmptiability T.RunAll LA.commonDiffEmptiability
+  T.testOnlyCanEmpty LA.onlyCanEmpty
+  T.testOnlyStrict LA.onlyStrict
+  T.testOnlyStrictCanEmpty
 
 testNonEmptyList :: Effect Unit
 testNonEmptyList = do
 
-  printCollectionType "NonEmpty List"
+  T.printCollectionType "NonEmpty List"
 
-  testCommon nonEmpty
-  testCommonDiffEmptiability RunAll nonEmpty nil nonEmpty
-  testOnlyNonEmpty nonEmpty nil
-  testOnlyStrict nonEmpty
-  testOnlyStrictNonEmpty
+  T.testCommon NELA.common
+  T.testCommonDiffEmptiability T.SkipBrokenStrictNonEmpty NELA.commonDiffEmptiability
+  T.testOnlyNonEmpty NELA.onlyNonEmpty
+  T.testOnlyStrict NELA.onlyStrict
+  T.testOnlyStrictNonEmpty
 
 testLazyList :: Effect Unit
 testLazyList = do
 
-  printCollectionType "Lazy List"
+  T.testCommon LLA.common
+  T.testCommonDiffEmptiability T.SkipBrokenLazyCanEmpty LLA.commonDiffEmptiability
+  T.testOnlyCanEmpty LLA.onlyCanEmpty
+  T.testOnlyLazy LLA.onlyLazy
+  T.testOnlyStrictCanEmpty
+  T.testOnlyLazyCanEmpty
 
-  testCommon lazyNil
-  testCommonDiffEmptiability SkipBrokenLazyCanEmpty lazyNil lazyNil lazyNonEmpty
-  testOnlyCanEmpty lazyNil lazyNonEmpty
-  testOnlyLazy lazyNil
-  testOnlyLazyCanEmpty
 
 testLazyNonEmptyList :: Effect Unit
 testLazyNonEmptyList = do
 
-  printCollectionType "Lazy NonEmpty List"
+  T.printCollectionType "Lazy NonEmpty List"
 
   -- So much stuff is unsupported for this collection that it's not yet
   -- worth using the assertSkip strategy
-  testCommon lazyNonEmpty
-  testCommonDiffEmptiability RunAll lazyNonEmpty lazyNil lazyNonEmpty
-  testOnlyNonEmpty lazyNonEmpty lazyNil
-  testOnlyLazy lazyNonEmpty
-  testOnlyLazyNonEmpty
+  T.testCommon LNELA.common
+  T.testCommonDiffEmptiability T.RunAll LNELA.commonDiffEmptiability
+  T.testOnlyNonEmpty LNELA.onlyNonEmpty
+  T.testOnlyLazy LNELA.onlyLazy
+  T.testOnlyLazyNonEmpty
 
 -- nil is passed instead of a singleton,
 -- because some of the functions use this
