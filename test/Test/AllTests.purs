@@ -410,13 +410,7 @@ testCommon
   -- assertEqual { actual: modifyAt 7 (_ + 1) $ l [1,2,3], expected: Nothing }
 
   log "nubEq should remove duplicate elements from the collection, keeping the first occurence"
-  -- let
-    -- thing :: c Int
-    -- thing = l [1, 2, 2, 3, 4, 1]
-    -- res = r.nubEq $ thing
-  --assertEqual { actual: r.nubEq $ thing, expected: l [1, 2, 3, 4] }
-  -- Todo - very confused why this won't work
-  --assertEqual { actual: nubEq $ l [1, 2, 2, 3, 4, 1], expected: l [1, 2, 3, 4] }
+  assertEqual { actual: nubEq (l [1, 2, 2, 3, 4, 1]), expected: l [1, 2, 3, 4] }
 
   log "nubByEq should remove duplicate items from the collection using a supplied predicate"
   let mod3eq = eq `on` \n -> mod n 3
@@ -437,6 +431,8 @@ testCommon
   assertEqual { actual: l [1, 2, 3] `snoc` 4, expected: l [1, 2, 3, 4] }
 
   -- Todo toUnfoldable
+  --toUnfoldable :: forall f a. Unfoldable f => c a -> f a
+
 
   log "union should produce the union of two collections"
   assertEqual { actual: union (l [1, 2, 3]) $ l [2, 3, 4], expected: l [1, 2, 3, 4] }
@@ -464,30 +460,48 @@ testCommon
   -- sort into above
   -}
 
-  -- appendFoldable :: forall t a. Foldable t => c a -> t a -> c a
-  -- todo
+  log "appendFoldable should append a foldable collection to another collection"
+  -- todo - missing for basic list
+  assertEqual { actual: appendFoldable (l [1, 2, 3]) [4, 5], expected: l [1, 2, 3, 4, 5] }
 
-  {-
   -- Todo - clean these up
 
   log "insert should add an item at the appropriate place in a sorted list"
-  assert $ insert 2 (l [1, 1, 3]) == l [1, 1, 2, 3]
-  assert $ insert 4 (l [1, 2, 3]) == l [1, 2, 3, 4]
-  assert $ insert 0 (l [1, 2, 3]) == l [0, 1, 2, 3]
+  assertEqual { actual: insert 2 $ l [1, 1, 3], expected: l [1, 1, 2, 3] }
+  assertEqual { actual: insert 4 $ l [1, 2, 3], expected: l [1, 2, 3, 4] }
+  assertEqual { actual: insert 0 $ l [1, 2, 3], expected: l [0, 1, 2, 3] }
 
-  log "insertBy should add an item at the appropriate place in a sorted list using the specified comparison"
-  assert $ insertBy (flip compare) 4 (l [1, 2, 3]) == l [4, 1, 2, 3]
-  assert $ insertBy (flip compare) 0 (l [1, 2, 3]) == l [1, 2, 3, 0]
+  log "insertBy should add an item at the appropriate place in a sorted collection using the specified comparison"
+  assertEqual { actual: insertBy (flip compare) 4 $ l [1, 2, 3], expected: l [4, 1, 2, 3] }
+  assertEqual { actual: insertBy (flip compare) 0 $ l [1, 2, 3], expected: l [1, 2, 3, 0] }
 
   -- nub :: forall a. Ord a => c a -> c a
   -- nubBy :: forall a. (a -> a -> Ordering) -> c a -> c a
 
-  log "nub should remove duplicate elements from the list, keeping the first occurrence"
-  assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
+  log "nub should remove duplicate elements from a collection, keeping the first occurrence"
+  assertEqual { actual: nub (l [1, 2, 2, 3, 4, 1]), expected: l [1, 2, 3, 4] }
 
-  log "nubBy should remove duplicate items from the list using a supplied predicate"
-  assert $ nubBy (compare `on` Array.length) (l [[1],[2],[3,4]]) == l [[1],[3,4]]
-  -}
+  log "nubBy should remove duplicate items from a collection using a supplied predicate"
+  assertEqual { actual: nubBy (compare `on` Array.length) $ l [[1],[2],[3,4]] , expected: l [[1],[3,4]] }
+
+  -- some :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
+  -- someRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
+  -- sort :: forall a. Ord a => c a -> c a
+  -- sortBy :: forall a. (a -> a -> Ordering) -> c a -> c a
+
+  log "sort should reorder a collection into ascending order based on the result of compare"
+  assertEqual { actual: sort (l [1, 3, 2, 5, 6, 4]), expected: l [1, 2, 3, 4, 5, 6] }
+
+  log "sortBy should reorder a collection into ascending order based on the result of a comparison function"
+  assertEqual { actual: sortBy (flip compare) $ l [1, 3, 2, 5, 6, 4]
+              , expected: l [6, 5, 4, 3, 2, 1] }
+
+  log "transpose should swap 'rows' and 'columns' of a collection of collections"
+  assertEqual { actual: transpose (l [l [1,2,3], l[4,5,6], l [7,8,9]])
+              , expected: l [l [1,4,7], l[2,5,8], l [3,6,9]] }
+  log "transpose should skip elements when row lengths don't match"
+  assertEqual { actual: transpose (l [l [10, 11], l [20], l [30, 31, 32]])
+              , expected: l [l [10, 20, 30], l [11, 31], l [32]] }
 
 
   {-
