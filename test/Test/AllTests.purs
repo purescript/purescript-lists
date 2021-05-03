@@ -12,7 +12,7 @@ import Control.MonadPlus (class MonadPlus)
 import Control.MonadZero (class MonadZero)
 import Data.Array as Array
 import Data.Eq (class Eq1, eq1)
-import Data.Foldable (class Foldable, foldMap, foldl, sum)
+import Data.Foldable (class Foldable, foldMap, foldl, sum, traverse_)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Function (on)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
@@ -23,7 +23,7 @@ import Data.List.Lazy.NonEmpty as LNEL
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), fromJust, isNothing)
 import Data.Monoid.Additive (Additive(..))
-import Data.Ord (class Ord1)
+import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..))
@@ -178,7 +178,7 @@ testCommon
   log "... skipped"
   -- Todo - make these consistent and also double-check for arrays
   -- can-empty behavior
-  -- assertEqual { actual: makeCollection [mul 10, mul 100] <*> l [1, 2, 3], expected: l [10, 20, 30, 100, 200, 300] }
+  assertEqual { actual: makeCollection [mul 10, mul 100] <*> l [1, 2, 3], expected: l [10, 20, 30, 100, 200, 300] }
   -- NonEmpty behavior
   -- assertEqual { actual: makeCollection [mul 10, mul 100] <*> l [1, 2, 3], expected: l [10, 100, 20, 200, 30, 300] }
 
@@ -268,15 +268,29 @@ testCommon
   assertEqual { actual: mapWithIndex add $ l [0, 1, 2, 3], expected: l [0, 2, 4, 6] }
 
   -- Monad
-  --   Indicates Applicative and Bind, which are already tested
+  --   Indicates Applicative and Bind, which are already tested above
 
   -- Ord
   --   compare :: a -> a -> Ordering
-  -- Todo - add tests
+  log "compare should determine the ordering of two collections"
+  assertEqual { actual: compare (l [1]) (l [1]), expected: EQ }
+  assertEqual { actual: compare (l [0]) (l [1]), expected: LT }
+  assertEqual { actual: compare (l [2]) (l [1]), expected: GT }
+  assertEqual { actual: compare (l [1]) (l [1, 1]), expected: LT }
+  assertEqual { actual: compare (l [1, 1]) (l [1]), expected: GT }
+  assertEqual { actual: compare (l [1, 1]) (l [1, 2]), expected: LT }
+  assertEqual { actual: compare (l [1, 2]) (l [1, 1]), expected: GT }
 
   -- Ord1
   --   compare1 :: forall a. Ord a => f a -> f a -> Ordering
-  -- Todo - add tests
+  log "compare1 should determine the ordering of two collections"
+  assertEqual { actual: compare1 (l [1]) (l [1]), expected: EQ }
+  assertEqual { actual: compare1 (l [0]) (l [1]), expected: LT }
+  assertEqual { actual: compare1 (l [2]) (l [1]), expected: GT }
+  assertEqual { actual: compare1 (l [1]) (l [1, 1]), expected: LT }
+  assertEqual { actual: compare1 (l [1, 1]) (l [1]), expected: GT }
+  assertEqual { actual: compare1 (l [1, 1]) (l [1, 2]), expected: LT }
+  assertEqual { actual: compare1 (l [1, 2]) (l [1, 1]), expected: GT }
 
   -- Semigroup
   --   append :: a -> a -> a
@@ -321,13 +335,6 @@ testCommon
 
   -- ===========   Functions   ===========
 
-  -- Todo - split
-  -- log "catMaybe should take a collection of Maybe values and throw out Nothings"
-  -- assertEqual { actual: catMaybes (l [Nothing, Just 2, Nothing, Just 4]), expected: l [2, 4] }
-
-
-  assertEqual { actual: l [l [1, 2], l [3, 4]], expected: l [l [1, 2], l [3, 4]] }
-
   log "concat should join a collection of collections"
   assertEqual { actual: r.concat $ l [l [1, 2], l [3, 4]], expected: l [1, 2, 3, 4] }
   assertEqual { actual: r.concat $ l [l [1, 2], l [3, 4]], expected: l [1, 2, 3, 4] }
@@ -350,13 +357,6 @@ testCommon
   assertEqual { actual: elemLastIndex 1 $ l [1, 2, 1], expected: Just 2 }
   assertEqual { actual: elemLastIndex 4 $ l [1, 2, 1], expected: Nothing }
 
-  -- Todo split
-  -- log "filter should remove items that don't match a predicate"
-  -- assertEqual { actual: filter odd $ range 0 10, expected: l [1, 3, 5, 7, 9] }
-
-  --log "filterM should remove items that don't match a predicate while using a monadic behaviour"
-  --assertEqual { actual: filterM (Just <<< odd) $ range 0 10, expected: Just $ l [1, 3, 5, 7, 9] }
-  --assertEqual { actual: filterM (const Nothing) $ rg 0 10, expected: Nothing }
 
   log "findIndex should return the index of an item that a predicate returns true for in a collection"
   assertEqual { actual: findIndex (_ /= 1) $ l [1, 2, 1], expected: Just 1 }
@@ -379,15 +379,6 @@ testCommon
   assertEqual { actual: l [1, 2, 3] `index` 6, expected: Nothing }
   assertEqual { actual: l [1, 2, 3] `index` (-1), expected: Nothing }
 
-  -- todo split
-  -- log "insertAt should add an item at the specified index"
-  -- assertEqual { actual: insertAt 0 1 $ l [2, 3], expected: Just $ l [1, 2, 3] }
-  -- assertEqual { actual: insertAt 1 1 $ l [2, 3], expected: Just $ l [2, 1, 3] }
-  -- assertEqual { actual: insertAt 2 1 $ l [2, 3], expected: Just $ l [2, 3, 1] }
-
-  -- log "insertAt should return Nothing if the index is out of range"
-  -- assertEqual { actual: insertAt 7 8 $ l [1,2,3], expected: Nothing }
-
   log "intersect should return the intersection of two collections"
   assertEqual { actual: intersect (l [1, 2, 3, 4, 3, 2, 1]) $ l [1, 1, 2, 3], expected: l [1, 2, 3, 3, 2, 1] }
 
@@ -400,14 +391,6 @@ testCommon
 
   log "length should be stack-safe"
   void $ pure $ length bigCollection
-
-  -- todo split
-  -- log "modifyAt should update an item at the specified index"
-  -- assertEqual { actual: modifyAt 0 (_ + 1) $ l [1, 2, 3], expected: Just $ l [2, 2, 3] }
-  -- assertEqual { actual: modifyAt 1 (_ + 1) $ l [1, 2, 3], expected: Just $ l [1, 3, 3] }
-
-  -- log "modifyAt should return Nothing if the index is out of range"
-  -- assertEqual { actual: modifyAt 7 (_ + 1) $ l [1,2,3], expected: Nothing }
 
   log "nubEq should remove duplicate elements from the collection, keeping the first occurence"
   assertEqual { actual: nubEq (l [1, 2, 2, 3, 4, 1]), expected: l [1, 2, 3, 4] }
@@ -430,9 +413,12 @@ testCommon
   log "snoc should add an item to the end of a collection"
   assertEqual { actual: l [1, 2, 3] `snoc` 4, expected: l [1, 2, 3, 4] }
 
-  -- Todo toUnfoldable
-  --toUnfoldable :: forall f a. Unfoldable f => c a -> f a
-
+  log "toUnfoldable should convert to any unfoldable collection"
+  traverse_ (\xs -> assertEqual { actual: toUnfoldable (l xs), expected: xs })
+    [ [1]
+    , [1,2,3]
+    , [4,0,0,1,25,36,458,5842,23757]
+    ]
 
   log "union should produce the union of two collections"
   assertEqual { actual: union (l [1, 2, 3]) $ l [2, 3, 4], expected: l [1, 2, 3, 4] }
@@ -461,10 +447,7 @@ testCommon
   -}
 
   log "appendFoldable should append a foldable collection to another collection"
-  -- todo - missing for basic list
   assertEqual { actual: appendFoldable (l [1, 2, 3]) [4, 5], expected: l [1, 2, 3, 4, 5] }
-
-  -- Todo - clean these up
 
   log "insert should add an item at the appropriate place in a sorted list"
   assertEqual { actual: insert 2 $ l [1, 1, 3], expected: l [1, 1, 2, 3] }
@@ -475,9 +458,6 @@ testCommon
   assertEqual { actual: insertBy (flip compare) 4 $ l [1, 2, 3], expected: l [4, 1, 2, 3] }
   assertEqual { actual: insertBy (flip compare) 0 $ l [1, 2, 3], expected: l [1, 2, 3, 0] }
 
-  -- nub :: forall a. Ord a => c a -> c a
-  -- nubBy :: forall a. (a -> a -> Ordering) -> c a -> c a
-
   log "nub should remove duplicate elements from a collection, keeping the first occurrence"
   assertEqual { actual: nub (l [1, 2, 2, 3, 4, 1]), expected: l [1, 2, 3, 4] }
 
@@ -486,8 +466,6 @@ testCommon
 
   -- some :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
   -- someRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
-  -- sort :: forall a. Ord a => c a -> c a
-  -- sortBy :: forall a. (a -> a -> Ordering) -> c a -> c a
 
   log "sort should reorder a collection into ascending order based on the result of compare"
   assertEqual { actual: sort (l [1, 3, 2, 5, 6, 4]), expected: l [1, 2, 3, 4, 5, 6] }
@@ -503,17 +481,25 @@ testCommon
   assertEqual { actual: transpose (l [l [10, 11], l [20], l [30, 31, 32]])
               , expected: l [l [10, 20, 30], l [11, 31], l [32]] }
 
+-- Todo - question:
+{-
+Should we have a specialized replicate, or just
+reuse the one provided by Unfoldable?
+-- If reusing from unfoldable, do we need to test here?
+-}
+
+  -- replicate :: forall a. Int -> a -> c a
+  -- log "replicate should produce an list containing an item a specified number of times"
+  -- assertEqual { actual: replicate 3 5, expected: l [5, 5, 5] }
+  -- assert $ replicate 1 "foo" == l ["foo"]
+  -- assert $ replicate 0 "foo" == l []
+  -- assert $ replicate (-1) "foo" == l []
 
   {-
-  -- replicate :: forall a. Int -> a -> c a
   log "unfoldable replicate should be stack-safe"
+  -- even for strict lists? Possibly high memory consumption
   void $ pure $ length $ replicate 100000 1
 
-  log "replicate should produce an list containing an item a specified number of times"
-  assert $ replicate 3 true == l [true, true, true]
-  assert $ replicate 1 "foo" == l ["foo"]
-  assert $ replicate 0 "foo" == l []
-  assert $ replicate (-1) "foo" == l []
 
   log "replicateA should perform the monadic action the correct number of times"
   assert $ replicateA 3 (Just 1) == Just (l [1, 1, 1])
@@ -537,6 +523,9 @@ testCommonDiffEmptiability :: forall c cInverse canEmpty nonEmpty cPattern.
   Eq (c (nonEmpty Int)) =>
   Eq (canEmpty Int) =>
   Eq (c (c Int)) =>
+  Show (c (nonEmpty Int)) =>
+  Show (canEmpty Int) =>
+  Show (c (c Int)) =>
   SkipBroken ->
   CommonDiffEmptiability c cInverse canEmpty nonEmpty cPattern ->
   Effect Unit
@@ -589,30 +578,32 @@ testCommonDiffEmptiability skip
 
   printTestType "Common (where signatures differ based on emptiability)"
 
-  --catMaybes :: forall a. c (Maybe a) -> c a
-  -- todo
-
-
-  -- temporary for troubleshooting
-  assert $ l [l [1, 2], l [3, 4]] == l [l [1, 2], l [3, 4]]
+  log "catMaybes should take a collection of Maybe values and remove the Nothings"
+  assertEqual { actual: catMaybes (l [Nothing, Just 2, Nothing, Just 4]), expected: cel [2, 4] }
 
   log "drop should remove the specified number of items from the front of an list"
-  assert $ (drop 1 (l [1, 2, 3])) == cel [2, 3]
-  assert $ (drop (-1) (l [1, 2, 3])) == cel [1, 2, 3]
+  assertEqual { actual: (drop 1 (l [1, 2, 3])), expected: cel [2, 3] }
+  assertEqual { actual: (drop (-1) (l [1, 2, 3])), expected: cel [1, 2, 3] }
 
   log "dropWhile should remove all values that match a predicate from the front of an list"
-  assert $ (dropWhile (_ /= 1) (l [1, 2, 3])) == cel [1, 2, 3]
-  assert $ (dropWhile (_ /= 2) (l [1, 2, 3])) == cel [2, 3]
+  assertEqual { actual: (dropWhile (_ /= 1) (l [1, 2, 3])), expected: cel [1, 2, 3] }
+  assertEqual { actual: (dropWhile (_ /= 2) (l [1, 2, 3])), expected: cel [2, 3] }
   --assert $ (dropWhile (_ /= 1) nil) == nil
 
-  --filter :: forall a. (a -> Boolean) -> c a -> c a
-  -- todo
+  -- Surprised this does not work with $
+  -- let l10 = l $ Array.range 0 10
+  let l10 = l (Array.range 0 10)
 
-  --filterM :: forall m a. Monad m => (a -> m Boolean) -> c a -> m (c a)
-  -- todo
+  log "filter should remove items that don't match a predicate"
+  assertEqual { actual: filter odd l10, expected: cel [1, 3, 5, 7, 9] }
+
+  log "filterM should remove items that don't match a predicate while using a monadic behaviour"
+  assertEqual { actual: filterM (Just <<< odd) l10, expected: Just $ cel [1, 3, 5, 7, 9] }
+  assertEqual { actual: filterM (const Nothing) l10, expected: Nothing }
+
 
   log "group should group consecutive equal elements into lists"
-  assert $ group (l [1, 2, 2, 3, 3, 3, 1]) == l [nel [1], nel [2, 2], nel [3, 3, 3], nel [1]]
+  assertEqual { actual: group (l [1, 2, 2, 3, 3, 3, 1]), expected: l [nel [1], nel [2, 2], nel [3, 3, 3], nel [1]] }
 
   log "groupAll should group equal elements into lists"
   assertSkip [SkipBrokenLazyCanEmpty]
@@ -620,11 +611,11 @@ testCommonDiffEmptiability skip
   --assert $ groupAll (l [1, 2, 2, 3, 3, 3, 1]) == l [nel [1, 1], nel [2, 2], nel [3, 3, 3]]
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
-  assert $ groupBy (eq `on` (_ `mod` 10)) (l [1, 2, 12, 3, 13, 23, 11]) == l [nel [1], nel [2, 12], nel [3, 13, 23], nel [11]]
+  assertEqual { actual: groupBy (eq `on` (_ `mod` 10)) (l [1, 2, 12, 3, 13, 23, 11]), expected: l [nel [1], nel [2, 12], nel [3, 13, 23], nel [11]] }
 
   -- todo - wait for this to be reworked
   -- log "groupAllBy should group equal elements into lists based on an comparison function"
-  --assert $ groupAllBy (compare `on` mod 10) (l [1, 2, 12, 3, 13, 23, 11]) == l [nel [1, 11], nel [2, 12], nel [3, 13, 23]]
+  --assertEqual { actual: groupAllBy (compare `on` mod 10) (l [1, 2, 12, 3, 13, 23, 11]), expected: l [nel [1, 11], nel [2, 12], nel [3, 13, 23]] }
 
   log "mapMaybe should transform every item in an list, throwing out Nothing values"
   assert $ mapMaybe (\x -> if x /= 0 then Just x else Nothing) (l [0, 1, 0, 0, 2, 3]) == cel [1, 2, 3]
@@ -811,6 +802,9 @@ testOnlyNonEmpty
 
   , fromList
   , toList
+
+  -- ? toUnfoldable1?
+
   } = do
   let
     l = makeCollection
@@ -914,8 +908,23 @@ testOnlyStrict
 
   printTestType "Only Strict"
 
+  -- log "insertAt should add an item at the specified index"
+  -- assertEqual { actual: insertAt 0 1 $ l [2, 3], expected: Just $ l [1, 2, 3] }
+  -- assertEqual { actual: insertAt 1 1 $ l [2, 3], expected: Just $ l [2, 1, 3] }
+  -- assertEqual { actual: insertAt 2 1 $ l [2, 3], expected: Just $ l [2, 3, 1] }
+
+  -- log "insertAt should return Nothing if the index is out of range"
+  -- assertEqual { actual: insertAt 7 8 $ l [1,2,3], expected: Nothing }
+
   -- todo insertAt test
   -- missing from original test suite
+
+  -- log "modifyAt should update an item at the specified index"
+  -- assertEqual { actual: modifyAt 0 (_ + 1) $ l [1, 2, 3], expected: Just $ l [2, 2, 3] }
+  -- assertEqual { actual: modifyAt 1 (_ + 1) $ l [1, 2, 3], expected: Just $ l [1, 3, 3] }
+
+  -- log "modifyAt should return Nothing if the index is out of range"
+  -- assertEqual { actual: modifyAt 7 (_ + 1) $ l [1,2,3], expected: Nothing }
 
   -- todo modifyAt test
   -- missing from original test suite

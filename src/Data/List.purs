@@ -18,6 +18,7 @@ module Data.List
   , someRec
   , many
   , manyRec
+  -- , replicate -- questionable specialization
 
   , null
   , length
@@ -116,7 +117,7 @@ import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, f
 import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
-import Data.List.Types (NonEmptyList(..)) as NEL
+import Data.List.Types as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
@@ -124,19 +125,19 @@ import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
-import Partial.Unsafe (unsafeCrashWith)
 import Prim.TypeError (class Warn, Text)
 
 
 ----------  Additions
 
 appendFoldable :: forall t a. Foldable t => List a -> t a -> List a
-appendFoldable _ _ = unsafeCrashWith "todo appendFoldable for Basic List"
+appendFoldable xs ys = xs <> fromFoldable ys
 
 cons' :: forall a. a -> NEL.NonEmptyList a -> List a
-cons' _ _ = unsafeCrashWith "todo cons' for Basic List"
+cons' x xs = Cons x $ NEL.toList xs
+
 snoc' :: forall a. NEL.NonEmptyList a -> a -> List a
-snoc' _ _ = unsafeCrashWith "todo snoc' for Basic List"
+snoc' xs x = snoc (NEL.toList xs) x
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -198,6 +199,15 @@ manyRec p = tailRecM go Nil
   go acc = do
     aa <- (Loop <$> p) <|> pure (Done unit)
     pure $ bimap (_ : acc) (\_ -> reverse acc) aa
+
+-- Questionable whether this should be specialized
+-- -- | Create a list containing a value repeated n times
+-- replicate :: forall a. Int -> a -> List a
+-- replicate num x = go num Nil
+--   where
+--   go n xs | n < 1 = xs
+--           | otherwise = go (n - 1) (x : xs)
+
 
 --------------------------------------------------------------------------------
 -- List size -------------------------------------------------------------------

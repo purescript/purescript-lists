@@ -44,6 +44,7 @@ type Common c =
   , insertBy :: forall a. (a -> a -> Ordering) -> a -> c a -> c a
   , nub :: forall a. Ord a => c a -> c a
   , nubBy :: forall a. (a -> a -> Ordering) -> c a -> c a
+  , replicate :: forall a. Int -> a -> c a
   , some :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
   , someRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
   , sort :: forall a. Ord a => c a -> c a
