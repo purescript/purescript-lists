@@ -147,7 +147,7 @@ cons' :: forall a. a -> NEL.NonEmptyList a -> List a
 cons' _ _ = unsafeCrashWith "todo cons' for Lazy List"
 dropEnd :: forall a. Int -> List a -> List a
 dropEnd _ _ = unsafeCrashWith "todo dropEnd for Lazy List"
-groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
+groupAllBy :: forall a. (a -> a -> Ordering) -> List a -> List (NEL.NonEmptyList a)
 groupAllBy _ _ = unsafeCrashWith "todo groupAllBy for Lazy List"
 snoc' :: forall a. NEL.NonEmptyList a -> a -> List a
 snoc' _ _ = unsafeCrashWith "todo snoc' for Lazy List"

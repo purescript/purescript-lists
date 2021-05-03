@@ -44,7 +44,7 @@ type Common c =
   , insertBy :: forall a. (a -> a -> Ordering) -> a -> c a -> c a
   , nub :: forall a. Ord a => c a -> c a
   , nubBy :: forall a. (a -> a -> Ordering) -> c a -> c a
-  , replicate :: forall a. Int -> a -> c a
+  -- , replicate :: forall a. Int -> a -> c a
   , some :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
   , someRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
   , sort :: forall a. Ord a => c a -> c a
@@ -78,9 +78,7 @@ type CommonDiffEmptiability c cInverse canEmpty nonEmpty cPattern =
   , deleteBy :: forall a. (a -> a -> Boolean) -> a -> c a -> canEmpty a
   , difference :: forall a. Eq a => c a -> c a -> canEmpty a
   , dropEnd :: forall a. Int -> c a -> canEmpty a
-  -- There's a pending PR to update this signature
-  -- groupAllBy :: forall a. (a -> a -> Ordering) -> c a -> c (nonEmpty a)
-  , groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> c a -> c (nonEmpty a)
+  , groupAllBy :: forall a. (a -> a -> Ordering) -> c a -> c (nonEmpty a)
   , pattern :: forall a. c a -> cPattern a
   , slice :: Int -> Int -> c ~> canEmpty
   , snoc' :: forall a. cInverse a -> a -> c a

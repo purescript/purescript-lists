@@ -256,7 +256,7 @@ difference :: forall a. Eq a => NonEmptyList a -> NonEmptyList a -> L.List a
 difference _ _ = unsafeCrashWith "todo difference for LazyNonEmptyList"
 dropEnd :: forall a. Int -> NonEmptyList a -> L.List a
 dropEnd _ _ = unsafeCrashWith "todo dropEnd for LazyNonEmptyList"
-groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
+groupAllBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupAllBy _ _ = unsafeCrashWith "todo groupAllBy for LazyNonEmptyList"
 slice :: Int -> Int -> NonEmptyList ~> L.List
 slice _ _ = unsafeCrashWith "todo slice for LazyNonEmptyList"
