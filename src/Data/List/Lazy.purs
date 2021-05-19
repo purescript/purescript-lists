@@ -109,6 +109,9 @@ module Data.List.Lazy
   , snoc'
   , manyRec
 
+  , replicate1
+  , replicate1M
+
   ) where
 
 import Prelude
@@ -154,6 +157,13 @@ snoc' _ _ = unsafeCrashWith "todo snoc' for Lazy List"
 
 manyRec :: forall f a. MonadRec f => Alternative f => f a -> f (List a)
 manyRec _ = unsafeCrashWith "todo manyRec for Lazy List"
+
+-- Specialized from Unfoldable1's replicate1 / replicate1A
+replicate1 :: forall a. Int -> a -> List a
+replicate1 _ _ = unsafeCrashWith "todo replicate1 for Lazy List"
+
+replicate1M :: forall m a. Monad m => Int -> m a -> m (List a)
+replicate1M _ _ = unsafeCrashWith "todo replicate1M for Lazy List"
 
 -- | Convert a list into any unfoldable structure.
 -- |

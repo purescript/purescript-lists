@@ -84,6 +84,9 @@ module Data.List.Lazy.NonEmpty
   , foldrLazy
   , scanlLazy
 
+  , replicate1
+  , replicate1M
+
   ) where
 
 import Prelude
@@ -275,6 +278,13 @@ foldrLazy :: forall a b. Lazy b => (a -> b -> b) -> b -> NonEmptyList a -> b
 foldrLazy _ _ _ = unsafeCrashWith "todo foldrLazy for LazyNonEmptyList"
 scanlLazy :: forall a b. (b -> a -> b) -> b -> NonEmptyList a -> NonEmptyList b
 scanlLazy _ _ _ = unsafeCrashWith "todo scanlLazy for LazyNonEmptyList"
+
+-- Specialized from Unfoldable1's replicate1 / replicate1A
+replicate1 :: forall a. Int -> a -> NonEmptyList a
+replicate1 _ _ = unsafeCrashWith "todo replicate1 for LazyNonEmptyList"
+
+replicate1M :: forall m a. Monad m => Int -> m a -> m (NonEmptyList a)
+replicate1M _ _ = unsafeCrashWith "todo replicate1M for LazyNonEmptyList"
 
 -----------
 

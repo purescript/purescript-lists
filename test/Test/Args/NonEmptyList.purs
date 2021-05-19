@@ -7,7 +7,7 @@ import Data.List as L
 import Data.Maybe (fromJust)
 import Partial.Unsafe (unsafePartial)
 import Prelude ((<<<))
-import Test.API (Common, CommonDiffEmptiability, OnlyNonEmpty, OnlyStrict)
+import Test.API (Common, CommonDiffEmptiability, OnlyNonEmpty, OnlyStrict, OnlyStrictNonEmpty)
 
 makeCollection :: forall a f. Foldable f => f a -> NonEmptyList a
 makeCollection = unsafePartial fromJust <<< fromFoldable
@@ -118,3 +118,7 @@ onlyStrict =
   , modifyAt
   , updateAt
   }
+
+onlyStrictNonEmpty :: OnlyStrictNonEmpty NonEmptyList L.List
+onlyStrictNonEmpty =
+  { deleteAt }

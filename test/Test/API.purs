@@ -153,8 +153,45 @@ type OnlyLazy c =
   , cycle :: forall a. c a -> c a
   , foldrLazy :: forall a b. Lazy b => (a -> b -> b) -> b -> c a -> b
   , scanlLazy :: forall a b. (b -> a -> b) -> b -> c a -> c b
+
+  -- Specialized from Unfoldable1's replicate1 / replicate1A
+  , replicate1 :: forall a. Int -> a -> c a
+  , replicate1M :: forall m a. Monad m => Int -> m a -> m (c a)
   }
 
 
--- Todo - no overlap
--- Or may not be necessary to define here
+-- Non Overlapping APIs
+
+type OnlyStrictCanEmpty :: forall k. (k -> Type) -> Type
+type OnlyStrictCanEmpty c =
+  {
+  -- Same names, but different APIs
+    deleteAt :: forall a. Int -> c a -> Maybe (c a)
+  }
+
+type OnlyStrictNonEmpty :: forall k. (k -> Type) -> (k -> Type) -> Type
+type OnlyStrictNonEmpty c canEmpty =
+  {
+  -- Same names, but different APIs
+    deleteAt :: forall a. Int -> c a -> Maybe (canEmpty a)
+  }
+
+-- Todo - investigate why kind signature is only recommended when
+-- records contain only a single field
+
+type OnlyLazyCanEmpty c =
+  {
+  -- Same names, but different APIs
+    deleteAt :: forall a. Int -> c a -> c a
+  -- Unique functions
+  -- Specialized from Unfoldable's replicate / replicateA
+  , replicate :: forall a. Int -> a -> c a
+  , replicateM :: forall m a. Monad m => Int -> m a -> m (c a)
+  }
+
+type OnlyLazyNonEmpty :: forall k. (k -> Type) -> (k -> Type) -> Type
+type OnlyLazyNonEmpty c canEmpty =
+  {
+  -- Same names, but different APIs
+    deleteAt :: forall a. Int -> c a -> canEmpty a
+  }

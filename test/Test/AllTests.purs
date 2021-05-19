@@ -27,16 +27,17 @@ import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..))
-import Data.Unfoldable (class Unfoldable, unfoldr)
+import Data.Unfoldable (class Unfoldable, replicate1A, unfoldr)
 import Data.Unfoldable1 (class Unfoldable1, unfoldr1)
+import Data.Unfoldable1 as Unfoldable1
 import Effect (Effect)
 import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
-import Test.API (Common, CommonDiffEmptiability, OnlyCanEmpty, OnlyLazy, OnlyNonEmpty, OnlyStrict)
+import Test.API (Common, CommonDiffEmptiability, OnlyCanEmpty, OnlyLazy, OnlyLazyCanEmpty, OnlyNonEmpty, OnlyStrict, OnlyStrictCanEmpty, OnlyStrictNonEmpty, OnlyLazyNonEmpty)
 import Test.Assert (assert, assertEqual, assertEqual')
 
 {-
-This is temporarily being used during development.
+This "Skip" code is temporarily being used during development.
 It allows testing while still patching the API.
 This is passed as an additional argument to testCommon
 to indicate which collection type is being tested, and
@@ -333,7 +334,18 @@ testCommon
   log "unfoldr1 should maintain order"
   assertEqual { actual: rg 1 5, expected: unfoldr1 step1 1 }
 
+  log "Unfoldable1 replicate1 should be stack-safe"
+  void $ pure $ r.length $ (Unfoldable1.replicate1 100000 1 :: c Int)
+
   -- ===========   Functions   ===========
+
+  -- These bindings are to suppress warning squiggles covering this entire function.
+  -- Can remove these and record accessor workaround once this issue is resolved:
+  -- https://github.com/purescript/purescript/issues/3938
+  let
+    no_warn_unused_concat = concat
+    no_warn_unused_reverse = reverse
+    no_warn_unused_unzip = unzip
 
   log "concat should join a collection of collections"
   assertEqual { actual: r.concat $ l [l [1, 2], l [3, 4]], expected: l [1, 2, 3, 4] }
@@ -464,8 +476,14 @@ testCommon
   log "nubBy should remove duplicate items from a collection using a supplied predicate"
   assertEqual { actual: nubBy (compare `on` Array.length) $ l [[1],[2],[3,4]] , expected: l [[1],[3,4]] }
 
+
   -- some :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
   -- someRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
+  -- Todo - create tests for these functions
+  let
+    todo_some = some
+    todo_someRec = someRec
+
 
   log "sort should reorder a collection into ascending order based on the result of compare"
   assertEqual { actual: sort (l [1, 3, 2, 5, 6, 4]), expected: l [1, 2, 3, 4, 5, 6] }
@@ -488,6 +506,8 @@ reuse the one provided by Unfoldable?
 -- If reusing from unfoldable, do we need to test here?
 -}
 
+-- only test when specialized
+
   -- replicate :: forall a. Int -> a -> c a
   -- log "replicate should produce an list containing an item a specified number of times"
   -- assertEqual { actual: replicate 3 5, expected: l [5, 5, 5] }
@@ -501,22 +521,10 @@ reuse the one provided by Unfoldable?
   void $ pure $ length $ replicate 100000 1
 
 
-  log "replicateA should perform the monadic action the correct number of times"
-  assert $ replicateA 3 (Just 1) == Just (l [1, 1, 1])
-  assert $ replicateA 1 (Just 1) == Just (l [1])
-  assert $ replicateA 0 (Just 1) == Just (l [])
-  assert $ replicateA (-1) (Just 1) == Just (l [])
   -}
 
-
+  -- specialized lazy
   -- replicateM :: forall m a. Monad m => Int -> m a -> m (c a)
-  -- some :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
-  -- someRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
-  -- sort :: forall a. Ord a => c a -> c a
-  -- sortBy :: forall a. (a -> a -> Ordering) -> c a -> c a
-  -- transpose :: forall a. c (c a) -> c (c a)
-
-
 
 
 testCommonDiffEmptiability :: forall c cInverse canEmpty nonEmpty cPattern.
@@ -577,6 +585,19 @@ testCommonDiffEmptiability skip
     assertSkip = assertSkipHelper skip
 
   printTestType "Common (where signatures differ based on emptiability)"
+
+  -- Todo - create tests for these functions
+  let
+    todo_stripPrefix = stripPrefix
+    todo_snoc' = snoc'
+    todo_slice = slice
+    todo_pattern = pattern
+    todo_groupAllBy = groupAllBy
+    todo_dropEnd = dropEnd
+    todo_difference = difference
+    todo_deleteBy = deleteBy
+    todo_delete = delete
+    todo_cons' = cons'
 
   log "catMaybes should take a collection of Maybe values and remove the Nothings"
   assertEqual { actual: catMaybes (l [Nothing, Just 2, Nothing, Just 4]), expected: cel [2, 4] }
@@ -656,8 +677,6 @@ testCommonDiffEmptiability skip
   --assert $ (takeWhile (_ /= 1) nil) == nil
 
 
-
-
 testOnlyCanEmpty :: forall c nonEmpty.
   Alternative c =>
   MonadPlus c =>
@@ -732,6 +751,14 @@ testOnlyCanEmpty
 
 
   -- ======= Functions tests ========
+
+  -- Todo tests for these functions
+  let
+    todo_null = null
+    todo_manyRec = manyRec
+    todo_many = many
+    todo_fromFoldable = fromFoldable
+
 
   --fromFoldable :: forall f. Foldable f => f ~> c
   --already extensively checked in common tests
@@ -831,6 +858,12 @@ testOnlyNonEmpty
   assertEqual { actual: r.toList $ l [1, 2, 3], expected: cel [1, 2, 3] }
 
 
+  -- Todo create tests for these functions
+  let
+    todo_toList = toList
+    todo_fromList = fromList
+    todo_fromFoldable = fromFoldable
+
   -- These are the remaining functions that can't be deduplicated due to use of Maybe
 
   log "head should return a the first value"
@@ -861,21 +894,38 @@ testOnlyLazy :: forall c.
 testOnlyLazy
   { makeCollection
 
+  -- Same names, but different APIs (without Maybe)
   , alterAt
   , insertAt
   , modifyAt
   , updateAt
 
+  -- These are only available for Lazy collections
   , iterate
   , repeat
   , cycle
   , foldrLazy
   , scanlLazy
+
+  -- Specialized from Unfoldable1's replicate1 / replicate1A
+  , replicate1
+  , replicate1M
   } = do
   let
     l = makeCollection
 
   printTestType "Only Lazy"
+
+  -- Todo - create tests for these functions
+  let
+    todo_alterAt = alterAt
+    todo_iterate = iterate
+    todo_repeat = repeat
+    todo_cycle = cycle
+    todo_foldrLazy = foldrLazy
+    todo_scanlLazy = scanlLazy
+    todo_replicate1 = replicate1
+    todo_replicate1M = replicate1M
 
   log "insertAt should add an item at the specified index"
   assert $ (insertAt 0 1 (l [2, 3])) == (l [1, 2, 3])
@@ -897,16 +947,25 @@ testOnlyStrict :: forall c.
 testOnlyStrict
   { makeCollection
 
+  -- Same names, but different APIs (with Maybe)
   , alterAt
   , insertAt
   , modifyAt
   , updateAt
+
   } = do
 
   let
     l = makeCollection
 
   printTestType "Only Strict"
+
+  -- Todo - create tests for these functions
+  let
+    todo_alterAt = alterAt
+    todo_insertAt = insertAt
+    todo_modifyAt = modifyAt
+    todo_updateAt = updateAt
 
   -- log "insertAt should add an item at the specified index"
   -- assertEqual { actual: insertAt 0 1 $ l [2, 3], expected: Just $ l [1, 2, 3] }
@@ -940,15 +999,14 @@ testOnlyStrict
 
 -- Functions that cannot be tested generically.
 
--- Debating whether these should be passed a record defined in the API?
-
 
 assertSkipAlways :: (_ -> Boolean) -> Effect Unit
 assertSkipAlways _ =
   log "...skipped"
 
-testOnlyStrictCanEmpty :: Effect Unit
-testOnlyStrictCanEmpty = do
+
+testOnlyStrictCanEmpty :: OnlyStrictCanEmpty L.List -> Effect Unit
+testOnlyStrictCanEmpty { deleteAt } = do
 
   let
     l :: forall f a. Foldable f => f a -> L.List a
@@ -959,16 +1017,16 @@ testOnlyStrictCanEmpty = do
   -- Common function names, but different signatures
 
   log "deleteAt should remove an item at the specified index"
-  assert $ L.deleteAt 0 (l [1, 2, 3]) == Just (l [2, 3])
-  assert $ L.deleteAt 1 (l [1, 2, 3]) == Just (l [1, 3])
+  assert $ deleteAt 0 (l [1, 2, 3]) == Just (l [2, 3])
+  assert $ deleteAt 1 (l [1, 2, 3]) == Just (l [1, 3])
 
   -- Corner Cases
 
   -- Unique functions
 
 
-testOnlyStrictNonEmpty :: Effect Unit
-testOnlyStrictNonEmpty = do
+testOnlyStrictNonEmpty :: OnlyStrictNonEmpty NEL.NonEmptyList L.List -> Effect Unit
+testOnlyStrictNonEmpty { deleteAt } = do
 
   let
     l :: forall f a. Foldable f => f a -> NEL.NonEmptyList a
@@ -982,16 +1040,20 @@ testOnlyStrictNonEmpty = do
   -- Common function names, but different signatures
 
   log "deleteAt should remove an item at the specified index"
-  assertSkipAlways \_ -> NEL.deleteAt 0 (l [1, 2, 3]) == Just (cel [2, 3])
-  assertSkipAlways \_ -> NEL.deleteAt 1 (l [1, 2, 3]) == Just (cel [1, 3])
+  assertSkipAlways \_ -> deleteAt 0 (l [1, 2, 3]) == Just (cel [2, 3])
+  assertSkipAlways \_ -> deleteAt 1 (l [1, 2, 3]) == Just (cel [1, 3])
 
   -- Corner Cases
 
   -- Unique functions
 
 
-testOnlyLazyCanEmpty :: Effect Unit
-testOnlyLazyCanEmpty = do
+testOnlyLazyCanEmpty :: OnlyLazyCanEmpty LL.List -> Effect Unit
+testOnlyLazyCanEmpty
+  { deleteAt
+  , replicate
+  , replicateM
+  } = do
 
   let
     l :: forall f a. Foldable f => f a -> LL.List a
@@ -1002,19 +1064,22 @@ testOnlyLazyCanEmpty = do
   -- Common function names, but different signatures
 
   log "deleteAt should remove an item at the specified index"
-  assert $ LL.deleteAt 0 (l [1, 2, 3]) == l [2, 3]
-  assert $ LL.deleteAt 1 (l [1, 2, 3]) == l [1, 3]
+  assert $ deleteAt 0 (l [1, 2, 3]) == l [2, 3]
+  assert $ deleteAt 1 (l [1, 2, 3]) == l [1, 3]
 
   -- Corner Cases
 
   -- Unique functions
 
-  -- replicate  (specialized from Unfoldable's replicate)
-  -- replicateM (specialized from Unfoldable's replicateA)
+  -- Todo create tests for these functions
+  let
+    todo_replicate = replicate
+    todo_replicateM = replicateM
+  pure unit
 
 
-testOnlyLazyNonEmpty :: Effect Unit
-testOnlyLazyNonEmpty = do
+testOnlyLazyNonEmpty :: OnlyLazyNonEmpty LNEL.NonEmptyList LL.List -> Effect Unit
+testOnlyLazyNonEmpty { deleteAt } = do
 
   let
     l :: forall f a. Foldable f => f a -> LNEL.NonEmptyList a
@@ -1028,14 +1093,9 @@ testOnlyLazyNonEmpty = do
   -- Common function names, but different signatures
 
   log "deleteAt should remove an item at the specified index"
-  assert $ LNEL.deleteAt 0 (l [1, 2, 3]) == cel [2, 3]
-  assert $ LNEL.deleteAt 1 (l [1, 2, 3]) == cel [1, 3]
+  assert $ deleteAt 0 (l [1, 2, 3]) == cel [2, 3]
+  assert $ deleteAt 1 (l [1, 2, 3]) == cel [1, 3]
 
   -- Corner Cases
 
   -- Unique functions
-
-  -- replicate1  (specialized from Unfoldable1's replicate1)
-  -- replicate1M (specialized from Unfoldable1's replicate1A)
-
-

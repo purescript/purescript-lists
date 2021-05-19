@@ -7,7 +7,7 @@ import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (fromJust)
 import Partial.Unsafe (unsafePartial)
 import Prelude ((<<<))
-import Test.API (Common, CommonDiffEmptiability, OnlyCanEmpty, OnlyLazy)
+import Test.API (Common, CommonDiffEmptiability, OnlyCanEmpty, OnlyLazy, OnlyLazyCanEmpty)
 
 makeCollection :: forall a f. Foldable f => f a -> List a
 makeCollection = fromFoldable
@@ -125,4 +125,14 @@ onlyLazy =
   , cycle
   , foldrLazy
   , scanlLazy
+
+  , replicate1
+  , replicate1M
+  }
+
+onlyLazyCanEmpty :: OnlyLazyCanEmpty List
+onlyLazyCanEmpty =
+  { deleteAt
+  , replicate
+  , replicateM
   }

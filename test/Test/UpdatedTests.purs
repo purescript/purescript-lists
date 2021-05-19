@@ -53,7 +53,7 @@ testBasicList = do
   T.testCommonDiffEmptiability T.RunAll LA.commonDiffEmptiability
   T.testOnlyCanEmpty LA.onlyCanEmpty
   T.testOnlyStrict LA.onlyStrict
-  T.testOnlyStrictCanEmpty
+  T.testOnlyStrictCanEmpty LA.onlyStrictCanEmpty
 
 testNonEmptyList :: Effect Unit
 testNonEmptyList = do
@@ -64,7 +64,7 @@ testNonEmptyList = do
   T.testCommonDiffEmptiability T.SkipBrokenStrictNonEmpty NELA.commonDiffEmptiability
   T.testOnlyNonEmpty NELA.onlyNonEmpty
   T.testOnlyStrict NELA.onlyStrict
-  T.testOnlyStrictNonEmpty
+  T.testOnlyStrictNonEmpty NELA.onlyStrictNonEmpty
 
 testLazyList :: Effect Unit
 testLazyList = do
@@ -73,8 +73,7 @@ testLazyList = do
   T.testCommonDiffEmptiability T.SkipBrokenLazyCanEmpty LLA.commonDiffEmptiability
   T.testOnlyCanEmpty LLA.onlyCanEmpty
   T.testOnlyLazy LLA.onlyLazy
-  T.testOnlyStrictCanEmpty
-  T.testOnlyLazyCanEmpty
+  T.testOnlyLazyCanEmpty LLA.onlyLazyCanEmpty
 
 
 testLazyNonEmptyList :: Effect Unit
@@ -88,7 +87,7 @@ testLazyNonEmptyList = do
   T.testCommonDiffEmptiability T.RunAll LNELA.commonDiffEmptiability
   T.testOnlyNonEmpty LNELA.onlyNonEmpty
   T.testOnlyLazy LNELA.onlyLazy
-  T.testOnlyLazyNonEmpty
+  T.testOnlyLazyNonEmpty LNELA.onlyLazyNonEmpty
 
 -- nil is passed instead of a singleton,
 -- because some of the functions use this
