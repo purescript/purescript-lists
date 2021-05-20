@@ -55,11 +55,14 @@ data SkipBroken
 
 derive instance eqSkipBroken :: Eq SkipBroken
 
-assertSkipHelper :: SkipBroken -> Array SkipBroken -> (_ -> Boolean) -> Effect Unit
+type AssertRec a = { actual :: a , expected :: a }
+
+assertSkipHelper :: forall a. Eq a => Show a =>
+  SkipBroken -> Array SkipBroken -> (Unit -> AssertRec a) -> Effect Unit
 assertSkipHelper skip arr f =
   case Array.elem skip arr of
     true -> log "...skipped"
-    false -> assert $ f unit
+    false -> assertEqual $ f unit
 
 printCollectionType :: String -> Effect Unit
 printCollectionType str = do
@@ -570,7 +573,7 @@ testCommonDiffEmptiability skip
     -- nel x = toNonEmpty (makeCollection x)
     nel = makeNonEmptyCollection
 
-    assertSkip :: Array SkipBroken -> (_ -> Boolean) -> Effect Unit
+    assertSkip :: forall a. Eq a => Show a => Array SkipBroken -> (_ -> AssertRec a) -> Effect Unit
     assertSkip = assertSkipHelper skip
 
   printTestType "Common (where signatures differ based on emptiability)"
@@ -617,7 +620,7 @@ testCommonDiffEmptiability skip
 
   log "groupAll should group equal elements into lists"
   assertSkip [SkipBrokenLazyCanEmpty]
-   \_ -> groupAll (l [1, 2, 2, 3, 3, 3, 1]) == l [nel [1, 1], nel [2, 2], nel [3, 3, 3]]
+   \_ -> { actual: groupAll (l [1, 2, 2, 3, 3, 3, 1]), expected: l [nel [1, 1], nel [2, 2], nel [3, 3, 3]] }
   --assert $ groupAll (l [1, 2, 2, 3, 3, 3, 1]) == l [nel [1, 1], nel [2, 2], nel [3, 3, 3]]
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
@@ -628,32 +631,32 @@ testCommonDiffEmptiability skip
   --assertEqual { actual: groupAllBy (compare `on` mod 10) (l [1, 2, 12, 3, 13, 23, 11]), expected: l [nel [1, 11], nel [2, 12], nel [3, 13, 23]] }
 
   log "mapMaybe should transform every item in an list, throwing out Nothing values"
-  assert $ mapMaybe (\x -> if x /= 0 then Just x else Nothing) (l [0, 1, 0, 0, 2, 3]) == cel [1, 2, 3]
+  assertEqual { actual: mapMaybe (\x -> if x /= 0 then Just x else Nothing) (l [0, 1, 0, 0, 2, 3]), expected: cel [1, 2, 3] }
 
   log "partition should separate a list into a tuple of lists that do and do not satisfy a predicate"
   let partitioned = partition (_ > 2) (l [1, 5, 3, 2, 4])
-  assert $ partitioned.yes == cel [5, 3, 4]
-  assert $ partitioned.no == cel [1, 2]
+  assertEqual { actual: partitioned.yes, expected: cel [5, 3, 4] }
+  assertEqual { actual: partitioned.no, expected: cel [1, 2] }
 
   log "span should split an list in two based on a predicate"
   let spanResult = span (_ < 4) (l [1, 2, 3, 4, 5, 6, 7])
-  assert $ spanResult.init == cel [1, 2, 3]
-  assert $ spanResult.rest == cel [4, 5, 6, 7]
+  assertEqual { actual: spanResult.init, expected: cel [1, 2, 3] }
+  assertEqual { actual: spanResult.rest, expected: cel [4, 5, 6, 7] }
 
   log "take should keep the specified number of items from the front of an list, discarding the rest"
-  assert $ (take 1 (l [1, 2, 3])) == cel [1]
-  assert $ (take 2 (l [1, 2, 3])) == cel [1, 2]
+  assertEqual { actual: (take 1 (l [1, 2, 3])), expected: cel [1] }
+  assertEqual { actual: (take 2 (l [1, 2, 3])), expected: cel [1, 2] }
   --assert $ (take 1 nil) == nil
-  assert $ (take 0 (l [1, 2])) == cel []
-  assert $ (take (-1) (l [1, 2])) == cel []
+  assertEqual { actual: (take 0 (l [1, 2])), expected: cel [] }
+  assertEqual { actual: (take (-1) (l [1, 2])), expected: cel [] }
 
   log "takeEnd should keep the specified number of items from the end of an list, discarding the rest"
   assertSkip [SkipBrokenLazyCanEmpty]
-    \_ -> (takeEnd 1 (l [1, 2, 3])) == cel [3]
+    \_ -> { actual: takeEnd 1 (l [1, 2, 3]), expected: cel [3] }
   assertSkip [SkipBrokenLazyCanEmpty]
-    \_ -> (takeEnd 2 (l [1, 2, 3])) == cel [2, 3]
+    \_ -> { actual: takeEnd 2 (l [1, 2, 3]), expected: cel [2, 3] }
   assertSkip [SkipBrokenLazyCanEmpty]
-    \_ -> (takeEnd 2 (l [1])) == cel [1]
+    \_ -> { actual: takeEnd 2 (l [1]), expected: cel [1] }
 
   --assert $ (takeEnd 1 (l [1, 2, 3])) == cel [3]
   --assert $ (takeEnd 2 (l [1, 2, 3])) == cel [2, 3]
@@ -661,8 +664,8 @@ testCommonDiffEmptiability skip
   --assert $ (takeEnd 2 (l [1])) == cel [1]
 
   log "takeWhile should keep all values that match a predicate from the front of an list"
-  assert $ (takeWhile (_ /= 2) (l [1, 2, 3])) == cel [1]
-  assert $ (takeWhile (_ /= 3) (l [1, 2, 3])) == cel [1, 2]
+  assertEqual { actual: (takeWhile (_ /= 2) (l [1, 2, 3])), expected: cel [1] }
+  assertEqual { actual: (takeWhile (_ /= 3) (l [1, 2, 3])), expected: cel [1, 2] }
   --assert $ (takeWhile (_ /= 1) nil) == nil
 
 
@@ -721,14 +724,14 @@ testOnlyCanEmpty
   -- Monoid
   -- mempty :: c
   log "mempty should not change the collection it is appended to"
-  assert $ l [5] <> mempty == l [5]
+  assertEqual { actual: l [5] <> mempty, expected: l [5] }
   log "mempty should be an empty collection"
-  assert $ l [] == (mempty :: c Int)
+  assertEqual { actual: l [], expected: (mempty :: c Int) }
 
   -- Plus
   -- empty :: forall a. c a
   log "empty should create an empty collection"
-  assert $ l [] == (empty :: c Int)
+  assertEqual { actual: l [], expected: (empty :: c Int) }
 
   -- Unfoldable
   -- unfoldr :: forall a b. (b -> Maybe (Tuple a b)) -> b -> c a
@@ -738,7 +741,6 @@ testOnlyCanEmpty
     step :: Int -> Maybe (Tuple Int Int)
     step n = if n > 5 then Nothing else Just $ Tuple n $ n + 1
 
-  -- assert $ l [1, 2, 3, 4, 5] == unfoldr step 1
   assertEqual { actual: unfoldr step 1, expected: l [1, 2, 3, 4, 5] }
 
   log "Unfoldable's replicate should be stack-safe"
@@ -763,39 +765,39 @@ testOnlyCanEmpty
   -- non-empty canEmpty list.
 
   log "head should return a Just-NEL.NonEmptyListped first value of a non-empty list"
-  assert $ head (l [1, 2]) == Just 1
+  assertEqual { actual: head (l [1, 2]), expected: Just 1 }
 
   log "head should return Nothing for an empty list"
-  assert $ head nil == Nothing
+  assertEqual { actual: head nil, expected: Nothing }
 
   -- Todo - phrasing should be changed to note all but last (not all but first).
   log "init should return a Just-NEL.NonEmptyListped list containing all the items in an list apart from the first for a non-empty list"
-  assert $ init (l [1, 2, 3]) == Just (l [1, 2])
+  assertEqual { actual: init (l [1, 2, 3]), expected: Just (l [1, 2]) }
 
   log "init should return Nothing for an empty list"
-  assert $ init nil == Nothing
+  assertEqual { actual: init nil, expected: Nothing }
 
 
   log "last should return a Just-NEL.NonEmptyListped last value of a non-empty list"
-  assert $ last (l [1, 2]) == Just 2
+  assertEqual { actual: last (l [1, 2]), expected: Just 2 }
 
   log "last should return Nothing for an empty list"
-  assert $ last nil == Nothing
+  assertEqual { actual: last nil, expected: Nothing }
 
 
   log "tail should return a Just-NEL.NonEmptyListped list containing all the items in an list apart from the first for a non-empty list"
-  assert $ tail (l [1, 2, 3]) == Just (l [2, 3])
+  assertEqual { actual: tail (l [1, 2, 3]), expected: Just (l [2, 3]) }
 
   log "tail should return Nothing for an empty list"
-  assert $ tail nil == Nothing
+  assertEqual { actual: tail nil, expected: Nothing }
 
 
   log "uncons should return nothing when used on an empty list"
-  assert $ isNothing (uncons nil)
+  assertEqual { actual: isNothing (uncons nil), expected: true }
 
   log "uncons should split an list into a head and tail record when there is at least one item"
-  assert $ uncons (l [1]) == Just {head: 1, tail: l []}
-  assert $ uncons (l [1, 2, 3]) == Just {head: 1, tail: l [2, 3]}
+  assertEqual { actual: uncons (l [1]), expected: Just {head: 1, tail: l []} }
+  assertEqual { actual: uncons (l [1, 2, 3]), expected: Just {head: 1, tail: l [2, 3]} }
 
 
 
@@ -861,20 +863,20 @@ testOnlyNonEmpty
   -- These are the remaining functions that can't be deduplicated due to use of Maybe
 
   log "head should return a the first value"
-  assert $ head (l [1, 2]) == 1
+  assertEqual { actual: head (l [1, 2]), expected: 1 }
 
   log "init should return a canEmpty collection of all but the last value"
-  assert $ init (l [1, 2, 3]) == cel [1, 2]
+  assertEqual { actual: init (l [1, 2, 3]), expected: cel [1, 2] }
 
   log "last should return the last value"
-  assert $ last (l [1, 2]) == 2
+  assertEqual { actual: last (l [1, 2]), expected: 2 }
 
   log "tail should return a canEmpty collection of all but the first value"
-  assert $ tail (l [1, 2, 3]) == cel [2, 3]
+  assertEqual { actual: tail (l [1, 2, 3]), expected: cel [2, 3] }
 
   log "uncons should split a collection into a record containing the first and remaining values"
-  assert $ uncons (l [1]) == {head: 1, tail: cel []}
-  assert $ uncons (l [1, 2, 3]) == {head: 1, tail: cel [2, 3]}
+  assertEqual { actual: uncons (l [1]), expected: {head: 1, tail: cel []} }
+  assertEqual { actual: uncons (l [1, 2, 3]), expected: {head: 1, tail: cel [2, 3]} }
 
 
 
@@ -884,6 +886,7 @@ testOnlyLazy :: forall c.
   -- Lazy (c Int) => -- missing from LazyNonEmptyList
   --
   Eq (c Int) =>
+  Show (c Int) =>
   OnlyLazy c -> Effect Unit
 testOnlyLazy
   { makeCollection
@@ -922,21 +925,22 @@ testOnlyLazy
     todo_replicate1M = replicate1M
 
   log "insertAt should add an item at the specified index"
-  assert $ (insertAt 0 1 (l [2, 3])) == (l [1, 2, 3])
-  assert $ (insertAt 1 1 (l [2, 3])) == (l [2, 1, 3])
-  assert $ (insertAt 2 1 (l [2, 3])) == (l [2, 3, 1])
+  assertEqual { actual: (insertAt 0 1 (l [2, 3])), expected: (l [1, 2, 3]) }
+  assertEqual { actual: (insertAt 1 1 (l [2, 3])), expected: (l [2, 1, 3]) }
+  assertEqual { actual: (insertAt 2 1 (l [2, 3])), expected: (l [2, 3, 1]) }
 
   log "modifyAt should update an item at the specified index"
-  assert $ (modifyAt 0 (_ + 1) (l [1, 2, 3])) == (l [2, 2, 3])
-  assert $ (modifyAt 1 (_ + 1) (l [1, 2, 3])) == (l [1, 3, 3])
+  assertEqual { actual: (modifyAt 0 (_ + 1) (l [1, 2, 3])), expected: (l [2, 2, 3]) }
+  assertEqual { actual: (modifyAt 1 (_ + 1) (l [1, 2, 3])), expected: (l [1, 3, 3]) }
 
   log "updateAt should replace an item at the specified index"
-  assert $ (updateAt 0 9 (l [1, 2, 3])) == (l [9, 2, 3])
-  assert $ (updateAt 1 9 (l [1, 2, 3])) == (l [1, 9, 3])
+  assertEqual { actual: (updateAt 0 9 (l [1, 2, 3])), expected: (l [9, 2, 3]) }
+  assertEqual { actual: (updateAt 1 9 (l [1, 2, 3])), expected: (l [1, 9, 3]) }
 
 
 testOnlyStrict :: forall c.
   Eq (c Int) =>
+  Show (c Int) =>
   OnlyStrict c -> Effect Unit
 testOnlyStrict
   { makeCollection
@@ -983,11 +987,11 @@ testOnlyStrict
   -- missing from original test suite
 
   log "updateAt should replace an item at the specified index"
-  assert $ (updateAt 0 9 (l [1, 2, 3])) == Just (l [9, 2, 3])
-  assert $ (updateAt 1 9 (l [1, 2, 3])) == Just (l [1, 9, 3])
+  assertEqual { actual: (updateAt 0 9 (l [1, 2, 3])), expected: Just (l [9, 2, 3]) }
+  assertEqual { actual: (updateAt 1 9 (l [1, 2, 3])), expected: Just (l [1, 9, 3]) }
 
   log "updateAt should return Nothing if the index is out of range"
-  assert $ (updateAt 5 9 (l [1, 2, 3])) == Nothing
+  assertEqual { actual: (updateAt 5 9 (l [1, 2, 3])), expected: Nothing }
 
 
 
@@ -1011,8 +1015,8 @@ testOnlyStrictCanEmpty { deleteAt } = do
   -- Common function names, but different signatures
 
   log "deleteAt should remove an item at the specified index"
-  assert $ deleteAt 0 (l [1, 2, 3]) == Just (l [2, 3])
-  assert $ deleteAt 1 (l [1, 2, 3]) == Just (l [1, 3])
+  assertEqual { actual: deleteAt 0 (l [1, 2, 3]), expected: Just (l [2, 3]) }
+  assertEqual { actual: deleteAt 1 (l [1, 2, 3]), expected: Just (l [1, 3]) }
 
   -- Corner Cases
 
@@ -1058,8 +1062,8 @@ testOnlyLazyCanEmpty
   -- Common function names, but different signatures
 
   log "deleteAt should remove an item at the specified index"
-  assert $ deleteAt 0 (l [1, 2, 3]) == l [2, 3]
-  assert $ deleteAt 1 (l [1, 2, 3]) == l [1, 3]
+  assertEqual { actual: deleteAt 0 (l [1, 2, 3]), expected: l [2, 3] }
+  assertEqual { actual: deleteAt 1 (l [1, 2, 3]), expected: l [1, 3] }
 
   -- Corner Cases
 
@@ -1087,8 +1091,8 @@ testOnlyLazyNonEmpty { deleteAt } = do
   -- Common function names, but different signatures
 
   log "deleteAt should remove an item at the specified index"
-  assert $ deleteAt 0 (l [1, 2, 3]) == cel [2, 3]
-  assert $ deleteAt 1 (l [1, 2, 3]) == cel [1, 3]
+  assertEqual { actual: deleteAt 0 (l [1, 2, 3]), expected: cel [2, 3] }
+  assertEqual { actual: deleteAt 1 (l [1, 2, 3]), expected: cel [1, 3] }
 
   -- Corner Cases
 
