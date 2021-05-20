@@ -28,6 +28,7 @@ import Data.Traversable (class Traversable, traverse)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, replicate1A, unfoldr)
+import Data.Unfoldable as Unfoldable
 import Data.Unfoldable1 (class Unfoldable1, unfoldr1)
 import Data.Unfoldable1 as Unfoldable1
 import Effect (Effect)
@@ -334,7 +335,7 @@ testCommon
   log "unfoldr1 should maintain order"
   assertEqual { actual: rg 1 5, expected: unfoldr1 step1 1 }
 
-  log "Unfoldable1 replicate1 should be stack-safe"
+  log "Unfoldable1's replicate1 should be stack-safe"
   void $ pure $ r.length $ (Unfoldable1.replicate1 100000 1 :: c Int)
 
   -- ===========   Functions   ===========
@@ -499,15 +500,6 @@ testCommon
   assertEqual { actual: transpose (l [l [10, 11], l [20], l [30, 31, 32]])
               , expected: l [l [10, 20, 30], l [11, 31], l [32]] }
 
--- Todo - question:
-{-
-Should we have a specialized replicate, or just
-reuse the one provided by Unfoldable?
--- If reusing from unfoldable, do we need to test here?
--}
-
--- only test when specialized
-
   -- replicate :: forall a. Int -> a -> c a
   -- log "replicate should produce an list containing an item a specified number of times"
   -- assertEqual { actual: replicate 3 5, expected: l [5, 5, 5] }
@@ -522,9 +514,6 @@ reuse the one provided by Unfoldable?
 
 
   -}
-
-  -- specialized lazy
-  -- replicateM :: forall m a. Monad m => Int -> m a -> m (c a)
 
 
 testCommonDiffEmptiability :: forall c cInverse canEmpty nonEmpty cPattern.
@@ -687,9 +676,11 @@ testOnlyCanEmpty :: forall c nonEmpty.
   --
   Eq (c Int) =>
   Eq (c (nonEmpty Int)) =>
+  Show (c Int) =>
+  Show (c (nonEmpty Int)) =>
   OnlyCanEmpty c nonEmpty -> Effect Unit
 testOnlyCanEmpty
-  { makeCollection
+  r@{ makeCollection
   , makeNonEmptyCollection
 
   , fromFoldable
@@ -745,10 +736,13 @@ testOnlyCanEmpty
   log "unfoldr should maintain order"
   let
     step :: Int -> Maybe (Tuple Int Int)
-    step 6 = Nothing
-    step n = Just (Tuple n (n + 1))
-  assert $ l [1, 2, 3, 4, 5] == unfoldr step 1
+    step n = if n > 5 then Nothing else Just $ Tuple n $ n + 1
 
+  -- assert $ l [1, 2, 3, 4, 5] == unfoldr step 1
+  assertEqual { actual: unfoldr step 1, expected: l [1, 2, 3, 4, 5] }
+
+  log "Unfoldable's replicate should be stack-safe"
+  void $ pure $ r.last $ (Unfoldable.replicate 100000 1 :: c Int)
 
   -- ======= Functions tests ========
 
