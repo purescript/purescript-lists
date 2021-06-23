@@ -87,6 +87,7 @@ import Control.Alternative (class Alternative)
 import Control.Lazy (class Lazy)
 import Control.Monad.Rec.Class (class MonadRec)
 import Data.Foldable (class Foldable)
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List ((:))
 import Data.List as L
@@ -95,16 +96,13 @@ import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
+import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
 import Data.Semigroup.Traversable (sequence1)
+import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
+import Data.Traversable (scanl, scanr) as Exports
 import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Partial.Unsafe (unsafeCrashWith, unsafePartial)
-
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
-import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
-import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
-import Data.Traversable (scanl, scanr) as Exports
-
 import Prim.TypeError (class Warn, Text)
 
 --- Sorted additions ------
@@ -136,7 +134,7 @@ stripPrefix _ _ = unsafeCrashWith "todo stripPrefix for NonEmptyList"
 deleteAt :: forall a. Int -> NonEmptyList a -> Maybe (L.List a)
 deleteAt _ _ = unsafeCrashWith "todo deleteAt for NonEmptyList"
 
-alterAt :: forall a. Int -> (a -> Maybe a) -> NonEmptyList a -> Maybe (NonEmptyList a)
+alterAt :: forall a. Int -> (a -> Maybe a) -> NonEmptyList a -> Maybe (L.List a)
 alterAt _ _ _ = unsafeCrashWith "todo alterAt for NonEmptyList"
 
 -- | Internal function: any operation on a list that is guaranteed not to delete
@@ -192,9 +190,10 @@ singleton = NonEmptyList <<< NE.singleton
 infix 8 range as ..
 
 -- | Create a list containing a range of integers, including both endpoints.
--- Todo, rewrite this without unsafe workaround (if necessary)
 range :: Int -> Int -> NonEmptyList Int
-range start end = unsafePartial fromJust $ fromList $ L.range start end
+range start end | start < end = cons' start (L.range (start + 1) end)
+                | start > end = cons' start (L.range (start - 1) end)
+                | otherwise = singleton start
 
 cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
 cons y (NonEmptyList (x :| xs)) = NonEmptyList (y :| x : xs)

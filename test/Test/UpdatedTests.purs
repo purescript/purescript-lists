@@ -51,7 +51,7 @@ testBasicList = do
 
   T.testCommon LA.common
   T.testCommonDiffEmptiability T.RunAll LA.commonDiffEmptiability
-  T.testOnlyCanEmpty LA.onlyCanEmpty
+  T.testOnlyCanEmpty T.SkipBrokenStrictCanEmpty LA.onlyCanEmpty LA.common LA.commonDiffEmptiability
   T.testOnlyStrict LA.onlyStrict
   T.testOnlyStrictCanEmpty LA.onlyStrictCanEmpty
 
@@ -62,7 +62,7 @@ testNonEmptyList = do
 
   T.testCommon NELA.common
   T.testCommonDiffEmptiability T.SkipBrokenStrictNonEmpty NELA.commonDiffEmptiability
-  T.testOnlyNonEmpty NELA.onlyNonEmpty
+  T.testOnlyNonEmpty NELA.onlyNonEmpty NELA.commonDiffEmptiability
   T.testOnlyStrict NELA.onlyStrict
   T.testOnlyStrictNonEmpty NELA.onlyStrictNonEmpty
 
@@ -71,8 +71,8 @@ testLazyList = do
 
   T.testCommon LLA.common
   T.testCommonDiffEmptiability T.SkipBrokenLazyCanEmpty LLA.commonDiffEmptiability
-  T.testOnlyCanEmpty LLA.onlyCanEmpty
-  T.testOnlyLazy LLA.onlyLazy
+  T.testOnlyCanEmpty T.SkipBrokenLazyCanEmpty LLA.onlyCanEmpty LLA.common LLA.commonDiffEmptiability
+  T.testOnlyLazy LLA.onlyLazy LLA.common
   T.testOnlyLazyCanEmpty LLA.onlyLazyCanEmpty
 
 
@@ -85,21 +85,6 @@ testLazyNonEmptyList = do
   -- worth using the assertSkip strategy
   T.testCommon LNELA.common
   T.testCommonDiffEmptiability T.RunAll LNELA.commonDiffEmptiability
-  T.testOnlyNonEmpty LNELA.onlyNonEmpty
-  T.testOnlyLazy LNELA.onlyLazy
+  T.testOnlyNonEmpty LNELA.onlyNonEmpty LNELA.commonDiffEmptiability
+  T.testOnlyLazy LNELA.onlyLazy LNELA.common
   T.testOnlyLazyNonEmpty LNELA.onlyLazyNonEmpty
-
--- nil is passed instead of a singleton,
--- because some of the functions use this
--- as a convenience value
-nil :: L.List Int
-nil = L.Nil
-
-lazyNil :: LL.List Int
-lazyNil = LL.nil
-
-nonEmpty :: NEL.NonEmptyList Int
-nonEmpty = NEL.singleton 1
-
-lazyNonEmpty :: LNEL.NonEmptyList Int
-lazyNonEmpty = LNEL.singleton 1

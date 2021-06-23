@@ -18,6 +18,10 @@ makeCanEmptyCollection = L.fromFoldable
 makeNonEmptyCollection :: forall a f. Foldable f => f a -> NonEmptyList a
 makeNonEmptyCollection = makeCollection
 
+-- Suppress conversion to canEmpty list to enable common testing code
+takeSimple :: forall a. Int -> NonEmptyList a -> NonEmptyList a
+takeSimple n = unsafePartial fromJust <<< fromList <<< take n
+
 common :: Common NonEmptyList
 common =
   { makeCollection
@@ -65,6 +69,7 @@ commonDiffEmptiability =
   { makeCollection
   , makeCanEmptyCollection
   , makeNonEmptyCollection
+  , makeInverseCollection: makeCanEmptyCollection
 
   , catMaybes
   , drop
@@ -112,8 +117,8 @@ onlyNonEmpty =
 onlyLazy :: OnlyLazy NonEmptyList
 onlyLazy =
   { makeCollection
+  , takeSimple
 
-  , alterAt
   , insertAt
   , modifyAt
   , updateAt
@@ -130,4 +135,6 @@ onlyLazy =
 
 onlyLazyNonEmpty :: OnlyLazyNonEmpty NonEmptyList L.List
 onlyLazyNonEmpty =
-  { deleteAt }
+  { alterAt
+  , deleteAt
+  }

@@ -269,7 +269,7 @@ stripPrefix _ _ = unsafeCrashWith "todo stripPrefix for LazyNonEmptyList"
 deleteAt :: forall a. Int -> NonEmptyList a -> L.List a
 deleteAt _ _ = unsafeCrashWith "todo deleteAt for LazyNonEmptyList"
 
-alterAt :: forall a. Int -> (a -> Maybe a) -> NonEmptyList a -> NonEmptyList a
+alterAt :: forall a. Int -> (a -> Maybe a) -> NonEmptyList a -> L.List a
 alterAt _ _ _ = unsafeCrashWith "todo alterAt for LazyNonEmptyList"
 
 cycle :: forall a. NonEmptyList a -> NonEmptyList a

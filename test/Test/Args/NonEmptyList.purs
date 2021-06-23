@@ -65,6 +65,7 @@ commonDiffEmptiability =
   { makeCollection
   , makeCanEmptyCollection
   , makeNonEmptyCollection
+  , makeInverseCollection: makeCanEmptyCollection
 
   , catMaybes
   , drop
@@ -113,7 +114,6 @@ onlyStrict :: OnlyStrict NonEmptyList
 onlyStrict =
   { makeCollection
 
-  , alterAt
   , insertAt
   , modifyAt
   , updateAt
@@ -121,4 +121,6 @@ onlyStrict =
 
 onlyStrictNonEmpty :: OnlyStrictNonEmpty NonEmptyList L.List
 onlyStrictNonEmpty =
-  { deleteAt }
+  { alterAt
+  , deleteAt
+  }

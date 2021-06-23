@@ -57,6 +57,7 @@ type CommonDiffEmptiability c cInverse canEmpty nonEmpty cPattern =
 
   , makeCanEmptyCollection :: forall f a. Foldable f => f a -> canEmpty a
   , makeNonEmptyCollection :: forall f a. Foldable f => f a -> nonEmpty a
+  , makeInverseCollection :: forall f a. Foldable f => f a -> cInverse a
 
   , catMaybes :: forall a. c (Maybe a) -> canEmpty a
   , drop :: forall a. Int -> c a -> canEmpty a
@@ -85,9 +86,13 @@ type CommonDiffEmptiability c cInverse canEmpty nonEmpty cPattern =
   , stripPrefix :: forall a. Eq a => cPattern a -> c a -> Maybe (canEmpty a)
 }
 
-type OnlyCanEmpty c nonEmpty =
+type OnlyCanEmpty c =
   { makeCollection :: forall f a. Foldable f => f a -> c a
-  , makeNonEmptyCollection :: forall f a. Foldable f => f a -> nonEmpty a
+
+  -- These functions are not available for non-empty collections
+  , null :: forall a. c a -> Boolean
+  , many :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
+  , manyRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
 
   -- These are the same function names as the NonEmpty versions,
   -- but the signatures are different and can't be merged in the
@@ -100,39 +105,32 @@ type OnlyCanEmpty c nonEmpty =
   , tail :: forall a. c a -> Maybe (c a)
   , uncons :: forall a. c a -> Maybe { head :: a, tail :: c a }
 
-  -- These are not available for non-empty collections
-  , null :: forall a. c a -> Boolean
-  , many :: forall f a. Alternative f => Lazy (f (c a)) => f a -> f (c a)
-  , manyRec :: forall f a. MonadRec f => Alternative f => f a -> f (c a)
   }
 
 type OnlyNonEmpty c canEmpty =
   { makeCollection :: forall f a. Foldable f => f a -> c a
   , makeCanEmptyCollection :: forall f a. Foldable f => f a -> canEmpty a
 
+  -- These functions are only available for NonEmpty collections
+  , fromList :: forall a. canEmpty a -> Maybe (c a)
+  , toList :: c ~> canEmpty
+
   -- These are the same function names as the CanEmpty versions,
   -- but the signatures are different and can't be merged in the
   -- CommonDiffEmptiability tests. This is due to a mismatch in the
   -- presence of `Maybe`s.
-
   , fromFoldable :: forall f a. Foldable f => f a -> Maybe (c a)
   , head :: forall a. c a -> a
   , init :: forall a. c a -> canEmpty a
   , last :: forall a. c a -> a
   , tail :: forall a. c a -> canEmpty a
   , uncons :: forall a. c a -> { head :: a, tail :: canEmpty a }
-
-  -- These are only available for NonEmpty collections
-
-  , fromList :: forall a. canEmpty a -> Maybe (c a)
-  , toList :: c ~> canEmpty
   }
 
 type OnlyStrict c =
   { makeCollection :: forall f a. Foldable f => f a -> c a
 
   -- Same names, but different APIs (with Maybe)
-  , alterAt :: forall a. Int -> (a -> Maybe a) -> c a -> Maybe (c a)
   , insertAt :: forall a. Int -> a -> c a -> Maybe (c a)
   , modifyAt :: forall a. Int -> (a -> a) -> c a -> Maybe (c a)
   , updateAt :: forall a. Int -> a -> c a -> Maybe (c a)
@@ -140,17 +138,17 @@ type OnlyStrict c =
 
 type OnlyLazy c =
   { makeCollection :: forall f a. Foldable f => f a -> c a
+  , takeSimple :: forall a. Int -> c a -> c a
 
   -- Same names, but different APIs (without Maybe)
-  , alterAt :: forall a. Int -> (a -> Maybe a) -> c a -> c a
   , insertAt :: forall a. Int -> a -> c a -> c a
   , modifyAt :: forall a. Int -> (a -> a) -> c a -> c a
   , updateAt :: forall a. Int -> a -> c a -> c a
 
   -- These are only available for Lazy collections
-  , iterate :: forall a. (a -> a) -> a -> c a
   , repeat :: forall a. a -> c a
   , cycle :: forall a. c a -> c a
+  , iterate :: forall a. (a -> a) -> a -> c a
   , foldrLazy :: forall a b. Lazy b => (a -> b -> b) -> b -> c a -> b
   , scanlLazy :: forall a b. (b -> a -> b) -> b -> c a -> c b
 
@@ -162,36 +160,34 @@ type OnlyLazy c =
 
 -- Non Overlapping APIs
 
-type OnlyStrictCanEmpty :: forall k. (k -> Type) -> Type
 type OnlyStrictCanEmpty c =
   {
   -- Same names, but different APIs
-    deleteAt :: forall a. Int -> c a -> Maybe (c a)
+    alterAt :: forall a. Int -> (a -> Maybe a) -> c a -> Maybe (c a)
+  , deleteAt :: forall a. Int -> c a -> Maybe (c a)
   }
 
-type OnlyStrictNonEmpty :: forall k. (k -> Type) -> (k -> Type) -> Type
 type OnlyStrictNonEmpty c canEmpty =
   {
   -- Same names, but different APIs
-    deleteAt :: forall a. Int -> c a -> Maybe (canEmpty a)
+    alterAt :: forall a. Int -> (a -> Maybe a) -> c a -> Maybe (canEmpty a)
+  , deleteAt :: forall a. Int -> c a -> Maybe (canEmpty a)
   }
-
--- Todo - investigate why kind signature is only recommended when
--- records contain only a single field
 
 type OnlyLazyCanEmpty c =
   {
   -- Same names, but different APIs
-    deleteAt :: forall a. Int -> c a -> c a
+    alterAt :: forall a. Int -> (a -> Maybe a) -> c a -> c a
+  , deleteAt :: forall a. Int -> c a -> c a
   -- Unique functions
   -- Specialized from Unfoldable's replicate / replicateA
   , replicate :: forall a. Int -> a -> c a
   , replicateM :: forall m a. Monad m => Int -> m a -> m (c a)
   }
 
-type OnlyLazyNonEmpty :: forall k. (k -> Type) -> (k -> Type) -> Type
 type OnlyLazyNonEmpty c canEmpty =
   {
   -- Same names, but different APIs
-    deleteAt :: forall a. Int -> c a -> canEmpty a
+    alterAt :: forall a. Int -> (a -> Maybe a) -> c a -> canEmpty a
+  , deleteAt :: forall a. Int -> c a -> canEmpty a
   }

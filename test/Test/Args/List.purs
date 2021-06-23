@@ -65,6 +65,7 @@ commonDiffEmptiability =
   { makeCollection
   , makeCanEmptyCollection
   , makeNonEmptyCollection
+  , makeInverseCollection: makeNonEmptyCollection
 
   , catMaybes
   , drop
@@ -93,10 +94,9 @@ commonDiffEmptiability =
   , stripPrefix
   }
 
-onlyCanEmpty :: OnlyCanEmpty List NEL.NonEmptyList
+onlyCanEmpty :: OnlyCanEmpty List
 onlyCanEmpty =
   { makeCollection
-  , makeNonEmptyCollection
 
   , fromFoldable
   , head
@@ -114,7 +114,6 @@ onlyStrict :: OnlyStrict List
 onlyStrict =
   { makeCollection
 
-  , alterAt
   , insertAt
   , modifyAt
   , updateAt
@@ -122,4 +121,6 @@ onlyStrict =
 
 onlyStrictCanEmpty :: OnlyStrictCanEmpty List
 onlyStrictCanEmpty =
-  { deleteAt }
+  { alterAt
+  , deleteAt
+  }
