@@ -26,5 +26,5 @@ last (Cons _ xs)  = last xs
 -- |
 -- | Running time: `O(n)`
 init :: forall a. Partial => List a -> List a
-init (Cons x Nil) = Nil
+init (Cons _ Nil) = Nil
 init (Cons x xs)  = Cons x (init xs)

@@ -72,6 +72,8 @@ module Data.List.Lazy
 
   , nub
   , nubBy
+  , nubEq
+  , nubByEq
   , union
   , unionBy
   , delete
@@ -103,6 +105,7 @@ import Control.Monad.Rec.Class as Rec
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Lazy (defer)
+import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Lazy.Types (List(..), Step(..), step, nil, cons, (:))
 import Data.List.Lazy.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..), isNothing)
@@ -345,7 +348,7 @@ deleteAt :: forall a. Int -> List a -> List a
 deleteAt n xs = List (go n <$> unwrap xs)
   where
   go _ Nil = Nil
-  go 0 (Cons y ys) = step ys
+  go 0 (Cons _ ys) = step ys
   go n' (Cons y ys) = Cons y (deleteAt (n' - 1) ys)
 
 -- | Update the element at the specified index, returning a new list,
@@ -520,7 +523,7 @@ drop n = List <<< map (go n) <<< unwrap
   where
   go 0 xs = xs
   go _ Nil = Nil
-  go n' (Cons x xs) = go (n' - 1) (step xs)
+  go n' (Cons _ xs) = go (n' - 1) (step xs)
 
 -- | Drop those elements from the front of a list which match a predicate.
 -- |
@@ -591,20 +594,44 @@ partition f = foldr go {yes: nil, no: nil}
 --------------------------------------------------------------------------------
 
 -- | Remove duplicate elements from a list.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- |
+-- | Running time: `O(n log n)`
+nub :: forall a. Ord a => List a -> List a
+nub = nubBy compare
+
+-- | Remove duplicate elements from a list based on the provided comparison function.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- |
+-- | Running time: `O(n log n)`
+nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
+nubBy p = go emptySet
+  where
+    go s (List l) = List (map (goStep s) l)
+    goStep _ Nil = Nil
+    goStep s (Cons a as) =
+      let { found, result: s' } = insertAndLookupBy p a s
+      in if found
+        then step (go s' as)
+        else Cons a (go s' as)
+
+-- | Remove duplicate elements from a list.
 -- |
 -- | Running time: `O(n^2)`
-nub :: forall a. Eq a => List a -> List a
-nub = nubBy eq
+nubEq :: forall a. Eq a => List a -> List a
+nubEq = nubByEq eq
 
 -- | Remove duplicate elements from a list, using the specified
 -- | function to determine equality of elements.
 -- |
 -- | Running time: `O(n^2)`
-nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubBy eq = List <<< map go <<< unwrap
+nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
+nubByEq eq = List <<< map go <<< unwrap
   where
   go Nil = Nil
-  go (Cons x xs) = Cons x (nubBy eq (filter (\y -> not (eq x y)) xs))
+  go (Cons x xs) = Cons x (nubByEq eq (filter (\y -> not (eq x y)) xs))
 
 -- | Calculate the union of two lists.
 -- |
@@ -617,7 +644,7 @@ union = unionBy (==)
 -- |
 -- | Running time: `O(n^2)`
 unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
-unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
+unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubByEq eq ys) xs
 
 -- | Delete the first occurrence of an element from a list.
 -- |

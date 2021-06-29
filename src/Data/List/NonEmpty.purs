@@ -48,6 +48,8 @@ module Data.List.NonEmpty
   , partition
   , nub
   , nubBy
+  , nubEq
+  , nubByEq
   , union
   , unionBy
   , intersect
@@ -165,7 +167,7 @@ unsnoc (NonEmptyList (x :| xs)) = case L.unsnoc xs of
   Just un -> { init: x : un.init, last: un.last }
 
 length :: forall a. NonEmptyList a -> Int
-length (NonEmptyList (x :| xs)) = 1 + L.length xs
+length (NonEmptyList (_ :| xs)) = 1 + L.length xs
 
 index :: forall a. NonEmptyList a -> Int -> Maybe a
 index (NonEmptyList (x :| xs)) i
@@ -278,11 +280,17 @@ groupAllBy = wrappedOperation "groupAllBy" <<< L.groupAllBy
 partition :: forall a. (a -> Boolean) -> NonEmptyList a -> { yes :: L.List a, no :: L.List a }
 partition = lift <<< L.partition
 
-nub :: forall a. Eq a => NonEmptyList a -> NonEmptyList a
+nub :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 nub = wrappedOperation "nub" L.nub
 
-nubBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList a
+nubBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
 nubBy = wrappedOperation "nubBy" <<< L.nubBy
+
+nubEq :: forall a. Eq a => NonEmptyList a -> NonEmptyList a
+nubEq = wrappedOperation "nubEq" L.nubEq
+
+nubByEq :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList a
+nubByEq = wrappedOperation "nubByEq" <<< L.nubByEq
 
 union :: forall a. Eq a => NonEmptyList a -> NonEmptyList a -> NonEmptyList a
 union = wrappedOperation2 "union" L.union

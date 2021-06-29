@@ -82,7 +82,7 @@ listMap :: forall a b. (a -> b) -> List a -> List b
 listMap f = chunkedRevMap Nil
   where
   chunkedRevMap :: List (List a) -> List a -> List b
-  chunkedRevMap chunksAcc chunk@(x1 : x2 : x3 : xs) =
+  chunkedRevMap chunksAcc chunk@(_ : _ : _ : xs) =
     chunkedRevMap (chunk : chunksAcc) xs
   chunkedRevMap chunksAcc xs =
     reverseUnrolledMap chunksAcc $ unrolledMap xs
@@ -181,8 +181,8 @@ instance monadZeroList :: MonadZero List
 instance monadPlusList :: MonadPlus List
 
 instance extendList :: Extend List where
-  extend f Nil = Nil
-  extend f l@(a : as) =
+  extend _ Nil = Nil
+  extend f l@(_ : as) =
     f l : (foldr go { val: Nil, acc: Nil } as).val
     where
     go a' { val, acc } =

@@ -2,6 +2,7 @@ module Test.Data.List.NonEmpty (testNonEmptyList) where
 
 import Prelude
 
+import Data.Array as Array
 import Data.Foldable (class Foldable, foldM, foldMap, foldl, length)
 import Data.FoldableWithIndex (foldlWithIndex, foldrWithIndex, foldMapWithIndex)
 import Data.Function (on)
@@ -183,12 +184,19 @@ testNonEmptyList = do
   assert $ partitioned.yes == l [5, 3, 4]
   assert $ partitioned.no == l [1, 2]
 
-  log "nub should remove duplicate elements from the list, keeping the first occurence"
+  log "nub should remove duplicate elements from the list, keeping the first occurrence"
   assert $ NEL.nub (nel 1 [2, 2, 3, 4, 1]) == nel 1 [2, 3, 4]
 
   log "nubBy should remove duplicate items from the list using a supplied predicate"
-  let nubPred = \x y -> if odd x then false else x == y
-  assert $ NEL.nubBy nubPred (nel 1 [2, 2, 3, 3, 4, 4, 1]) == nel 1 [2, 3, 3, 4, 1]
+  let nubPred = compare `on` Array.length
+  assert $ NEL.nubBy nubPred (nel [1] [[2],[3,4]]) == nel [1] [[3,4]]
+
+  log "nubEq should remove duplicate elements from the list, keeping the first occurrence"
+  assert $ NEL.nubEq (nel 1 [2, 2, 3, 4, 1]) == nel 1 [2, 3, 4]
+
+  log "nubByEq should remove duplicate items from the list using a supplied predicate"
+  let mod3eq = eq `on` \n -> mod n 3
+  assert $ NEL.nubByEq mod3eq (nel 1 [3, 4, 5, 6]) == nel 1 [3, 5]
 
   log "union should produce the union of two lists"
   assert $ NEL.union (nel 1 [2, 3]) (nel 2 [3, 4]) == nel 1 [2, 3, 4]

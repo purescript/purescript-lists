@@ -2,10 +2,11 @@ module Test.Data.List (testList) where
 
 import Prelude
 
+import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Function (on)
-import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, group, groupAll, groupBy, groupAllBy, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.List (List(..), Pattern(..), alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, groupAll, groupAllBy, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, mapWithIndex, modifyAt, nub, nubBy, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, take, takeEnd, takeWhile, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -42,7 +43,7 @@ testList = do
   assert $ (range 0 5) == l [0, 1, 2, 3, 4, 5]
   assert $ (range 2 (-3)) == l [2, 1, 0, -1, -2, -3]
 
-  log "replicate should produce an list containg an item a specified number of times"
+  log "replicate should produce an list containing an item a specified number of times"
   assert $ replicate 3 true == l [true, true, true]
   assert $ replicate 1 "foo" == l ["foo"]
   assert $ replicate 0 "foo" == l []
@@ -286,12 +287,19 @@ testList = do
   assert $ partitioned.yes == l [5, 3, 4]
   assert $ partitioned.no == l [1, 2]
 
-  log "nub should remove duplicate elements from the list, keeping the first occurence"
+  log "nub should remove duplicate elements from the list, keeping the first occurrence"
   assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
 
   log "nubBy should remove duplicate items from the list using a supplied predicate"
-  let nubPred = \x y -> if odd x then false else x == y
-  assert $ nubBy nubPred (l [1, 2, 2, 3, 3, 4, 4, 1]) == l [1, 2, 3, 3, 4, 1]
+  let nubPred = compare `on` Array.length
+  assert $ nubBy nubPred (l [[1],[2],[3,4]]) == l [[1],[3,4]]
+
+  log "nubEq should remove duplicate elements from the list, keeping the first occurrence"
+  assert $ nubEq (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
+
+  log "nubByEq should remove duplicate items from the list using a supplied predicate"
+  let mod3eq = eq `on` \n -> mod n 3
+  assert $ nubByEq mod3eq (l [1, 3, 4, 5, 6]) == l [1, 3, 5]
 
   log "union should produce the union of two lists"
   assert $ union (l [1, 2, 3]) (l [2, 3, 4]) == l [1, 2, 3, 4]
