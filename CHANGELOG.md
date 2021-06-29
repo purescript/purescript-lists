@@ -5,6 +5,7 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
+- Change `groupAllBy` to use a comparison function (#191)
 
 New features:
 
@@ -28,7 +29,7 @@ Breaking changes:
 
 New features:
 - Added `nubEq`/`nubByEq` (#179)
-- Added `groupAllBy` (#182, #191) 
+- Added `groupAllBy` (#182)
 - Added `Eq1` and `Ord1` instances to `NonEmptyList` and `LazyNonEmptyList` (#188)
 
 Bugfixes:
