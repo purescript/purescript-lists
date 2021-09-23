@@ -1,7 +1,8 @@
 # purescript-lists
 
 [![Latest release](http://img.shields.io/github/release/purescript/purescript-lists.svg)](https://github.com/purescript/purescript-lists/releases)
-[![Build status](https://travis-ci.org/purescript/purescript-lists.svg?branch=master)](https://travis-ci.org/purescript/purescript-lists)
+[![Build status](https://github.com/purescript/purescript-lists/workflows/CI/badge.svg?branch=master)](https://github.com/purescript/purescript-lists/actions?query=workflow%3ACI+branch%3Amaster)
+[![Pursuit](https://pursuit.purescript.org/packages/purescript-lists/badge)](https://pursuit.purescript.org/packages/purescript-lists)
 
 This library defines strict and lazy linked lists, and associated helper functions and type class instances.
 
@@ -10,7 +11,7 @@ _Note_: This module is an improvement over `Data.Array` when working with immuta
 ## Installation
 
 ```
-bower install purescript-lists
+spago install lists
 ```
 
 ## Licensing

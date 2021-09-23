@@ -2,11 +2,11 @@ module Test.Data.List (testList) where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Data.Array as Array
 import Data.Foldable (foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
-import Data.List (List(..), (..), stripPrefix, Pattern(..), length, range, foldM, unzip, zip, zipWithA, zipWith, intersectBy, intersect, (\\), deleteBy, delete, unionBy, union, nubBy, nub, groupBy, group', group, partition, span, dropWhile, drop, dropEnd, takeWhile, take, takeEnd, sortBy, sort, catMaybes, mapMaybe, filterM, filter, concat, concatMap, reverse, alterAt, modifyAt, updateAt, deleteAt, insertAt, findLastIndex, findIndex, elemLastIndex, elemIndex, (!!), uncons, unsnoc, init, tail, last, head, insertBy, insert, snoc, null, singleton, fromFoldable, transpose, mapWithIndex, (:))
+import Data.Function (on)
+import Data.List (List(..), Pattern(..), alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, groupAll, groupAllBy, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, mapWithIndex, modifyAt, nub, nubBy, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, take, takeEnd, takeWhile, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -15,10 +15,13 @@ import Data.Traversable (traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (replicate, replicateA, unfoldr)
+import Data.Unfoldable1 (unfoldr1)
+import Effect (Effect)
+import Effect.Console (log)
 import Partial.Unsafe (unsafePartial)
-import Test.Assert (ASSERT, assert)
+import Test.Assert (assert)
 
-testList :: forall eff. Eff (assert :: ASSERT, console :: CONSOLE | eff) Unit
+testList :: Effect Unit
 testList = do
   let l = fromFoldable
 
@@ -36,7 +39,7 @@ testList = do
   assert $ (range 0 5) == l [0, 1, 2, 3, 4, 5]
   assert $ (range 2 (-3)) == l [2, 1, 0, -1, -2, -3]
 
-  log "replicate should produce an list containg an item a specified number of times"
+  log "replicate should produce an list containing an item a specified number of times"
   assert $ replicate 3 true == l [true, true, true]
   assert $ replicate 1 "foo" == l ["foo"]
   assert $ replicate 0 "foo" == l []
@@ -216,7 +219,7 @@ testList = do
   assert $ catMaybes (l [Nothing, Just 2, Nothing, Just 4]) == l [2, 4]
 
   log "mapWithIndex should take a list of values and apply a function which also takes the index into account"
-  assert $ mapWithIndex (\x ix -> x + ix) (fromFoldable [0, 1, 2, 3]) == fromFoldable [0, 2, 4, 6]
+  assert $ mapWithIndex (\x ix -> x + ix) (l [0, 1, 2, 3]) == l [0, 2, 4, 6]
 
   log "sort should reorder a list into ascending order based on the result of compare"
   assert $ sort (l [1, 3, 2, 5, 6, 4]) == l [1, 2, 3, 4, 5, 6]
@@ -266,23 +269,33 @@ testList = do
   log "group should group consecutive equal elements into lists"
   assert $ group (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.singleton 1, NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3]), NEL.singleton 1]
 
-  log "group' should sort then group consecutive equal elements into lists"
-  assert $ group' (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3])]
+  log "groupAll should group equal elements into lists"
+  assert $ groupAll (l [1, 2, 2, 3, 3, 3, 1]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.NonEmptyList (2 :| l [2]), NEL.NonEmptyList (3 :| l [3, 3])]
 
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
   assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.singleton 2, NEL.singleton 2, NEL.NonEmptyList (3 :| l [3])]
+
+  log "groupAllBy should group equal elements into lists based on an equivalence relation"
+  assert $ groupAllBy (\x y -> odd x && odd y) (l [1, 3, 2, 4, 3, 3]) == l [NEL.singleton 1, NEL.singleton 2, NEL.NonEmptyList (3 :| l [3, 3]), NEL.singleton 4]
 
   log "partition should separate a list into a tuple of lists that do and do not satisfy a predicate"
   let partitioned = partition (_ > 2) (l [1, 5, 3, 2, 4])
   assert $ partitioned.yes == l [5, 3, 4]
   assert $ partitioned.no == l [1, 2]
 
-  log "nub should remove duplicate elements from the list, keeping the first occurence"
+  log "nub should remove duplicate elements from the list, keeping the first occurrence"
   assert $ nub (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
 
   log "nubBy should remove duplicate items from the list using a supplied predicate"
-  let nubPred = \x y -> if odd x then false else x == y
-  assert $ nubBy nubPred (l [1, 2, 2, 3, 3, 4, 4, 1]) == l [1, 2, 3, 3, 4, 1]
+  let nubPred = compare `on` Array.length
+  assert $ nubBy nubPred (l [[1],[2],[3,4]]) == l [[1],[3,4]]
+
+  log "nubEq should remove duplicate elements from the list, keeping the first occurrence"
+  assert $ nubEq (l [1, 2, 2, 3, 4, 1]) == l [1, 2, 3, 4]
+
+  log "nubByEq should remove duplicate items from the list using a supplied predicate"
+  let mod3eq = eq `on` \n -> mod n 3
+  assert $ nubByEq mod3eq (l [1, 3, 4, 5, 6]) == l [1, 3, 5]
 
   log "union should produce the union of two lists"
   assert $ union (l [1, 2, 3]) (l [2, 3, 4]) == l [1, 2, 3, 4]
@@ -357,8 +370,17 @@ testList = do
   log "unfoldr should maintain order"
   assert $ (1..5) == unfoldr step 1
 
+  log "unfoldr1 should maintain order"
+  assert $ (1..5) == unfoldr1 step1 1
+
   log "map should maintain order"
-  assert $ (1..5) == map id (1..5)
+  assert $ (1..5) == map identity (1..5)
+
+  log "map should be stack-safe"
+  void $ pure $ map identity (1..100000)
+
+  log "map should be correct"
+  assert $ (1..1000000) == map (_ + 1) (0..999999)
 
   log "transpose"
   assert $ transpose (l [l [1,2,3], l[4,5,6], l [7,8,9]]) ==
@@ -388,10 +410,12 @@ testList = do
   log "append should be stack-safe"
   void $ pure $ xs <> xs
 
-
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing
 step n = Just (Tuple n (n + 1))
+
+step1 :: Int -> Tuple Int (Maybe Int)
+step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))
 
 nil :: List Int
 nil = Nil

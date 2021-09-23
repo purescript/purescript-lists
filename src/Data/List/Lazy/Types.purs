@@ -12,19 +12,19 @@ import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex)
-import Data.FunctorWithIndex (class FunctorWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex, foldMapWithIndex)
+import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Lazy (Lazy, defer, force)
-import Data.Maybe (Maybe(..))
-import Data.Monoid (class Monoid, mempty)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
 import Data.Ord (class Ord1, compare1)
 import Data.Traversable (class Traversable, traverse, sequence)
-import Data.TraversableWithIndex (class TraversableWithIndex)
+import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..), snd)
-import Data.Unfoldable (class Unfoldable)
+import Data.Unfoldable (class Unfoldable, unfoldr1)
+import Data.Unfoldable1 (class Unfoldable1)
 
 -- | A lazy linked list.
 newtype List a = List (Lazy (Step a))
@@ -33,6 +33,10 @@ newtype List a = List (Lazy (Step a))
 -- | which case it consists of a head element, and another list (represented by the
 -- | `Cons` constructor).
 data Step a = Nil | Cons a (List a)
+
+instance showStep :: Show a => Show (Step a) where
+  show Nil = "Nil"
+  show (Cons x xs) = "(" <> show x <> " : " <> show xs <> ")"
 
 -- | Unwrap a lazy linked list
 step :: forall a. List a -> Step a
@@ -59,10 +63,12 @@ infixr 6 cons as :
 derive instance newtypeList :: Newtype (List a) _
 
 instance showList :: Show a => Show (List a) where
-  show xs = "fromStrict (" <> go (step xs) <> ")"
-    where
-    go Nil = "Nil"
-    go (Cons x xs') = "(Cons " <> show x <> " " <> go (step xs') <> ")"
+  show xs = "(fromFoldable ["
+         <> case step xs of
+              Nil -> ""
+              Cons x xs' ->
+                show x <> foldl (\shown x' -> shown <> "," <> show x') "" xs'
+         <> "])"
 
 instance eqList :: Eq a => Eq (List a) where
   eq = eq1
@@ -141,6 +147,12 @@ instance foldableWithIndexList :: FoldableWithIndex Int List where
     snd <<< foldl (\(Tuple i b) a -> Tuple (i + 1) (f i b a)) (Tuple 0 acc)
   foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty
 
+instance unfoldable1List :: Unfoldable1 List where
+  unfoldr1 = go where
+    go f b = Z.defer \_ -> case f b of
+      Tuple a (Just b') -> a : go f b'
+      Tuple a Nothing -> a : nil
+
 instance unfoldableList :: Unfoldable List where
   unfoldr = go where
     go f b = Z.defer \_ -> case f b of
@@ -151,7 +163,7 @@ instance traversableList :: Traversable List where
   traverse f =
     foldr (\a b -> cons <$> f a <*> b) (pure nil)
 
-  sequence = traverse id
+  sequence = traverse identity
 
 instance traversableWithIndexList :: TraversableWithIndex Int List where
   traverseWithIndex f =
@@ -187,12 +199,12 @@ instance extendList :: Extend List where
   extend f l =
     case step l of
       Nil -> nil
-      Cons a as ->
+      Cons _ as ->
         f l : (foldr go { val: nil, acc: nil } as).val
-        where
-        go a { val, acc } =
-          let acc' = a : acc
-          in { val: f acc' : val, acc: acc' }
+    where
+      go a { val, acc } =
+        let acc' = a : acc
+        in { val: f acc' : val, acc: acc' }
 
 newtype NonEmptyList a = NonEmptyList (Lazy (NonEmpty List a))
 
@@ -204,6 +216,12 @@ derive instance newtypeNonEmptyList :: Newtype (NonEmptyList a) _
 
 derive newtype instance eqNonEmptyList :: Eq a => Eq (NonEmptyList a)
 derive newtype instance ordNonEmptyList :: Ord a => Ord (NonEmptyList a)
+
+instance eq1NonEmptyList :: Eq1 NonEmptyList where
+  eq1 (NonEmptyList lhs) (NonEmptyList rhs) = eq1 lhs rhs
+
+instance ord1NonEmptyList :: Ord1 NonEmptyList where
+  compare1 (NonEmptyList lhs) (NonEmptyList rhs) = compare1 lhs rhs
 
 instance showNonEmptyList :: Show a => Show (NonEmptyList a) where
   show (NonEmptyList nel) = "(NonEmptyList " <> show nel <> ")"
@@ -263,3 +281,18 @@ instance traversableNonEmptyList :: Traversable NonEmptyList where
     map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ traverse f (force nel)
   sequence (NonEmptyList nel) =
     map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ sequence (force nel)
+
+instance unfoldable1NonEmptyList :: Unfoldable1 NonEmptyList where
+  unfoldr1 f b = NonEmptyList $ defer \_ -> unfoldr1 f b
+
+instance functorWithIndexNonEmptyList :: FunctorWithIndex Int NonEmptyList where
+  mapWithIndex f (NonEmptyList ne) = NonEmptyList $ defer \_ -> mapWithIndex (f <<< maybe 0 (add 1)) $ force ne
+
+instance foldableWithIndexNonEmptyList :: FoldableWithIndex Int NonEmptyList where
+  foldMapWithIndex f (NonEmptyList ne) = foldMapWithIndex (f <<< maybe 0 (add 1)) $ force ne
+  foldlWithIndex f b (NonEmptyList ne) = foldlWithIndex (f <<< maybe 0 (add 1)) b $ force ne
+  foldrWithIndex f b (NonEmptyList ne) = foldrWithIndex (f <<< maybe 0 (add 1)) b $ force ne
+
+instance traversableWithIndexNonEmptyList :: TraversableWithIndex Int NonEmptyList where
+  traverseWithIndex f (NonEmptyList ne) =
+    map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ traverseWithIndex (f <<< maybe 0 (add 1)) $ force ne

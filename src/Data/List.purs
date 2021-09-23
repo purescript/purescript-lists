@@ -67,12 +67,16 @@ module Data.List
   , dropWhile
   , span
   , group
+  , groupAll
   , group'
   , groupBy
+  , groupAllBy
   , partition
 
   , nub
   , nubBy
+  , nubEq
+  , nubByEq
   , union
   , unionBy
   , delete
@@ -99,21 +103,21 @@ import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy (class Lazy, defer)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
-
 import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.FunctorWithIndex (mapWithIndex) as FWI
+import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
+import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
-
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
-import Data.Traversable (scanl, scanr) as Exports
+import Prim.TypeError (class Warn, Text)
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -267,7 +271,7 @@ uncons (x : xs) = Just { head: x, tail: xs }
 unsnoc :: forall a. List a -> Maybe { init :: List a, last :: a }
 unsnoc lst = (\h -> { init: reverse h.revInit, last: h.last }) <$> go lst Nil
   where
-  go Nil acc = Nothing
+  go Nil _ = Nothing
   go (x : Nil) acc = Just { revInit: acc, last: x }
   go (x : xs) acc = go xs (x : acc)
 
@@ -321,7 +325,7 @@ insertAt _ _ _  = Nothing
 -- |
 -- | Running time: `O(n)`
 deleteAt :: forall a. Int -> List a -> Maybe (List a)
-deleteAt 0 (y : ys) = Just ys
+deleteAt 0 (_ : ys) = Just ys
 deleteAt n (y : ys) = (y : _) <$> deleteAt (n - 1) ys
 deleteAt _ _  = Nothing
 
@@ -372,7 +376,7 @@ reverse = go Nil
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (_ >>= id)
+concat = (_ >>= identity)
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.
@@ -423,7 +427,7 @@ mapMaybe f = go Nil
 -- | Filter a list of optional values, keeping only the elements which contain
 -- | a value.
 catMaybes :: forall a. List (Maybe a) -> List a
-catMaybes = mapMaybe id
+catMaybes = mapMaybe identity
 
 
 -- | Apply a function to each element and its index in a list starting at 0.
@@ -543,7 +547,7 @@ takeWhile p = go Nil
 drop :: forall a. Int -> List a -> List a
 drop n xs | n < 1 = xs
 drop _ Nil = Nil
-drop n (x : xs) = drop (n - 1) xs
+drop n (_ : xs) = drop (n - 1) xs
 
 -- | Drop the specified number of elements from the end of a list.
 -- |
@@ -583,29 +587,56 @@ span _ xs = { init: Nil, rest: xs }
 -- | For example,
 -- |
 -- | ```purescript
--- | group (1 : 1 : 2 : 2 : 1 : Nil) == (1 : 1 : Nil) : (2 : 2 : Nil) : (1 : Nil) : Nil
+-- | group (1 : 1 : 2 : 2 : 1 : Nil) ==
+-- |   (NonEmptyList (NonEmpty 1 (1 : Nil))) : (NonEmptyList (NonEmpty 2 (2 : Nil))) : (NonEmptyList (NonEmpty 1 Nil)) : Nil
 -- | ```
 -- |
 -- | Running time: `O(n)`
 group :: forall a. Eq a => List a -> List (NEL.NonEmptyList a)
 group = groupBy (==)
 
--- | Sort and then group the elements of a list into lists.
+-- | Group equal elements of a list into lists.
+-- |
+-- | For example,
 -- |
 -- | ```purescript
--- | group' [1,1,2,2,1] == [[1,1,1],[2,2]]
+-- | groupAll (1 : 1 : 2 : 2 : 1 : Nil) ==
+-- |   (NonEmptyList (NonEmpty 1 (1 : 1 : Nil))) : (NonEmptyList (NonEmpty 2 (2 : Nil))) : Nil
 -- | ```
-group' :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
-group' = group <<< sort
+groupAll :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
+groupAll = group <<< sort
+
+-- | Deprecated previous name of `groupAll`.
+group' :: forall a. Warn (Text "'group\'' is deprecated, use groupAll instead") => Ord a => List a -> List (NEL.NonEmptyList a)
+group' = groupAll
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.
+-- |
+-- | For example,
+-- |
+-- | ```purescript
+-- | groupBy (\a b -> odd a && odd b) (1 : 3 : 2 : 4 : 3 : 3 : Nil) ==
+-- |   (NonEmptyList (NonEmpty 1 (3 : Nil))) : (NonEmptyList (NonEmpty 2 Nil)) : (NonEmptyList (NonEmpty 4 Nil)) : (NonEmptyList (NonEmpty 3 (3 : Nil))) : Nil
+-- | ```
 -- |
 -- | Running time: `O(n)`
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
 groupBy _ Nil = Nil
 groupBy eq (x : xs) = case span (eq x) xs of
   { init: ys, rest: zs } -> NEL.NonEmptyList (x :| ys) : groupBy eq zs
+
+-- | Group equal elements of a list into lists, using the specified
+-- | equivalence relation to determine equality.
+-- |
+-- | For example,
+-- |
+-- | ```purescript
+-- | groupAllBy (\a b -> odd a && odd b) (1 : 3 : 2 : 4 : 3 : 3 : Nil) ==
+-- |    (NonEmptyList (NonEmpty 1 Nil)) : (NonEmptyList (NonEmpty 2 Nil)) : (NonEmptyList (NonEmpty 3 (3 : 3 : Nil))) : (NonEmptyList (NonEmpty 4 Nil)) : Nil
+-- | ```
+groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
+groupAllBy p = groupBy p <<< sort
 
 -- | Returns a lists of elements which do and do not satisfy a predicate.
 -- |
@@ -617,23 +648,79 @@ partition p xs = foldr select { no: Nil, yes: Nil } xs
                            then { no, yes: x : yes }
                            else { no: x : no, yes }
 
+-- | Returns all final segments of the argument, longest first. For example,
+-- |
+-- | ```purescript
+-- | tails (1 : 2 : 3 : Nil) == ((1 : 2 : 3 : Nil) : (2 : 3 : Nil) : (3 : Nil) : (Nil) : Nil)
+-- | ```
+-- | Running time: `O(n)`
+tails :: forall a. List a -> List (List a)
+tails Nil = singleton Nil
+tails list@(Cons _ tl)= list : tails tl
+
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
 --------------------------------------------------------------------------------
 
 -- | Remove duplicate elements from a list.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
 -- |
--- | Running time: `O(n^2)`
-nub :: forall a. Eq a => List a -> List a
-nub = nubBy eq
+-- | ```purescript
+-- | nub 1:2:1:3:3:Nil == 1:2:3:Nil
+-- | ```
+-- |
+-- | Running time: `O(n log n)`
+nub :: forall a. Ord a => List a -> List a
+nub = nubBy compare
 
--- | Remove duplicate elements from a list, using the specified
--- | function to determine equality of elements.
+-- | Remove duplicate elements from a list based on the provided comparison function.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- |
+-- | ```purescript
+-- | nubBy (compare `on` Array.length) ([1]:[2]:[3,4]:Nil) == [1]:[3,4]:Nil
+-- | ```
+-- |
+-- | Running time: `O(n log n)`
+nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
+nubBy p = reverse <<< go emptySet Nil
+  where
+    go _ acc Nil = acc
+    go s acc (a : as) =
+      let { found, result: s' } = insertAndLookupBy p a s
+      in if found
+        then go s' acc as
+        else go s' (a : acc) as
+
+-- | Remove duplicate elements from a list.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- | This less efficient version of `nub` only requires an `Eq` instance.
+-- |
+-- | ```purescript
+-- | nubEq 1:2:1:3:3:Nil == 1:2:3:Nil
+-- | ```
 -- |
 -- | Running time: `O(n^2)`
-nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubBy _     Nil = Nil
-nubBy eq' (x : xs) = x : nubBy eq' (filter (\y -> not (eq' x y)) xs)
+nubEq :: forall a. Eq a => List a -> List a
+nubEq = nubByEq eq
+
+-- | Remove duplicate elements from a list, using the provided equivalence function.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- | This less efficient version of `nubBy` only requires an equivalence
+-- | function, rather than an ordering function.
+-- |
+-- | ```purescript
+-- | mod3eq = eq `on` \n -> mod n 3
+-- | nubByEq mod3eq 1:3:4:5:6:Nil == 1:3:5:Nil
+-- | ```
+-- |
+-- | Running time: `O(n^2)`
+nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
+nubByEq _     Nil = Nil
+nubByEq eq' (x : xs) = x : nubByEq eq' (filter (\y -> not (eq' x y)) xs)
 
 -- | Calculate the union of two lists.
 -- |
@@ -646,7 +733,7 @@ union = unionBy (==)
 -- |
 -- | Running time: `O(n^2)`
 unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
-unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
+unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubByEq eq ys) xs
 
 -- | Delete the first occurrence of an element from a list.
 -- |
@@ -750,6 +837,6 @@ transpose ((x : xs) : xss) =
 --------------------------------------------------------------------------------
 
 -- | Perform a fold using a monadic step function.
-foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> List b -> m a
-foldM _ a Nil = pure a
-foldM f a (b : bs) = f a b >>= \a' -> foldM f a' bs
+foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> List a -> m b
+foldM _ b Nil = pure b
+foldM f b (a : as) = f b a >>= \b' -> foldM f b' as

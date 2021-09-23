@@ -72,6 +72,8 @@ module Data.List.Lazy
 
   , nub
   , nubBy
+  , nubEq
+  , nubByEq
   , union
   , unionBy
   , delete
@@ -89,6 +91,7 @@ module Data.List.Lazy
 
   , foldM
   , foldrLazy
+  , scanlLazy
 
   , module Exports
   ) where
@@ -102,6 +105,7 @@ import Control.Monad.Rec.Class as Rec
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Lazy (defer)
+import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Lazy.Types (List(..), Step(..), step, nil, cons, (:))
 import Data.List.Lazy.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..), isNothing)
@@ -325,11 +329,8 @@ findIndex fn = go 0
 findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
 findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 
--- | Insert an element into a list at the specified index, returning a new
--- | list or `Nothing` if the index is out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the element being appended at the _end_ of the list.
+-- | Insert an element into a list at the specified index, or append the element
+-- | to the end of the list if the index is out-of-bounds, returning a new list.
 -- |
 -- | Running time: `O(n)`
 insertAt :: forall a. Int -> a -> List a -> List a
@@ -339,25 +340,19 @@ insertAt n x xs = List (go <$> unwrap xs)
   go Nil = Cons x nil
   go (Cons y ys) = Cons y (insertAt (n - 1) x ys)
 
--- | Delete an element from a list at the specified index, returning a new
--- | list or `Nothing` if the index is out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the original list being returned unchanged.
+-- | Delete an element from a list at the specified index, returning a new list,
+-- | or return the original list unchanged if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 deleteAt :: forall a. Int -> List a -> List a
 deleteAt n xs = List (go n <$> unwrap xs)
   where
   go _ Nil = Nil
-  go 0 (Cons y ys) = step ys
+  go 0 (Cons _ ys) = step ys
   go n' (Cons y ys) = Cons y (deleteAt (n' - 1) ys)
 
--- | Update the element at the specified index, returning a new
--- | list or `Nothing` if the index is out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the original list being returned unchanged.
+-- | Update the element at the specified index, returning a new list,
+-- | or return the original list unchanged if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 updateAt :: forall a. Int -> a -> List a -> List a
@@ -368,22 +363,16 @@ updateAt n x xs = List (go n <$> unwrap xs)
   go n' (Cons y ys) = Cons y (updateAt (n' - 1) x ys)
 
 -- | Update the element at the specified index by applying a function to
--- | the current value, returning a new list or `Nothing` if the index is
--- | out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the original list being returned unchanged.
+-- | the current value, returning a new list, or return the original list unchanged
+-- | if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 modifyAt :: forall a. Int -> (a -> a) -> List a -> List a
 modifyAt n f = alterAt n (Just <<< f)
 
 -- | Update or delete the element at the specified index by applying a
--- | function to the current value, returning a new list or `Nothing` if the
--- | index is out-of-bounds.
--- |
--- | This function differs from the strict equivalent in that out-of-bounds arguments
--- | result in the original list being returned unchanged.
+-- | function to the current value, returning a new list, or return the
+-- | original list unchanged if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> List a
@@ -409,7 +398,7 @@ reverse xs = Z.defer \_ -> foldl (flip cons) nil xs
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (_ >>= id)
+concat = (_ >>= identity)
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.
@@ -463,7 +452,7 @@ mapMaybe f = List <<< map go <<< unwrap
 -- | Filter a list of optional values, keeping only the elements which contain
 -- | a value.
 catMaybes :: forall a. List (Maybe a) -> List a
-catMaybes = mapMaybe id
+catMaybes = mapMaybe identity
 
 --------------------------------------------------------------------------------
 -- Sorting ---------------------------------------------------------------------
@@ -509,10 +498,11 @@ slice start end xs = take (end - start) (drop start xs)
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to take.
 take :: forall a. Int -> List a -> List a
-take n = List <<< map (go n) <<< unwrap
+take n = if n <= 0
+  then const nil
+  else List <<< map (go n) <<< unwrap
   where
   go :: Int -> Step a -> Step a
-  go i _ | i <= 0 = Nil
   go _ Nil = Nil
   go n' (Cons x xs) = Cons x (take (n' - 1) xs)
 
@@ -533,7 +523,7 @@ drop n = List <<< map (go n) <<< unwrap
   where
   go 0 xs = xs
   go _ Nil = Nil
-  go n' (Cons x xs) = go (n' - 1) (step xs)
+  go n' (Cons _ xs) = go (n' - 1) (step xs)
 
 -- | Drop those elements from the front of a list which match a predicate.
 -- |
@@ -604,20 +594,44 @@ partition f = foldr go {yes: nil, no: nil}
 --------------------------------------------------------------------------------
 
 -- | Remove duplicate elements from a list.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- |
+-- | Running time: `O(n log n)`
+nub :: forall a. Ord a => List a -> List a
+nub = nubBy compare
+
+-- | Remove duplicate elements from a list based on the provided comparison function.
+-- | Keeps the first occurrence of each element in the input list,
+-- | in the same order they appear in the input list.
+-- |
+-- | Running time: `O(n log n)`
+nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
+nubBy p = go emptySet
+  where
+    go s (List l) = List (map (goStep s) l)
+    goStep _ Nil = Nil
+    goStep s (Cons a as) =
+      let { found, result: s' } = insertAndLookupBy p a s
+      in if found
+        then step (go s' as)
+        else Cons a (go s' as)
+
+-- | Remove duplicate elements from a list.
 -- |
 -- | Running time: `O(n^2)`
-nub :: forall a. Eq a => List a -> List a
-nub = nubBy eq
+nubEq :: forall a. Eq a => List a -> List a
+nubEq = nubByEq eq
 
 -- | Remove duplicate elements from a list, using the specified
 -- | function to determine equality of elements.
 -- |
 -- | Running time: `O(n^2)`
-nubBy :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubBy eq = List <<< map go <<< unwrap
+nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
+nubByEq eq = List <<< map go <<< unwrap
   where
   go Nil = Nil
-  go (Cons x xs) = Cons x (nubBy eq (filter (\y -> not (eq x y)) xs))
+  go (Cons x xs) = Cons x (nubByEq eq (filter (\y -> not (eq x y)) xs))
 
 -- | Calculate the union of two lists.
 -- |
@@ -630,7 +644,7 @@ union = unionBy (==)
 -- |
 -- | Running time: `O(n^2)`
 unionBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
-unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubBy eq ys) xs
+unionBy eq xs ys = xs <> foldl (flip (deleteBy eq)) (nubByEq eq ys) xs
 
 -- | Delete the first occurrence of an element from a list.
 -- |
@@ -740,12 +754,12 @@ transpose xs =
 --------------------------------------------------------------------------------
 
 -- | Perform a fold using a monadic step function.
-foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> List b -> m a
-foldM f a xs =
+foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> List a -> m b
+foldM f b xs =
     case uncons xs of
-         Nothing -> pure a
-         Just { head: b, tail: bs } ->
-                       f a b >>= \a' -> foldM f a' bs
+         Nothing -> pure b
+         Just { head: a, tail: as } ->
+                       f b a >>= \b' -> foldM f b' as
 
 -- | Perform a right fold lazily
 foldrLazy :: forall a b. Z.Lazy b => (a -> b -> b) -> b -> List a -> b
@@ -754,3 +768,13 @@ foldrLazy op z = go
     go xs = case step xs of
       Cons x xs' -> Z.defer \_ -> x `op` go xs'
       Nil -> z
+
+-- | Perform a left scan lazily
+scanlLazy :: forall a b. (b -> a -> b) -> b -> List a -> List b
+scanlLazy f acc xs = List (go <$> unwrap xs)
+  where
+    go :: Step a -> Step b
+    go Nil = Nil
+    go (Cons x xs') =
+      let acc' = f acc x
+       in Cons acc' $ scanlLazy f acc' xs'

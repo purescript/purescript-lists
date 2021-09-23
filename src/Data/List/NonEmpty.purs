@@ -7,7 +7,9 @@ module Data.List.NonEmpty
   , singleton
   , length
   , cons
+  , cons'
   , snoc
+  , snoc'
   , head
   , last
   , tail
@@ -39,11 +41,15 @@ module Data.List.NonEmpty
   , dropWhile
   , span
   , group
+  , groupAll
   , group'
   , groupBy
+  , groupAllBy
   , partition
   , nub
   , nubBy
+  , nubEq
+  , nubByEq
   , union
   , unionBy
   , intersect
@@ -59,6 +65,7 @@ module Data.List.NonEmpty
 import Prelude
 
 import Data.Foldable (class Foldable)
+import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
@@ -74,6 +81,8 @@ import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, f
 import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
 import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
 import Data.Traversable (scanl, scanr) as Exports
+
+import Prim.TypeError (class Warn, Text)
 
 -- | Internal function: any operation on a list that is guaranteed not to delete
 -- | all elements also applies to a NEL, this function is a helper for defining
@@ -127,8 +136,15 @@ singleton = NonEmptyList <<< NE.singleton
 cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
 cons y (NonEmptyList (x :| xs)) = NonEmptyList (y :| x : xs)
 
+cons' :: forall a. a -> L.List a -> NonEmptyList a
+cons' x xs = NonEmptyList (x :| xs)
+
 snoc :: forall a. NonEmptyList a -> a -> NonEmptyList a
 snoc (NonEmptyList (x :| xs)) y = NonEmptyList (x :| L.snoc xs y)
+
+snoc' :: forall a. L.List a -> a -> NonEmptyList a
+snoc' (x : xs) y = NonEmptyList (x :| L.snoc xs y)
+snoc' L.Nil y = singleton y
 
 head :: forall a. NonEmptyList a -> a
 head (NonEmptyList (x :| _)) = x
@@ -151,7 +167,7 @@ unsnoc (NonEmptyList (x :| xs)) = case L.unsnoc xs of
   Just un -> { init: x : un.init, last: un.last }
 
 length :: forall a. NonEmptyList a -> Int
-length (NonEmptyList (x :| xs)) = 1 + L.length xs
+length (NonEmptyList (_ :| xs)) = 1 + L.length xs
 
 index :: forall a. NonEmptyList a -> Int -> Maybe a
 index (NonEmptyList (x :| xs)) i
@@ -210,7 +226,7 @@ catMaybes :: forall a. NonEmptyList (Maybe a) -> L.List a
 catMaybes = lift L.catMaybes
 
 concat :: forall a. NonEmptyList (NonEmptyList a) -> NonEmptyList a
-concat = (_ >>= id)
+concat = (_ >>= identity)
 
 concatMap :: forall a b. (a -> NonEmptyList b) -> NonEmptyList a -> NonEmptyList b
 concatMap = flip bind
@@ -219,8 +235,11 @@ appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyLis
 appendFoldable (NonEmptyList (x :| xs)) ys =
   NonEmptyList (x :| (xs <> L.fromFoldable ys))
 
+-- | Apply a function to each element and its index in a list starting at 0.
+-- |
+-- | Deprecated. Use Data.FunctorWithIndex instead.
 mapWithIndex :: forall a b. (Int -> a -> b) -> NonEmptyList a -> NonEmptyList b
-mapWithIndex = wrappedOperation "mapWithIndex" <<< L.mapWithIndex
+mapWithIndex = FWI.mapWithIndex
 
 sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 sort xs = sortBy compare xs
@@ -246,20 +265,32 @@ span = lift <<< L.span
 group :: forall a. Eq a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
 group = wrappedOperation "group" L.group
 
-group' :: forall a. Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
-group' = wrappedOperation "group'" L.group'
+groupAll :: forall a. Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
+groupAll = wrappedOperation "groupAll" L.groupAll
+
+group' :: forall a. Warn (Text "'group\'' is deprecated, use groupAll instead") => Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
+group' = groupAll
 
 groupBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupBy = wrappedOperation "groupBy" <<< L.groupBy
 
+groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
+groupAllBy = wrappedOperation "groupAllBy" <<< L.groupAllBy
+
 partition :: forall a. (a -> Boolean) -> NonEmptyList a -> { yes :: L.List a, no :: L.List a }
 partition = lift <<< L.partition
 
-nub :: forall a. Eq a => NonEmptyList a -> NonEmptyList a
+nub :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 nub = wrappedOperation "nub" L.nub
 
-nubBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList a
+nubBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList a
 nubBy = wrappedOperation "nubBy" <<< L.nubBy
+
+nubEq :: forall a. Eq a => NonEmptyList a -> NonEmptyList a
+nubEq = wrappedOperation "nubEq" L.nubEq
+
+nubByEq :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList a
+nubByEq = wrappedOperation "nubByEq" <<< L.nubByEq
 
 union :: forall a. Eq a => NonEmptyList a -> NonEmptyList a -> NonEmptyList a
 union = wrappedOperation2 "union" L.union
@@ -286,5 +317,5 @@ zip = zipWith Tuple
 unzip :: forall a b. NonEmptyList (Tuple a b) -> Tuple (NonEmptyList a) (NonEmptyList b)
 unzip ts = Tuple (map fst ts) (map snd ts)
 
-foldM :: forall m a b. Monad m => (a -> b -> m a) -> a -> NonEmptyList b -> m a
-foldM f a (NonEmptyList (b :| bs)) = f a b >>= \a' -> L.foldM f a' bs
+foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> NonEmptyList a -> m b
+foldM f b (NonEmptyList (a :| as)) = f b a >>= \b' -> L.foldM f b' as
