@@ -11,6 +11,7 @@ module Data.List.Lazy.NonEmpty
   , last
   , tail
   , init
+  , cons
   , uncons
   , length
   , concatMap
@@ -68,6 +69,10 @@ init (NonEmptyList nel) =
   case force nel
     of x :| xs ->
       maybe L.nil (x : _) (L.init xs)
+
+cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
+cons y (NonEmptyList nel) =
+  NonEmptyList (defer \_ -> case force nel of x :| xs -> y :| x : xs)
 
 uncons :: forall a. NonEmptyList a -> { head :: a, tail :: L.List a }
 uncons (NonEmptyList nel) = case force nel of x :| xs -> { head: x, tail: xs }
