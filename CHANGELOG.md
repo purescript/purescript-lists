@@ -5,6 +5,9 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
+- Rename `scanrLazy` to `scanlLazy` and fix parameter ordering (#161)
+- Rename `group'` to `groupAll` (#182)
+- Change `Alt ZipList` to satisfy distributivity (#150)
 
 New features:
 - Added `cons` for `Lazy.NonEmptyList` (#143 by @matthewleon)

@@ -25,6 +25,7 @@ import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable, unfoldr1)
 import Data.Unfoldable1 (class Unfoldable1)
+import Partial.Unsafe (unsafeCrashWith)
 
 -- | A lazy linked list.
 newtype List a = List (Lazy (Step a))
@@ -296,3 +297,6 @@ instance foldableWithIndexNonEmptyList :: FoldableWithIndex Int NonEmptyList whe
 instance traversableWithIndexNonEmptyList :: TraversableWithIndex Int NonEmptyList where
   traverseWithIndex f (NonEmptyList ne) =
     map (\xxs -> NonEmptyList $ defer \_ -> xxs) $ traverseWithIndex (f <<< maybe 0 (add 1)) $ force ne
+
+instance lazyNonEmptyList :: Z.Lazy (NonEmptyList a) where
+  defer _ = unsafeCrashWith "todo defer (Lazy instance) for Lazy NonEmptyList"

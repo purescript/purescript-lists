@@ -18,6 +18,7 @@ module Data.List
   , someRec
   , many
   , manyRec
+  -- , replicate -- questionable specialization
 
   , null
   , length
@@ -95,6 +96,13 @@ module Data.List
   , foldM
 
   , module Exports
+
+  -- additions
+  , appendFoldable
+
+  , cons'
+  , snoc'
+
   ) where
 
 import Prelude
@@ -109,7 +117,7 @@ import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, f
 import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
-import Data.List.Types (NonEmptyList(..)) as NEL
+import Data.List.Types as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
@@ -118,6 +126,18 @@ import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Prim.TypeError (class Warn, Text)
+
+
+----------  Additions
+
+appendFoldable :: forall t a. Foldable t => List a -> t a -> List a
+appendFoldable xs ys = xs <> fromFoldable ys
+
+cons' :: forall a. a -> NEL.NonEmptyList a -> List a
+cons' x xs = Cons x $ NEL.toList xs
+
+snoc' :: forall a. NEL.NonEmptyList a -> a -> List a
+snoc' xs x = snoc (NEL.toList xs) x
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -179,6 +199,15 @@ manyRec p = tailRecM go Nil
   go acc = do
     aa <- (Loop <$> p) <|> pure (Done unit)
     pure $ bimap (_ : acc) (\_ -> reverse acc) aa
+
+-- Questionable whether this should be specialized
+-- -- | Create a list containing a value repeated n times
+-- replicate :: forall a. Int -> a -> List a
+-- replicate num x = go num Nil
+--   where
+--   go n xs | n < 1 = xs
+--           | otherwise = go (n - 1) (x : xs)
+
 
 --------------------------------------------------------------------------------
 -- List size -------------------------------------------------------------------
@@ -626,17 +655,16 @@ groupBy _ Nil = Nil
 groupBy eq (x : xs) = case span (eq x) xs of
   { init: ys, rest: zs } -> NEL.NonEmptyList (x :| ys) : groupBy eq zs
 
--- | Group equal elements of a list into lists, using the specified
--- | equivalence relation to determine equality.
--- |
--- | For example,
+-- | Sort, then group equal elements of a list into lists, using the provided comparison function.
 -- |
 -- | ```purescript
--- | groupAllBy (\a b -> odd a && odd b) (1 : 3 : 2 : 4 : 3 : 3 : Nil) ==
--- |    (NonEmptyList (NonEmpty 1 Nil)) : (NonEmptyList (NonEmpty 2 Nil)) : (NonEmptyList (NonEmpty 3 (3 : 3 : Nil))) : (NonEmptyList (NonEmpty 4 Nil)) : Nil
+-- | groupAllBy (compare `on` (_ `div` 10)) (32 : 31 : 21 : 22 : 11 : 33 : Nil) ==
+-- |   NonEmptyList (11 :| Nil) : NonEmptyList (21 :| 22 : Nil) : NonEmptyList (32 :| 31 : 33) : Nil
 -- | ```
-groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
-groupAllBy p = groupBy p <<< sort
+-- |
+-- | Running time: `O(n log n)`
+groupAllBy :: forall a. (a -> a -> Ordering) -> List a -> List (NEL.NonEmptyList a)
+groupAllBy p = groupBy (\x y -> p x y == EQ) <<< sortBy p
 
 -- | Returns a lists of elements which do and do not satisfy a predicate.
 -- |

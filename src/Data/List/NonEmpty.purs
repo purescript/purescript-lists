@@ -5,6 +5,7 @@ module Data.List.NonEmpty
   , fromList
   , toList
   , singleton
+  , (..), range
   , length
   , cons
   , cons'
@@ -36,6 +37,7 @@ module Data.List.NonEmpty
   , sort
   , sortBy
   , take
+  , takeEnd
   , takeWhile
   , drop
   , dropWhile
@@ -60,29 +62,80 @@ module Data.List.NonEmpty
   , unzip
   , foldM
   , module Exports
+  -- additions
+  , insert
+  , insertBy
+  , Pattern(..)
+  , some
+  , someRec
+  , transpose
+
+  , delete
+  , deleteBy
+  , difference
+  , dropEnd
+  , slice
+  , stripPrefix
+  , deleteAt
+  , alterAt
+
   ) where
 
 import Prelude
 
+import Control.Alternative (class Alternative)
+import Control.Lazy (class Lazy)
+import Control.Monad.Rec.Class (class MonadRec)
 import Data.Foldable (class Foldable)
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe)
+import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
-import Data.Semigroup.Traversable (sequence1)
-import Data.Tuple (Tuple(..), fst, snd)
-import Data.Unfoldable (class Unfoldable, unfoldr)
-import Partial.Unsafe (unsafeCrashWith)
-
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
+import Data.Semigroup.Traversable (sequence1)
 import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
 import Data.Traversable (scanl, scanr) as Exports
-
+import Data.Tuple (Tuple(..), fst, snd)
+import Data.Unfoldable (class Unfoldable, unfoldr)
+import Partial.Unsafe (unsafeCrashWith, unsafePartial)
 import Prim.TypeError (class Warn, Text)
+
+--- Sorted additions ------
+
+insert :: forall a. Ord a => a -> NonEmptyList a -> NonEmptyList a
+insert _ _ = unsafeCrashWith "todo insert for NonEmptyList"
+insertBy :: forall a. (a -> a -> Ordering) -> a -> NonEmptyList a -> NonEmptyList a
+insertBy _ _ _ = unsafeCrashWith "todo insertBy for NonEmptyList"
+some :: forall f a. Alternative f => Lazy (f (NonEmptyList a)) => f a -> f (NonEmptyList a)
+some _ = unsafeCrashWith "todo some for NonEmptyList"
+someRec :: forall f a. MonadRec f => Alternative f => f a -> f (NonEmptyList a)
+someRec _ = unsafeCrashWith "todo someRec for NonEmptyList"
+transpose :: forall a. NonEmptyList (NonEmptyList a) -> NonEmptyList (NonEmptyList a)
+transpose _ = unsafeCrashWith "todo transpose for NonEmptyList"
+
+delete :: forall a. Eq a => a -> NonEmptyList a -> L.List a
+delete _ _ = unsafeCrashWith "todo delete for NonEmptyList"
+deleteBy :: forall a. (a -> a -> Boolean) -> a -> NonEmptyList a -> L.List a
+deleteBy _ _ _ = unsafeCrashWith "todo deleteBy for NonEmptyList"
+difference :: forall a. Eq a => NonEmptyList a -> NonEmptyList a -> L.List a
+difference _ _ = unsafeCrashWith "todo difference for NonEmptyList"
+dropEnd :: forall a. Int -> NonEmptyList a -> L.List a
+dropEnd _ _ = unsafeCrashWith "todo dropEnd for NonEmptyList"
+slice :: Int -> Int -> NonEmptyList ~> L.List
+slice _ _ = unsafeCrashWith "todo slice for NonEmptyList"
+stripPrefix :: forall a. Eq a => Pattern a -> NonEmptyList a -> Maybe (L.List a)
+stripPrefix _ _ = unsafeCrashWith "todo stripPrefix for NonEmptyList"
+
+deleteAt :: forall a. Int -> NonEmptyList a -> Maybe (L.List a)
+deleteAt _ _ = unsafeCrashWith "todo deleteAt for NonEmptyList"
+
+alterAt :: forall a. Int -> (a -> Maybe a) -> NonEmptyList a -> Maybe (L.List a)
+alterAt _ _ _ = unsafeCrashWith "todo alterAt for NonEmptyList"
 
 -- | Internal function: any operation on a list that is guaranteed not to delete
 -- | all elements also applies to a NEL, this function is a helper for defining
@@ -132,6 +185,15 @@ toList (NonEmptyList (x :| xs)) = x : xs
 
 singleton :: forall a. a -> NonEmptyList a
 singleton = NonEmptyList <<< NE.singleton
+
+-- | An infix synonym for `range`.
+infix 8 range as ..
+
+-- | Create a list containing a range of integers, including both endpoints.
+range :: Int -> Int -> NonEmptyList Int
+range start end | start < end = cons' start (L.range (start + 1) end)
+                | start > end = cons' start (L.range (start - 1) end)
+                | otherwise = singleton start
 
 cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
 cons y (NonEmptyList (x :| xs)) = NonEmptyList (y :| x : xs)
@@ -250,6 +312,9 @@ sortBy = wrappedOperation "sortBy" <<< L.sortBy
 take :: forall a. Int -> NonEmptyList a -> L.List a
 take = lift <<< L.take
 
+takeEnd :: forall a. Int -> NonEmptyList a -> L.List a
+takeEnd = lift <<< L.takeEnd
+
 takeWhile :: forall a. (a -> Boolean) -> NonEmptyList a -> L.List a
 takeWhile = lift <<< L.takeWhile
 
@@ -274,7 +339,7 @@ group' = groupAll
 groupBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupBy = wrappedOperation "groupBy" <<< L.groupBy
 
-groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
+groupAllBy :: forall a. (a -> a -> Ordering) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupAllBy = wrappedOperation "groupAllBy" <<< L.groupAllBy
 
 partition :: forall a. (a -> Boolean) -> NonEmptyList a -> { yes :: L.List a, no :: L.List a }
@@ -319,3 +384,13 @@ unzip ts = Tuple (map fst ts) (map snd ts)
 
 foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> NonEmptyList a -> m b
 foldM f b (NonEmptyList (a :| as)) = f b a >>= \b' -> L.foldM f b' as
+
+-- | A newtype used in cases where there is a list to be matched.
+newtype Pattern a = Pattern (NonEmptyList a)
+
+derive instance eqPattern :: Eq a => Eq (Pattern a)
+derive instance ordPattern :: Ord a => Ord (Pattern a)
+derive instance newtypePattern :: Newtype (Pattern a) _
+
+instance showPattern :: Show a => Show (Pattern a) where
+  show (Pattern s) = "(Pattern " <> show s <> ")"

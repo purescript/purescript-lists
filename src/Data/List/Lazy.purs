@@ -61,12 +61,14 @@ module Data.List.Lazy
   , stripPrefix
   , slice
   , take
+  , takeEnd
   , takeWhile
   , drop
   , dropWhile
   , span
   , group
   -- , group'
+  , groupAll
   , groupBy
   , partition
 
@@ -94,6 +96,22 @@ module Data.List.Lazy
   , scanlLazy
 
   , module Exports
+
+  -- additions
+  , appendFoldable
+  , someRec
+  , sort
+  , sortBy
+
+  , cons'
+  , dropEnd
+  , groupAllBy
+  , snoc'
+  , manyRec
+
+  , replicate1
+  , replicate1M
+
   ) where
 
 import Prelude
@@ -102,6 +120,7 @@ import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy as Z
 import Control.Monad.Rec.Class as Rec
+import Control.Monad.Rec.Class (class MonadRec)
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.Lazy (defer)
@@ -115,6 +134,36 @@ import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
+import Partial.Unsafe (unsafeCrashWith)
+
+-- Additions
+appendFoldable :: forall t a. Foldable t => List a -> t a -> List a
+appendFoldable _ _ = unsafeCrashWith "todo appendFoldable for Lazy List"
+someRec :: forall f a. MonadRec f => Alternative f => f a -> f (List a)
+someRec _ = unsafeCrashWith "todo someRec for Lazy List"
+sort :: forall a. Ord a => List a -> List a
+sort _ = unsafeCrashWith "todo sort for Lazy List"
+sortBy :: forall a. (a -> a -> Ordering) -> List a -> List a
+sortBy _ _ = unsafeCrashWith "todo sortBy for Lazy List"
+
+cons' :: forall a. a -> NEL.NonEmptyList a -> List a
+cons' _ _ = unsafeCrashWith "todo cons' for Lazy List"
+dropEnd :: forall a. Int -> List a -> List a
+dropEnd _ _ = unsafeCrashWith "todo dropEnd for Lazy List"
+groupAllBy :: forall a. (a -> a -> Ordering) -> List a -> List (NEL.NonEmptyList a)
+groupAllBy _ _ = unsafeCrashWith "todo groupAllBy for Lazy List"
+snoc' :: forall a. NEL.NonEmptyList a -> a -> List a
+snoc' _ _ = unsafeCrashWith "todo snoc' for Lazy List"
+
+manyRec :: forall f a. MonadRec f => Alternative f => f a -> f (List a)
+manyRec _ = unsafeCrashWith "todo manyRec for Lazy List"
+
+-- Specialized from Unfoldable1's replicate1 / replicate1A
+replicate1 :: forall a. Int -> a -> List a
+replicate1 _ _ = unsafeCrashWith "todo replicate1 for Lazy List"
+
+replicate1M :: forall m a. Monad m => Int -> m a -> m (List a)
+replicate1M _ _ = unsafeCrashWith "todo replicate1M for Lazy List"
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -506,6 +555,12 @@ take n = if n <= 0
   go _ Nil = Nil
   go n' (Cons x xs) = Cons x (take (n' - 1) xs)
 
+-- | Take the specified number of elements from the end of a list.
+-- |
+-- | Running time: Todo
+takeEnd :: forall a. Int -> List a -> List a
+takeEnd _ _ = unsafeCrashWith "todo takeEnd for Lazy List"
+
 -- | Take those elements from the front of a list which match a predicate.
 -- |
 -- | Running time (worst case): `O(n)`
@@ -521,7 +576,7 @@ takeWhile p = List <<< map go <<< unwrap
 drop :: forall a. Int -> List a -> List a
 drop n = List <<< map (go n) <<< unwrap
   where
-  go 0 xs = xs
+  go n' xs | n' < 1 = xs
   go _ Nil = Nil
   go n' (Cons _ xs) = go (n' - 1) (step xs)
 
@@ -565,6 +620,14 @@ span p xs =
 -- | Running time: `O(n)`
 group :: forall a. Eq a => List a -> List (NEL.NonEmptyList a)
 group = groupBy (==)
+
+-- | Group equal elements of a list into lists.
+-- |
+-- | Todo - fix documentation mismatch of above `group` with non-lazy version.
+-- | ```
+groupAll :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
+groupAll = unsafeCrashWith "todo groupAll for Lazy List"
+--groupAll = group <<< sort
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.
