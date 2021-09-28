@@ -95,6 +95,13 @@ module Data.List
   , foldM
 
   , module Exports
+
+  -- additions
+  , appendFoldable
+
+  , cons'
+  , snoc'
+
   ) where
 
 import Prelude
@@ -117,7 +124,19 @@ import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
+import Partial.Unsafe (unsafeCrashWith)
 import Prim.TypeError (class Warn, Text)
+
+
+----------  Additions
+
+appendFoldable :: forall t a. Foldable t => List a -> t a -> List a
+appendFoldable _ _ = unsafeCrashWith "todo appendFoldable for Basic List"
+
+cons' :: forall a. a -> NEL.NonEmptyList a -> List a
+cons' _ _ = unsafeCrashWith "todo cons' for Basic List"
+snoc' :: forall a. NEL.NonEmptyList a -> a -> List a
+snoc' _ _ = unsafeCrashWith "todo snoc' for Basic List"
 
 -- | Convert a list into any unfoldable structure.
 -- |
