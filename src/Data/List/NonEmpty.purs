@@ -59,7 +59,10 @@ module Data.List.NonEmpty
   , zip
   , unzip
   , foldM
-  , module Exports
+  , module ExportsFoldable
+  , module ExportsSemigroupFoldable
+  , module ExportsSemigroupTraversable
+  , module ExportsTraversable
   ) where
 
 import Prelude
@@ -76,10 +79,10 @@ import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Partial.Unsafe (unsafeCrashWith)
 
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
-import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
-import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
-import Data.Traversable (scanl, scanr) as Exports
+import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as ExportsFoldable
+import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as ExportsSemigroupFoldable
+import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as ExportsSemigroupTraversable
+import Data.Traversable (scanl, scanr) as ExportsTraversable
 
 import Prim.TypeError (class Warn, Text)
 
@@ -308,7 +311,7 @@ zipWith f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
   NonEmptyList (f x y :| L.zipWith f xs ys)
 
 zipWithA :: forall m a b c. Applicative m => (a -> b -> m c) -> NonEmptyList a -> NonEmptyList b -> m (NonEmptyList c)
-zipWithA f xs ys = Exports.sequence1 (zipWith f xs ys)
+zipWithA f xs ys = ExportsSemigroupTraversable.sequence1 (zipWith f xs ys)
 
 zip :: forall a b. NonEmptyList a -> NonEmptyList b -> NonEmptyList (Tuple a b)
 zip = zipWith Tuple
