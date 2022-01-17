@@ -308,7 +308,7 @@ zipWith f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
   NonEmptyList (f x y :| L.zipWith f xs ys)
 
 zipWithA :: forall m a b c. Applicative m => (a -> b -> m c) -> NonEmptyList a -> NonEmptyList b -> m (NonEmptyList c)
-zipWithA f xs ys = sequence1 (zipWith f xs ys)
+zipWithA f xs ys = Exports.sequence1 (zipWith f xs ys)
 
 zip :: forall a b. NonEmptyList a -> NonEmptyList b -> NonEmptyList (Tuple a b)
 zip = zipWith Tuple
