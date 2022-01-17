@@ -72,7 +72,6 @@ import Data.List.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
-import Data.Semigroup.Traversable (sequence1)
 import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Partial.Unsafe (unsafeCrashWith)
