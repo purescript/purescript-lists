@@ -66,8 +66,8 @@ tail (NonEmptyList nel) = case force nel of _ :| xs -> xs
 
 init :: NonEmptyList ~> L.List
 init (NonEmptyList nel) =
-  case force nel
-    of x :| xs ->
+  case force nel of
+    x :| xs ->
       maybe L.nil (x : _) (L.init xs)
 
 cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
