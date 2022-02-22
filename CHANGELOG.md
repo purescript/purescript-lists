@@ -12,6 +12,7 @@ New features:
 Bugfixes:
 
 Other improvements:
+- Fix ad-hoc usage of case expression (#202 by @JordanMartinez)
 
 ## [v6.0.1](https://github.com/purescript/purescript-lists/releases/tag/v6.0.1) - 2021-04-19
 
