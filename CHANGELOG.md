@@ -7,6 +7,16 @@ Notable changes to this project are documented in this file. The format is based
 Breaking changes:
 
 New features:
+
+Bugfixes:
+
+Other improvements:
+
+## [v6.1.0](https://github.com/purescript/purescript-lists/releases/tag/v6.1.0) - 2022-02-22
+
+Breaking changes:
+
+New features:
 - Added `cons` for `Lazy.NonEmptyList` (#143 by @matthewleon)
 
 Bugfixes:
