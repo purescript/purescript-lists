@@ -284,10 +284,6 @@ testNonEmptyList = do
   log "unfoldr1 should maintain order"
   assert $ (nel 1 [2, 3, 4, 5]) == unfoldr1 step1 1
 
-step :: Int -> Maybe (Tuple Int Int)
-step 6 = Nothing
-step n = Just (Tuple n (n + 1))
-
 step1 :: Int -> Tuple Int (Maybe Int)
 step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))
 
