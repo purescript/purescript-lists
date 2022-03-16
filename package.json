@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "clean": "rimraf output && rimraf .pulp-cache",
-    "build": "pulp build -- --censor-lib --strict --censor-codes='UserDefinedWarning,WildcardInferredType'",
+    "build": "pulp build -- --censor-lib --strict --censor-codes='WildcardInferredType'",
     "test": "pulp test",
     "bench:build": "purs compile 'bench/**/*.purs' 'src/**/*.purs' 'bower_components/*/src/**/*.purs'",
     "bench:run": "node --expose-gc -e 'require(\"./output/Bench.Main/index.js\").main()'",
