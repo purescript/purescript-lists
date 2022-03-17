@@ -63,7 +63,6 @@ module Data.List.NonEmpty
 import Prelude
 
 import Data.Foldable (class Foldable)
-import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))

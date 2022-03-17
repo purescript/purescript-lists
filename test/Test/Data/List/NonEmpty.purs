@@ -137,9 +137,6 @@ testNonEmptyList = do
   log "catMaybe should take an list of Maybe values and throw out Nothings"
   assert $ NEL.catMaybes (nel Nothing [Just 2, Nothing, Just 4]) == l [2, 4]
 
-  log "mapWithIndex should take a list of values and apply a function which also takes the index into account"
-  assert $ NEL.mapWithIndex (\x ix -> x + ix) (nel 0 [1, 2, 4]) == nel 0 [2, 4, 7]
-
   log "sort should reorder a non-empty list into ascending order based on the result of compare"
   assert $ NEL.sort (nel 1 [3, 2, 5, 6, 4]) == nel 1 [2, 3, 4, 5, 6]
 

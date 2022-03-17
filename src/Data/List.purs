@@ -104,7 +104,6 @@ import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
 import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
-import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
