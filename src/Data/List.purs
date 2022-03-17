@@ -51,7 +51,6 @@ module Data.List
   , filterM
   , mapMaybe
   , catMaybes
-  , mapWithIndex
 
   , sort
   , sortBy
@@ -68,7 +67,6 @@ module Data.List
   , span
   , group
   , groupAll
-  , group'
   , groupBy
   , groupAllBy
   , partition
@@ -106,7 +104,6 @@ import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
 import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
-import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
@@ -117,7 +114,6 @@ import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
-import Prim.TypeError (class Warn, Text)
 
 -- | Convert a list into any unfoldable structure.
 -- |
@@ -429,13 +425,6 @@ mapMaybe f = go Nil
 catMaybes :: forall a. List (Maybe a) -> List a
 catMaybes = mapMaybe identity
 
-
--- | Apply a function to each element and its index in a list starting at 0.
--- |
--- | Deprecated. Use Data.FunctorWithIndex instead.
-mapWithIndex :: forall a b. (Int -> a -> b) -> List a -> List b
-mapWithIndex = FWI.mapWithIndex
-
 --------------------------------------------------------------------------------
 -- Sorting ---------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -605,10 +594,6 @@ group = groupBy (==)
 -- | ```
 groupAll :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
 groupAll = group <<< sort
-
--- | Deprecated previous name of `groupAll`.
-group' :: forall a. Warn (Text "'group\'' is deprecated, use groupAll instead") => Ord a => List a -> List (NEL.NonEmptyList a)
-group' = groupAll
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.
