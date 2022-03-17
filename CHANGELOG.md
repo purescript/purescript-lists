@@ -7,6 +7,7 @@ Notable changes to this project are documented in this file. The format is based
 Breaking changes:
 - Update project and deps to PureScript v0.15.0 (#203 by @JordanMartinez)
 - Drop deprecated `MonadZero` instance (#205 by @JordanMartinez)
+- Drop deprecated `group'` and `mapWithIndex` (#206 by @JordanMartinez)
 
 New features:
 
