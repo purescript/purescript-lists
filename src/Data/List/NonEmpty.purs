@@ -32,7 +32,6 @@ module Data.List.NonEmpty
   , mapMaybe
   , catMaybes
   , appendFoldable
-  , mapWithIndex
   , sort
   , sortBy
   , take
@@ -42,7 +41,6 @@ module Data.List.NonEmpty
   , span
   , group
   , groupAll
-  , group'
   , groupBy
   , groupAllBy
   , partition
@@ -235,12 +233,6 @@ appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyLis
 appendFoldable (NonEmptyList (x :| xs)) ys =
   NonEmptyList (x :| (xs <> L.fromFoldable ys))
 
--- | Apply a function to each element and its index in a list starting at 0.
--- |
--- | Deprecated. Use Data.FunctorWithIndex instead.
-mapWithIndex :: forall a b. (Int -> a -> b) -> NonEmptyList a -> NonEmptyList b
-mapWithIndex = FWI.mapWithIndex
-
 sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 sort xs = sortBy compare xs
 
@@ -267,9 +259,6 @@ group = wrappedOperation "group" L.group
 
 groupAll :: forall a. Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupAll = wrappedOperation "groupAll" L.groupAll
-
-group' :: forall a. Warn (Text "'group\'' is deprecated, use groupAll instead") => Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
-group' = groupAll
 
 groupBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupBy = wrappedOperation "groupBy" <<< L.groupBy

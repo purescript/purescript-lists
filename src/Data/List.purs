@@ -51,7 +51,6 @@ module Data.List
   , filterM
   , mapMaybe
   , catMaybes
-  , mapWithIndex
 
   , sort
   , sortBy
@@ -68,7 +67,6 @@ module Data.List
   , span
   , group
   , groupAll
-  , group'
   , groupBy
   , groupAllBy
   , partition
@@ -429,13 +427,6 @@ mapMaybe f = go Nil
 catMaybes :: forall a. List (Maybe a) -> List a
 catMaybes = mapMaybe identity
 
-
--- | Apply a function to each element and its index in a list starting at 0.
--- |
--- | Deprecated. Use Data.FunctorWithIndex instead.
-mapWithIndex :: forall a b. (Int -> a -> b) -> List a -> List b
-mapWithIndex = FWI.mapWithIndex
-
 --------------------------------------------------------------------------------
 -- Sorting ---------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -605,10 +596,6 @@ group = groupBy (==)
 -- | ```
 groupAll :: forall a. Ord a => List a -> List (NEL.NonEmptyList a)
 groupAll = group <<< sort
-
--- | Deprecated previous name of `groupAll`.
-group' :: forall a. Warn (Text "'group\'' is deprecated, use groupAll instead") => Ord a => List a -> List (NEL.NonEmptyList a)
-group' = groupAll
 
 -- | Group equal, consecutive elements of a list into lists, using the specified
 -- | equivalence relation to determine equality.
