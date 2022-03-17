@@ -80,8 +80,6 @@ import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) 
 import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
 import Data.Traversable (scanl, scanr) as Exports
 
-import Prim.TypeError (class Warn, Text)
-
 -- | Internal function: any operation on a list that is guaranteed not to delete
 -- | all elements also applies to a NEL, this function is a helper for defining
 -- | those cases.

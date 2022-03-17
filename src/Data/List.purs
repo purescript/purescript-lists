@@ -115,7 +115,6 @@ import Data.Traversable (scanl, scanr) as Exports
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)
-import Prim.TypeError (class Warn, Text)
 
 -- | Convert a list into any unfoldable structure.
 -- |
