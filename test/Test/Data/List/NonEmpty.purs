@@ -21,9 +21,9 @@ import Test.Assert (assert)
 testNonEmptyList :: Effect Unit
 testNonEmptyList = do
   let
-    nel :: ∀ f a. Foldable f => a -> f a -> NEL.NonEmptyList a
+    nel :: forall f a. Foldable f => a -> f a -> NEL.NonEmptyList a
     nel x xs = NEL.NonEmptyList $ x :| L.fromFoldable xs
-    l :: ∀ f a. Foldable f => f a -> L.List a
+    l :: forall f a. Foldable f => f a -> L.List a
     l = L.fromFoldable
 
   log "singleton should construct a non-empty list with a single value"
@@ -173,8 +173,8 @@ testNonEmptyList = do
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
   assert $ NEL.groupBy (\x y -> odd x && odd y) (nel 1 [1, 2, 2, 3, 3]) == nel (nel 1 [1]) [nel 2 [], nel 2 [], nel 3 [3]]
 
-  log "groupAllBy should group equal elements into lists based on an equivalence relation"
-  assert $ NEL.groupAllBy (\x y -> odd x && odd y) (nel 1 [3, 2, 4, 3, 3]) == nel (nel 1 []) [nel 2 [], nel 3 [3, 3], nel 4 []]
+  log "groupAllBy should sort then group equal elements into lists based on a comparison function"
+  assert $ NEL.groupAllBy (compare `on` (_ `div` 10)) (nel 32 [31, 21, 22, 11, 33]) == nel (nel 11 []) [nel 21 [22], nel 32 [31, 33]]
 
   log "partition should separate a list into a tuple of lists that do and do not satisfy a predicate"
   let partitioned = NEL.partition (_ > 2) (nel 1 [5, 3, 2, 4])

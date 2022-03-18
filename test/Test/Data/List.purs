@@ -3,7 +3,7 @@ module Test.Data.List (testList) where
 import Prelude
 
 import Data.Array as Array
-import Data.Foldable (foldMap, foldl)
+import Data.Foldable (class Foldable, foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Function (on)
 import Data.List (List(..), Pattern(..), alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, groupAll, groupAllBy, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, modifyAt, nub, nubBy, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, take, takeEnd, takeWhile, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
@@ -23,7 +23,11 @@ import Test.Assert (assert)
 
 testList :: Effect Unit
 testList = do
-  let l = fromFoldable
+  let
+    l = fromFoldable
+
+    nel :: forall f a. Foldable f => a -> f a -> NEL.NonEmptyList a
+    nel x xs = NEL.NonEmptyList $ x :| fromFoldable xs
 
   log "strip prefix"
   assert $ stripPrefix (Pattern (1:Nil)) (1:2:Nil) == Just (2:Nil)
@@ -272,8 +276,8 @@ testList = do
   log "groupBy should group consecutive equal elements into lists based on an equivalence relation"
   assert $ groupBy (\x y -> odd x && odd y) (l [1, 1, 2, 2, 3, 3]) == l [NEL.NonEmptyList (1 :| l [1]), NEL.singleton 2, NEL.singleton 2, NEL.NonEmptyList (3 :| l [3])]
 
-  log "groupAllBy should group equal elements into lists based on an equivalence relation"
-  assert $ groupAllBy (\x y -> odd x && odd y) (l [1, 3, 2, 4, 3, 3]) == l [NEL.singleton 1, NEL.singleton 2, NEL.NonEmptyList (3 :| l [3, 3]), NEL.singleton 4]
+  log "groupAllBy should sort then group equal elements into lists based on a comparison function"
+  assert $ groupAllBy (compare `on` (_ `div` 10)) (l [32, 31, 21, 22, 11, 33]) == l [nel 11 [], nel 21 [22], nel 32 [31, 33]]
 
   log "partition should separate a list into a tuple of lists that do and do not satisfy a predicate"
   let partitioned = partition (_ > 2) (l [1, 5, 3, 2, 4])

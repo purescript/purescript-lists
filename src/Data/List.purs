@@ -611,17 +611,16 @@ groupBy _ Nil = Nil
 groupBy eq (x : xs) = case span (eq x) xs of
   { init: ys, rest: zs } -> NEL.NonEmptyList (x :| ys) : groupBy eq zs
 
--- | Group equal elements of a list into lists, using the specified
--- | equivalence relation to determine equality.
--- |
--- | For example,
+-- | Sort, then group equal elements of a list into lists, using the provided comparison function.
 -- |
 -- | ```purescript
--- | groupAllBy (\a b -> odd a && odd b) (1 : 3 : 2 : 4 : 3 : 3 : Nil) ==
--- |    (NonEmptyList (NonEmpty 1 Nil)) : (NonEmptyList (NonEmpty 2 Nil)) : (NonEmptyList (NonEmpty 3 (3 : 3 : Nil))) : (NonEmptyList (NonEmpty 4 Nil)) : Nil
+-- | groupAllBy (compare `on` (_ `div` 10)) (32 : 31 : 21 : 22 : 11 : 33 : Nil) ==
+-- |   NonEmptyList (11 :| Nil) : NonEmptyList (21 :| 22 : Nil) : NonEmptyList (32 :| 31 : 33) : Nil
 -- | ```
-groupAllBy :: forall a. Ord a => (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
-groupAllBy p = groupBy p <<< sort
+-- |
+-- | Running time: `O(n log n)`
+groupAllBy :: forall a. (a -> a -> Ordering) -> List a -> List (NEL.NonEmptyList a)
+groupAllBy p = groupBy (\x y -> p x y == EQ) <<< sortBy p
 
 -- | Returns a lists of elements which do and do not satisfy a predicate.
 -- |

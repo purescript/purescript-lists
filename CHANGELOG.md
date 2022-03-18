@@ -8,6 +8,7 @@ Breaking changes:
 - Update project and deps to PureScript v0.15.0 (#203 by @JordanMartinez)
 - Drop deprecated `MonadZero` instance (#205 by @JordanMartinez)
 - Drop deprecated `group'` and `mapWithIndex` (#206 by @JordanMartinez)
+- Change `groupAllBy` to use a comparison function (#191)
 
 New features:
 
@@ -43,7 +44,7 @@ Breaking changes:
 
 New features:
 - Added `nubEq`/`nubByEq` (#179)
-- Added `groupAllBy` (#182, #191) 
+- Added `groupAllBy` (#182)
 - Added `Eq1` and `Ord1` instances to `NonEmptyList` and `LazyNonEmptyList` (#188)
 
 Bugfixes:
