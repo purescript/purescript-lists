@@ -32,7 +32,6 @@ module Data.List.NonEmpty
   , mapMaybe
   , catMaybes
   , appendFoldable
-  , mapWithIndex
   , sort
   , sortBy
   , take
@@ -42,7 +41,6 @@ module Data.List.NonEmpty
   , span
   , group
   , groupAll
-  , group'
   , groupBy
   , groupAllBy
   , partition
@@ -65,7 +63,6 @@ module Data.List.NonEmpty
 import Prelude
 
 import Data.Foldable (class Foldable)
-import Data.FunctorWithIndex (mapWithIndex) as FWI
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
@@ -81,8 +78,6 @@ import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, f
 import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
 import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
 import Data.Traversable (scanl, scanr) as Exports
-
-import Prim.TypeError (class Warn, Text)
 
 -- | Internal function: any operation on a list that is guaranteed not to delete
 -- | all elements also applies to a NEL, this function is a helper for defining
@@ -235,12 +230,6 @@ appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyLis
 appendFoldable (NonEmptyList (x :| xs)) ys =
   NonEmptyList (x :| (xs <> L.fromFoldable ys))
 
--- | Apply a function to each element and its index in a list starting at 0.
--- |
--- | Deprecated. Use Data.FunctorWithIndex instead.
-mapWithIndex :: forall a b. (Int -> a -> b) -> NonEmptyList a -> NonEmptyList b
-mapWithIndex = FWI.mapWithIndex
-
 sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 sort xs = sortBy compare xs
 
@@ -267,9 +256,6 @@ group = wrappedOperation "group" L.group
 
 groupAll :: forall a. Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupAll = wrappedOperation "groupAll" L.groupAll
-
-group' :: forall a. Warn (Text "'group\'' is deprecated, use groupAll instead") => Ord a => NonEmptyList a -> NonEmptyList (NonEmptyList a)
-group' = groupAll
 
 groupBy :: forall a. (a -> a -> Boolean) -> NonEmptyList a -> NonEmptyList (NonEmptyList a)
 groupBy = wrappedOperation "groupBy" <<< L.groupBy

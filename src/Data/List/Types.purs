@@ -14,7 +14,6 @@ import Control.Apply (lift2)
 import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
 import Control.MonadPlus (class MonadPlus)
-import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldl, foldr, intercalate)
@@ -175,8 +174,6 @@ instance plusList :: Plus List where
   empty = Nil
 
 instance alternativeList :: Alternative List
-
-instance monadZeroList :: MonadZero List
 
 instance monadPlusList :: MonadPlus List
 

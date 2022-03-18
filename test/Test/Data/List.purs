@@ -6,7 +6,7 @@ import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Function (on)
-import Data.List (List(..), Pattern(..), alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, groupAll, groupAllBy, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, mapWithIndex, modifyAt, nub, nubBy, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, take, takeEnd, takeWhile, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
+import Data.List (List(..), Pattern(..), alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, groupAll, groupAllBy, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, modifyAt, nub, nubBy, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, take, takeEnd, takeWhile, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -221,9 +221,6 @@ testList = do
 
   log "catMaybe should take an list of Maybe values and throw out Nothings"
   assert $ catMaybes (l [Nothing, Just 2, Nothing, Just 4]) == l [2, 4]
-
-  log "mapWithIndex should take a list of values and apply a function which also takes the index into account"
-  assert $ mapWithIndex (\x ix -> x + ix) (l [0, 1, 2, 3]) == l [0, 2, 4, 6]
 
   log "sort should reorder a list into ascending order based on the result of compare"
   assert $ sort (l [1, 3, 2, 5, 6, 4]) == l [1, 2, 3, 4, 5, 6]

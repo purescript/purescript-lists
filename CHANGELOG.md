@@ -5,6 +5,9 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
+- Update project and deps to PureScript v0.15.0 (#203 by @JordanMartinez)
+- Drop deprecated `MonadZero` instance (#205 by @JordanMartinez)
+- Drop deprecated `group'` and `mapWithIndex` (#206 by @JordanMartinez)
 - Change `groupAllBy` to use a comparison function (#191)
 
 New features:
@@ -12,6 +15,18 @@ New features:
 Bugfixes:
 
 Other improvements:
+
+## [v6.1.0](https://github.com/purescript/purescript-lists/releases/tag/v6.1.0) - 2022-02-22
+
+Breaking changes:
+
+New features:
+- Added `cons` for `Lazy.NonEmptyList` (#143 by @matthewleon)
+
+Bugfixes:
+
+Other improvements:
+- Fix ad-hoc usage of case expression (#202 by @JordanMartinez)
 
 ## [v6.0.1](https://github.com/purescript/purescript-lists/releases/tag/v6.0.1) - 2021-04-19
 
