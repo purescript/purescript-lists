@@ -10,8 +10,10 @@ import Prelude
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative)
 import Control.Plus (class Plus)
+import Data.Debug (class Debug, debug)
+import Data.Debug.Type as D
 import Data.Foldable (class Foldable)
-import Data.List.Lazy (List, drop, length, repeat, zipWith)
+import Data.List.Lazy (List, drop, length, repeat, zipWith, toUnfoldable)
 import Data.Newtype (class Newtype)
 import Data.Traversable (class Traversable)
 import Partial.Unsafe (unsafeCrashWith)
@@ -23,6 +25,9 @@ newtype ZipList a = ZipList (List a)
 
 instance showZipList :: Show a => Show (ZipList a) where
   show (ZipList xs) = "(ZipList " <> show xs <> ")"
+
+instance Debug a => Debug (ZipList a) where
+  Debug (ZipList xs) = D.collection "ZipList" $ map debug $ toUnfoldable xs
 
 derive instance newtypeZipList :: Newtype (ZipList a) _
 

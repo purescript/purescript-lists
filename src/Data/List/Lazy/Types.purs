@@ -9,6 +9,8 @@ import Control.Extend (class Extend)
 import Control.Lazy as Z
 import Control.MonadPlus (class MonadPlus)
 import Control.Plus (class Plus)
+import Data.Debug (class Debug, debug)
+import Data.Debug.Type as D
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex, foldMapWithIndex)
@@ -36,6 +38,9 @@ data Step a = Nil | Cons a (List a)
 instance showStep :: Show a => Show (Step a) where
   show Nil = "Nil"
   show (Cons x xs) = "(" <> show x <> " : " <> show xs <> ")"
+
+instance Debug a => Debug (LazyList.List a) where
+  debug xs = D.collection "List.Lazy" $ map debug $ toUnfoldable xs
 
 -- | Unwrap a lazy linked list
 step :: forall a. List a -> Step a
@@ -213,6 +218,9 @@ derive instance newtypeNonEmptyList :: Newtype (NonEmptyList a) _
 
 derive newtype instance eqNonEmptyList :: Eq a => Eq (NonEmptyList a)
 derive newtype instance ordNonEmptyList :: Ord a => Ord (NonEmptyList a)
+
+instance Debug a => Debug (NonEmptyList a) where
+  debug xs = D.collection "NonEmptyList.Lazy" $ map debug $ toUnfoldable xs
 
 instance eq1NonEmptyList :: Eq1 NonEmptyList where
   eq1 (NonEmptyList lhs) (NonEmptyList rhs) = eq1 lhs rhs

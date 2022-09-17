@@ -15,6 +15,8 @@ import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
 import Control.MonadPlus (class MonadPlus)
 import Control.Plus (class Plus)
+import Data.Debug (class Debug, debug)
+import Data.Debug.Type as D
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldl, foldr, intercalate)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex, foldMapWithIndex)
@@ -39,6 +41,9 @@ infixr 6 Cons as :
 instance showList :: Show a => Show (List a) where
   show Nil = "Nil"
   show xs = "(" <> intercalate " : " (show <$> xs) <> " : Nil)"
+
+instance Debug a => Debug (List a) where
+  debug xs = D.collection "List" (map debug $ toUnfoldable xs)
 
 instance eqList :: Eq a => Eq (List a) where
   eq = eq1
@@ -204,6 +209,10 @@ derive newtype instance ord1NonEmptyList :: Ord1 NonEmptyList
 
 instance showNonEmptyList :: Show a => Show (NonEmptyList a) where
   show (NonEmptyList nel) = "(NonEmptyList " <> show nel <> ")"
+
+instance Debug a => Debug (NonEmptyList a) where
+  debug (NonEmptyList (x :| xs)) =
+    D.collection "NonEmptyList" $ map debug $ toUnfoldable $ Cons x xs
 
 derive newtype instance functorNonEmptyList :: Functor NonEmptyList
 
