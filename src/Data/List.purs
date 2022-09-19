@@ -372,7 +372,7 @@ reverse = go Nil
 -- |
 -- | Running time: `O(n)`, where `n` is the total number of elements.
 concat :: forall a. List (List a) -> List a
-concat = (_ >>= identity)
+concat = join
 
 -- | Apply a function to each element in a list, and flatten the results
 -- | into a single, new list.
