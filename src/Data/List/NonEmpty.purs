@@ -7,7 +7,7 @@ module Data.List.NonEmpty
   , singleton
   , length
   , cons
-  , cons'
+  , (:||), cons'
   , snoc
   , snoc'
   , head
@@ -90,7 +90,7 @@ wrappedOperation
   -> NonEmptyList b
 wrappedOperation name f (NonEmptyList (x :| xs)) =
   case f (x : xs) of
-    x' : xs' -> NonEmptyList (x' :| xs')
+    x' : xs' -> x' :|| xs'
     L.Nil -> unsafeCrashWith ("Impossible: empty list in NonEmptyList " <> name)
 
 -- | Like `wrappedOperation`, but for functions that operate on 2 lists.
@@ -103,7 +103,7 @@ wrappedOperation2
   -> NonEmptyList c
 wrappedOperation2 name f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
   case f (x : xs) (y : ys) of
-    x' : xs' -> NonEmptyList (x' :| xs')
+    x' : xs' -> x' :|| xs'
     L.Nil -> unsafeCrashWith ("Impossible: empty list in NonEmptyList " <> name)
 
 -- | Lifts a function that operates on a list to work on a NEL. This does not
@@ -120,7 +120,7 @@ fromFoldable = fromList <<< L.fromFoldable
 
 fromList :: forall a. L.List a -> Maybe (NonEmptyList a)
 fromList L.Nil = Nothing
-fromList (x : xs) = Just (NonEmptyList (x :| xs))
+fromList (x : xs) = Just (x :|| xs)
 
 toList :: NonEmptyList ~> L.List
 toList (NonEmptyList (x :| xs)) = x : xs
@@ -129,16 +129,18 @@ singleton :: forall a. a -> NonEmptyList a
 singleton = NonEmptyList <<< NE.singleton
 
 cons :: forall a. a -> NonEmptyList a -> NonEmptyList a
-cons y (NonEmptyList (x :| xs)) = NonEmptyList (y :| x : xs)
+cons y (NonEmptyList (x :| xs)) = y :|| x : xs
 
 cons' :: forall a. a -> L.List a -> NonEmptyList a
 cons' x xs = NonEmptyList (x :| xs)
 
+infixr 5 cons' as :||
+
 snoc :: forall a. NonEmptyList a -> a -> NonEmptyList a
-snoc (NonEmptyList (x :| xs)) y = NonEmptyList (x :| L.snoc xs y)
+snoc (NonEmptyList (x :| xs)) y = x :|| L.snoc xs y
 
 snoc' :: forall a. L.List a -> a -> NonEmptyList a
-snoc' (x : xs) y = NonEmptyList (x :| L.snoc xs y)
+snoc' (x : xs) y = x :|| L.snoc xs y
 snoc' L.Nil y = singleton y
 
 head :: forall a. NonEmptyList a -> a
@@ -192,18 +194,18 @@ findLastIndex f (NonEmptyList (x :| xs)) =
 
 insertAt :: forall a. Int -> a -> NonEmptyList a -> Maybe (NonEmptyList a)
 insertAt i a (NonEmptyList (x :| xs))
-  | i == 0 = Just (NonEmptyList (a :| x : xs))
+  | i == 0 = Just (a :|| x : xs)
   | otherwise = NonEmptyList <<< (x :| _) <$> L.insertAt (i - 1) a xs
 
 updateAt :: forall a. Int -> a -> NonEmptyList a -> Maybe (NonEmptyList a)
 updateAt i a (NonEmptyList (x :| xs))
-  | i == 0 = Just (NonEmptyList (a :| xs))
-  | otherwise = NonEmptyList <<< (x :| _) <$> L.updateAt (i - 1) a xs
+  | i == 0 = Just (a :|| xs)
+  | otherwise = (x :|| _) <$> L.updateAt (i - 1) a xs
 
 modifyAt :: forall a. Int -> (a -> a) -> NonEmptyList a -> Maybe (NonEmptyList a)
 modifyAt i f (NonEmptyList (x :| xs))
-  | i == 0 = Just (NonEmptyList (f x :| xs))
-  | otherwise = NonEmptyList <<< (x :| _) <$> L.modifyAt (i - 1) f xs
+  | i == 0 = Just (f x :|| xs)
+  | otherwise = (x :|| _) <$> L.modifyAt (i - 1) f xs
 
 reverse :: forall a. NonEmptyList a -> NonEmptyList a
 reverse = wrappedOperation "reverse" L.reverse
@@ -228,7 +230,7 @@ concatMap = flip bind
 
 appendFoldable :: forall t a. Foldable t => NonEmptyList a -> t a -> NonEmptyList a
 appendFoldable (NonEmptyList (x :| xs)) ys =
-  NonEmptyList (x :| (xs <> L.fromFoldable ys))
+  x :|| (xs <> L.fromFoldable ys)
 
 sort :: forall a. Ord a => NonEmptyList a -> NonEmptyList a
 sort xs = sortBy compare xs
@@ -292,7 +294,7 @@ intersectBy = wrappedOperation2 "intersectBy" <<< L.intersectBy
 
 zipWith :: forall a b c. (a -> b -> c) -> NonEmptyList a -> NonEmptyList b -> NonEmptyList c
 zipWith f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
-  NonEmptyList (f x y :| L.zipWith f xs ys)
+  f x y :|| L.zipWith f xs ys
 
 zipWithA :: forall m a b c. Applicative m => (a -> b -> m c) -> NonEmptyList a -> NonEmptyList b -> m (NonEmptyList c)
 zipWithA f xs ys = sequence1 (zipWith f xs ys)
