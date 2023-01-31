@@ -30,6 +30,7 @@ module Data.List
   , last
   , tail
   , init
+  , inits
   , tails
   , uncons
   , unsnoc
@@ -252,6 +253,33 @@ tail (_ : xs) = Just xs
 -- | Running time: `O(n)`
 init :: forall a. List a -> Maybe (List a)
 init lst = _.init <$> unsnoc lst
+
+-- | Returns all the initial segments of the argument, shortest first.
+-- | ```
+-- | inits (1 : 2 : 3 : Nil) == (
+-- |       (Nil) 
+-- |     : (1 : Nil)
+-- |     : (1 : 2 : Nil)
+-- |     : (1 : 2 : 3 : Nil) 
+-- |     : Nil
+-- | )
+-- | ```
+-- | 
+-- | Running time: `O(n)`
+inits :: forall a. List a -> NEL.NonEmptyList (List a)
+inits = go Nil Nil
+  where
+  go :: List (List a) -> List a -> List a -> NEL.NonEmptyList (List a)
+  go acc lastInit = case _ of
+    Nil -> NEL.NonEmptyList $ Nil :| reverseInnards Nil acc
+    Cons h t -> do
+      let nextInit = h : lastInit
+      go (nextInit : acc) nextInit t
+
+  reverseInnards :: List (List a) -> List (List a) -> List (List a)
+  reverseInnards acc = case _ of
+    Nil -> acc
+    Cons h t -> reverseInnards ((reverse h) : acc) t
 
 -- | Break a list into its first element, and the remaining elements,
 -- | or `Nothing` if the list is empty.

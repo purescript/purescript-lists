@@ -6,7 +6,7 @@ import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Function (on)
-import Data.List (List(..), Pattern(..), alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, groupAll, groupAllBy, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, modifyAt, nub, nubBy, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, tails, take, takeEnd, takeWhile, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
+import Data.List (List(..), Pattern(..), alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, groupAll, groupAllBy, groupBy, head, init, inits, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, modifyAt, nub, nubBy, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, tails, take, takeEnd, takeWhile, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -109,6 +109,12 @@ testList = do
 
   log "init should return Nothing for an empty list"
   assert $ init nil == Nothing
+
+  log "inits should return a non-empty list containing only Nil for an empty list"
+  assert $ inits nil == pure nil
+
+  log "inits should return the initial segments for a non-empty list"
+  assert $ inits (l [ 1, 2, 3 ]) == (nel Nil [ l [ 1 ], l [ 1, 2 ], l [ 1, 2, 3 ] ])
 
   log "tails should return a non-empty list containing only Nil for an empty list"
   assert $ tails nil == pure nil
@@ -416,6 +422,9 @@ testList = do
 
   log "append should be stack-safe"
   void $ pure $ xs <> xs
+
+  log "inits should be stack-safe"
+  assert $ Nil == (NEL.head $ inits $ fromFoldable $ range 1 100_000)
 
   log "tails should be stack-safe"
   assert $ 1 == NEL.head (1 <$ (tails $ fromFoldable $ range 1 100_000))
