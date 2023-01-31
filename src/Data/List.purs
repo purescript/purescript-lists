@@ -30,6 +30,7 @@ module Data.List
   , last
   , tail
   , init
+  , tails
   , uncons
   , unsnoc
 
@@ -105,7 +106,7 @@ import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.List.Internal (emptySet, insertAndLookupBy)
-import Data.List.Types (List(..), (:))
+import Data.List.Types (List(..), nelCons, (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
@@ -632,15 +633,28 @@ partition p xs = foldr select { no: Nil, yes: Nil } xs
                            then { no, yes: x : yes }
                            else { no: x : no, yes }
 
--- | Returns all final segments of the argument, longest first. For example,
--- |
--- | ```purescript
--- | tails (1 : 2 : 3 : Nil) == ((1 : 2 : 3 : Nil) : (2 : 3 : Nil) : (3 : Nil) : (Nil) : Nil)
+-- | Returns all the final segments of the argument, longest first.
 -- | ```
+-- | tails (1 : 2 : 3 : Nil) == (
+-- |       (1 : 2 : 3 : Nil)
+-- |     : (1 : 2 : Nil) 
+-- |     : (1 : Nil)
+-- |     : (Nil)
+-- |     : Nil
+-- | )
+-- | ```
+-- | 
 -- | Running time: `O(n)`
-tails :: forall a. List a -> List (List a)
-tails Nil = singleton Nil
-tails list@(Cons _ tl)= list : tails tl
+tails :: forall a. List a -> NEL.NonEmptyList (List a)
+tails = go Nil
+  where
+  go acc = case _ of
+    Nil -> reverseAppend (pure Nil) acc
+    ls@(Cons _ t) -> go (ls : acc) t
+
+  reverseAppend initial = case _ of
+    Nil -> initial
+    Cons h t -> reverseAppend (nelCons h initial) t
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
