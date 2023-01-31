@@ -427,7 +427,7 @@ testList = do
   assert $ Nil == (NEL.head $ inits $ fromFoldable $ range 1 100_000)
 
   log "tails should be stack-safe"
-  assert $ 1 == NEL.head (1 <$ (tails $ fromFoldable $ range 1 100_000))
+  assert $ Nil == (NEL.tail $ tails $ fromFoldable $ range 1 100_000)
 
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing
