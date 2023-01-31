@@ -30,6 +30,8 @@ module Data.List
   , last
   , tail
   , init
+  , inits
+  , tails
   , uncons
   , unsnoc
 
@@ -105,7 +107,7 @@ import Data.Bifunctor (bimap)
 import Data.Foldable (class Foldable, foldr, any, foldl)
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
 import Data.List.Internal (emptySet, insertAndLookupBy)
-import Data.List.Types (List(..), (:))
+import Data.List.Types (List(..), nelCons, (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
@@ -251,6 +253,33 @@ tail (_ : xs) = Just xs
 -- | Running time: `O(n)`
 init :: forall a. List a -> Maybe (List a)
 init lst = _.init <$> unsnoc lst
+
+-- | Returns all the initial segments of the argument, shortest first.
+-- | ```
+-- | inits (1 : 2 : 3 : Nil) == (
+-- |       (Nil) 
+-- |     : (1 : Nil)
+-- |     : (1 : 2 : Nil)
+-- |     : (1 : 2 : 3 : Nil) 
+-- |     : Nil
+-- | )
+-- | ```
+-- | 
+-- | Running time: `O(n)`
+inits :: forall a. List a -> NEL.NonEmptyList (List a)
+inits = go Nil Nil
+  where
+  go :: List (List a) -> List a -> List a -> NEL.NonEmptyList (List a)
+  go acc lastInit = case _ of
+    Nil -> NEL.NonEmptyList $ Nil :| reverseInnards Nil acc
+    Cons h t -> do
+      let nextInit = h : lastInit
+      go (nextInit : acc) nextInit t
+
+  reverseInnards :: List (List a) -> List (List a) -> List (List a)
+  reverseInnards acc = case _ of
+    Nil -> acc
+    Cons h t -> reverseInnards ((reverse h) : acc) t
 
 -- | Break a list into its first element, and the remaining elements,
 -- | or `Nothing` if the list is empty.
@@ -632,15 +661,28 @@ partition p xs = foldr select { no: Nil, yes: Nil } xs
                            then { no, yes: x : yes }
                            else { no: x : no, yes }
 
--- | Returns all final segments of the argument, longest first. For example,
--- |
--- | ```purescript
--- | tails (1 : 2 : 3 : Nil) == ((1 : 2 : 3 : Nil) : (2 : 3 : Nil) : (3 : Nil) : (Nil) : Nil)
+-- | Returns all the final segments of the argument, longest first.
 -- | ```
+-- | tails (1 : 2 : 3 : Nil) == (
+-- |       (1 : 2 : 3 : Nil)
+-- |     : (1 : 2 : Nil) 
+-- |     : (1 : Nil)
+-- |     : (Nil)
+-- |     : Nil
+-- | )
+-- | ```
+-- | 
 -- | Running time: `O(n)`
-tails :: forall a. List a -> List (List a)
-tails Nil = singleton Nil
-tails list@(Cons _ tl)= list : tails tl
+tails :: forall a. List a -> NEL.NonEmptyList (List a)
+tails = go Nil
+  where
+  go acc = case _ of
+    Nil -> reverseAppend (pure Nil) acc
+    ls@(Cons _ t) -> go (ls : acc) t
+
+  reverseAppend initial = case _ of
+    Nil -> initial
+    Cons h t -> reverseAppend (nelCons h initial) t
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
