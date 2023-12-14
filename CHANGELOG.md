@@ -6,6 +6,8 @@ Notable changes to this project are documented in this file. The format is based
 
 Breaking changes:
 
+- Changed type signatures of `Data.List.NonEmpty.intersect` and `Data.List.NonEmpty.intersectBy` to return a `List` instead of a `NonEmptyList` (#217)
+
 New features:
 
 Bugfixes:
