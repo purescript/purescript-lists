@@ -203,10 +203,13 @@ testNonEmptyList = do
   assert $ NEL.unionBy (\_ y -> y < 5) (nel 1 [2, 3]) (nel 2 [3, 4, 5, 6]) == nel 1 [2, 3, 5, 6]
 
   log "intersect should return the intersection of two lists"
-  assert $ NEL.intersect (nel 1 [2, 3, 4, 3, 2, 1]) (nel 1 [1, 2, 3]) == nel 1 [2, 3, 3, 2, 1]
+  assert $ NEL.intersect (nel 1 [2, 3, 4, 3, 2, 1]) (nel 1 [1, 2, 3]) == L.fromFoldable [1, 2, 3, 3, 2, 1]
+
+  log "intersect should return empty list when lists do not intersect"
+  assert $ NEL.intersect (nel 1 [2, 3, 4, 3, 2, 1]) (nel 5 [6, 7, 8]) == L.Nil
 
   log "intersectBy should return the intersection of two lists using the specified equivalence relation"
-  assert $ NEL.intersectBy (\x y -> (x * 2) == y) (nel 1 [2, 3]) (nel 2 [6]) == nel 1 [3]
+  assert $ NEL.intersectBy (\x y -> (x * 2) == y) (nel 1 [2, 3]) (nel 2 [6]) == L.fromFoldable [1, 3]
 
   log "zipWith should use the specified function to zip two lists together"
   assert $ NEL.zipWith (\x y -> nel (show x) [y]) (nel 1 [2, 3]) (nel "a" ["b", "c"]) == nel (nel "1" ["a"]) [nel "2" ["b"], nel "3" ["c"]]
