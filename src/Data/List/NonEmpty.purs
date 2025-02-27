@@ -71,7 +71,7 @@ import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
 import Data.Semigroup.Traversable (sequence1)
 import Data.Tuple (Tuple(..), fst, snd)
-import Data.Unfoldable (class Unfoldable, unfoldr)
+import Data.Unfoldable1 (class Unfoldable1, unfoldr1)
 import Partial.Unsafe (unsafeCrashWith)
 
 import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
@@ -111,9 +111,9 @@ wrappedOperation2 name f (NonEmptyList (x :| xs)) (NonEmptyList (y :| ys)) =
 lift :: forall a b. (L.List a -> b) -> NonEmptyList a -> b
 lift f (NonEmptyList (x :| xs)) = f (x : xs)
 
-toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
+toUnfoldable :: forall f. Unfoldable1 f => NonEmptyList ~> f
 toUnfoldable =
-  unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> L.uncons xs) <<< toList
+  unfoldr1 (\rec -> Tuple rec.head $ L.uncons rec.tail) <<< uncons 
 
 fromFoldable :: forall f a. Foldable f => f a -> Maybe (NonEmptyList a)
 fromFoldable = fromList <<< L.fromFoldable

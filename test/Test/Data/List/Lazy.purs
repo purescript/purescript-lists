@@ -8,7 +8,7 @@ import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Function (on)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lazy as Z
-import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cycle, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, nubEq, nubByEq, null, partition, range, repeat, replicate, replicateM, reverse, scanlLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
+import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap, cycle, cons, delete, deleteAt, deleteBy, drop, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, foldMap, foldl, foldr, foldrLazy, fromFoldable, group, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, iterate, last, length, mapMaybe, modifyAt, nil, nub, nubBy, nubEq, nubByEq, null, partition, range, repeat, replicate, replicateM, reverse, scanlLazy, singleton, slice, snoc, span, stripPrefix, tail, take, takeWhile, toUnfoldable, transpose, uncons, union, unionBy, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -458,6 +458,18 @@ testListLazy = do
 
   log "unfoldr1 should maintain order for NEL"
   assert $ (nel (1 :| l [2, 3, 4, 5])) == unfoldr1 step1 1
+
+  log "toUnfoldable should agree with Unfoldable List"
+  assert $ (1..5) == toUnfoldable (1..5)
+
+  log "toUnfoldable should agree with Unfoldable1 NEL"
+  assert $ nel (1 :| (2..5)) == NEL.toUnfoldable (nel (1 :| (2..5)))
+
+  log "toUnfoldable should work ok on infinite List"
+  assert $ Just 1 == toUnfoldable (iterate (_ + 1) 1)
+
+  log "toUnfoldable should work ok on infinite NEL"
+  assert $ Just 1 == NEL.toUnfoldable (NEL.iterate (_ + 1) 1)
 
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing

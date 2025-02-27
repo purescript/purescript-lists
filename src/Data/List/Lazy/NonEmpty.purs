@@ -28,11 +28,11 @@ import Data.List.Lazy.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.NonEmpty ((:|))
 import Data.Tuple (Tuple(..))
-import Data.Unfoldable (class Unfoldable, unfoldr)
+import Data.Unfoldable1 (class Unfoldable1, unfoldr1)
 
-toUnfoldable :: forall f. Unfoldable f => NonEmptyList ~> f
+toUnfoldable :: forall f. Unfoldable1 f => NonEmptyList ~> f
 toUnfoldable =
-  unfoldr (\xs -> (\rec -> Tuple rec.head rec.tail) <$> L.uncons xs) <<< toList
+  unfoldr1 (\rec -> Tuple rec.head $ L.uncons rec.tail) <<< uncons
 
 fromFoldable :: forall f a. Foldable f => f a -> Maybe (NonEmptyList a)
 fromFoldable = fromList <<< L.fromFoldable

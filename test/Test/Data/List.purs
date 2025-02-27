@@ -6,7 +6,7 @@ import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Function (on)
-import Data.List (List(..), Pattern(..), alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, groupAll, groupAllBy, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, modifyAt, nub, nubBy, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, take, takeEnd, takeWhile, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
+import Data.List (List(..), Pattern(..), alterAt, catMaybes, concat, concatMap, delete, deleteAt, deleteBy, drop, dropEnd, dropWhile, elemIndex, elemLastIndex, filter, filterM, findIndex, findLastIndex, foldM, fromFoldable, group, groupAll, groupAllBy, groupBy, head, init, insert, insertAt, insertBy, intersect, intersectBy, last, length, mapMaybe, modifyAt, nub, nubBy, nubByEq, nubEq, null, partition, range, reverse, singleton, snoc, sort, sortBy, span, stripPrefix, tail, take, takeEnd, takeWhile, toUnfoldable, transpose, uncons, union, unionBy, unsnoc, unzip, updateAt, zip, zipWith, zipWithA, (!!), (..), (:), (\\))
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
@@ -410,6 +410,9 @@ testList = do
 
   log "append should be stack-safe"
   void $ pure $ xs <> xs
+
+  log "toUnfoldable should agree with Unfoldable List"
+  assert $ (1..5) == toUnfoldable (1..5)
 
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing

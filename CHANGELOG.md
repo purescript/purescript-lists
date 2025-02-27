@@ -8,6 +8,8 @@ Breaking changes:
 
 New features:
 
+- Change `NonEmpty.toUnfoldable` to produce any `Unfoldable1` (#220 by @UnrelatedString)
+
 Bugfixes:
 
 Other improvements:
