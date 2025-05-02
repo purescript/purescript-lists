@@ -230,7 +230,7 @@ instance applyNonEmptyList :: Apply NonEmptyList where
   apply (NonEmptyList nefs) (NonEmptyList neas) =
     case force nefs, force neas of
       f :| fs, a :| as ->
-        NonEmptyList (defer \_ -> f a :| (fs <*> a : nil) <> ((f : fs) <*> as))
+        NonEmptyList (defer \_ -> f a :| map f as <> apply fs (a : as))
 
 instance applicativeNonEmptyList :: Applicative NonEmptyList where
   pure a = NonEmptyList (defer \_ -> NE.singleton a)

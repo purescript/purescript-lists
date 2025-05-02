@@ -12,7 +12,7 @@ import Data.List.Lazy (List, Pattern(..), alterAt, catMaybes, concat, concatMap,
 import Data.List.Lazy.NonEmpty as NEL
 import Data.Maybe (Maybe(..), isNothing, fromJust)
 import Data.Monoid.Additive (Additive(..))
-import Data.NonEmpty ((:|))
+import Data.NonEmpty (NonEmpty, (:|))
 import Data.Traversable (traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..))
@@ -27,6 +27,7 @@ testListLazy :: Effect Unit
 testListLazy = do
   let
     l = fromFoldable
+    nel :: NonEmpty List ~> NEL.NonEmptyList
     nel xxs = NEL.NonEmptyList (Z.defer \_ -> xxs)
     longList = range 1 100000
   log "strip prefix"
@@ -458,6 +459,12 @@ testListLazy = do
 
   log "unfoldr1 should maintain order for NEL"
   assert $ (nel (1 :| l [2, 3, 4, 5])) == unfoldr1 step1 1
+
+  log "lazy Apply NEL should agree with Apply List"
+  assert $
+      l (Tuple <$> nel (1 :| l [2, 3, 4]) <*> nel ('a' :| l ['b', 'c', 'd']))
+    ==
+      (Tuple <$> l [1, 2, 3, 4] <*> l ['a', 'b', 'c', 'd'])
 
 step :: Int -> Maybe (Tuple Int Int)
 step 6 = Nothing

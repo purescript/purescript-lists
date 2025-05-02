@@ -6,9 +6,13 @@ Notable changes to this project are documented in this file. The format is based
 
 Breaking changes:
 
+- Change `Apply NonEmptyList` instance to obey `Apply` and `Applicative` laws, and agree with `Apply List` (#222 by @UnrelatedString)
+
 New features:
 
 Bugfixes:
+
+- Change `Apply NonEmptyList` instance to obey `Apply` and `Applicative` laws, and agree with `Apply List` (#222 by @UnrelatedString)
 
 Other improvements:
 
