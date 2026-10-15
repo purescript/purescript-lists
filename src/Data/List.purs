@@ -628,9 +628,11 @@ groupAllBy p = groupBy (\x y -> p x y == EQ) <<< sortBy p
 partition :: forall a. (a -> Boolean) -> List a -> { yes :: List a, no :: List a }
 partition p xs = foldr select { no: Nil, yes: Nil } xs
   where
-    select x { no, yes } = if p x
-                           then { no, yes: x : yes }
-                           else { no: x : no, yes }
+    select x { no, yes } =
+      if p x then
+        { no, yes: x : yes }
+      else
+        { no: x : no, yes }
 
 -- | Returns all final segments of the argument, longest first. For example,
 -- |
@@ -673,9 +675,10 @@ nubBy p = reverse <<< go emptySet Nil
     go _ acc Nil = acc
     go s acc (a : as) =
       let { found, result: s' } = insertAndLookupBy p a s
-      in if found
-        then go s' acc as
-        else go s' (a : acc) as
+      in if found then
+        go s' acc as
+      else
+        go s' (a : acc) as
 
 -- | Remove duplicate elements from a list.
 -- | Keeps the first occurrence of each element in the input list,

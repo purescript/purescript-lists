@@ -321,9 +321,10 @@ findIndex fn = go 0
   go :: Int -> List a -> Maybe Int
   go n list = do
       o <- uncons list
-      if fn o.head
-         then pure n
-         else go (n + 1) o.tail
+      if fn o.head then
+        pure n
+      else
+        go (n + 1) o.tail
 
 -- | Find the last index for which a predicate holds.
 findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
@@ -498,9 +499,11 @@ slice start end xs = take (end - start) (drop start xs)
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to take.
 take :: forall a. Int -> List a -> List a
-take n = if n <= 0
-  then const nil
-  else List <<< map (go n) <<< unwrap
+take n =
+  if n <= 0 then
+    const nil
+  else
+    List <<< map (go n) <<< unwrap
   where
   go :: Int -> Step a -> Step a
   go _ Nil = Nil
@@ -613,9 +616,10 @@ nubBy p = go emptySet
     goStep _ Nil = Nil
     goStep s (Cons a as) =
       let { found, result: s' } = insertAndLookupBy p a s
-      in if found
-        then step (go s' as)
-        else Cons a (go s' as)
+      in if found then
+        step (go s' as)
+      else
+        Cons a (go s' as)
 
 -- | Remove duplicate elements from a list.
 -- |
