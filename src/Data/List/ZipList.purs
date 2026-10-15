@@ -54,13 +54,16 @@ instance plusZipList :: Plus ZipList where
 
 instance alternativeZipList :: Alternative ZipList
 
-instance zipListIsNotBind
-  :: Fail (Text """
+instance zipListIsNotBind ::
+  Fail
+    ( Text
+        """
     ZipList is not Bind. Any implementation would break the associativity law.
 
     Possible alternatives:
         Data.List.List
         Data.List.Lazy.List
-    """)
-  => Bind ZipList where
-    bind = unsafeCrashWith "bind: unreachable"
+    """
+    ) =>
+  Bind ZipList where
+  bind = unsafeCrashWith "bind: unreachable"

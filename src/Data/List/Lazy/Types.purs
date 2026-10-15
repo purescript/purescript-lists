@@ -11,7 +11,7 @@ import Control.MonadPlus (class MonadPlus)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex, foldMapWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Lazy (Lazy, defer, force)
 import Data.Maybe (Maybe(..), maybe)
@@ -19,7 +19,7 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NE
 import Data.Ord (class Ord1, compare1)
-import Data.Traversable (class Traversable, traverse, sequence)
+import Data.Traversable (class Traversable, sequence, traverse)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unfoldable (class Unfoldable, unfoldr1)
@@ -63,11 +63,11 @@ derive instance newtypeList :: Newtype (List a) _
 
 instance showList :: Show a => Show (List a) where
   show xs = "(fromFoldable ["
-         <> case step xs of
-              Nil -> ""
-              Cons x xs' ->
-                show x <> foldl (\shown x' -> shown <> "," <> show x') "" xs'
-         <> "])"
+    <> case step xs of
+      Nil -> ""
+      Cons x xs' ->
+        show x <> foldl (\shown x' -> shown <> "," <> show x') "" xs'
+    <> "])"
 
 instance eqList :: Eq a => Eq (List a) where
   eq = eq1
@@ -87,8 +87,8 @@ instance ord1List :: Ord1 List where
   compare1 xs ys = go (step xs) (step ys)
     where
     go Nil Nil = EQ
-    go Nil _   = LT
-    go _   Nil = GT
+    go Nil _ = LT
+    go _ Nil = GT
     go (Cons x xs') (Cons y ys') =
       case compare x y of
         EQ -> go (step xs') (step ys')
@@ -117,7 +117,8 @@ instance functorWithIndexList :: FunctorWithIndex Int List where
 
 instance foldableList :: Foldable List where
   -- calls foldl on the reversed list
-  foldr op z xs = foldl (flip op) z (rev xs) where
+  foldr op z xs = foldl (flip op) z (rev xs)
+    where
     rev = foldl (flip cons) nil
 
   foldl op = go
@@ -134,9 +135,9 @@ instance foldableWithIndexList :: FoldableWithIndex Int List where
   foldrWithIndex f b xs =
     -- as we climb the reversed list, we decrement the index
     snd $ foldl
-            (\(Tuple i b') a -> Tuple (i - 1) (f (i - 1) a b'))
-            (Tuple len b)
-            revList
+      (\(Tuple i b') a -> Tuple (i - 1) (f (i - 1) a b'))
+      (Tuple len b)
+      revList
     where
     Tuple len revList = rev (Tuple 0 nil) xs
       where
@@ -147,13 +148,15 @@ instance foldableWithIndexList :: FoldableWithIndex Int List where
   foldMapWithIndex f = foldlWithIndex (\i acc -> append acc <<< f i) mempty
 
 instance unfoldable1List :: Unfoldable1 List where
-  unfoldr1 = go where
+  unfoldr1 = go
+    where
     go f b = Z.defer \_ -> case f b of
       Tuple a (Just b') -> a : go f b'
       Tuple a Nothing -> a : nil
 
 instance unfoldableList :: Unfoldable List where
-  unfoldr = go where
+  unfoldr = go
+    where
     go f b = Z.defer \_ -> case f b of
       Nothing -> nil
       Just (Tuple a b') -> a : go f b'
@@ -199,9 +202,11 @@ instance extendList :: Extend List where
       Cons _ as ->
         f l : (foldr go { val: nil, acc: nil } as).val
     where
-      go a { val, acc } =
-        let acc' = a : acc
-        in { val: f acc' : val, acc: acc' }
+    go a { val, acc } =
+      let
+        acc' = a : acc
+      in
+        { val: f acc' : val, acc: acc' }
 
 newtype NonEmptyList a = NonEmptyList (Lazy (NonEmpty List a))
 

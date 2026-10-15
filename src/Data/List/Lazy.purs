@@ -13,7 +13,8 @@ module Data.List.Lazy
   , fromFoldable
 
   , singleton
-  , (..), range
+  , (..)
+  , range
   , replicate
   , replicateM
   , some
@@ -35,7 +36,8 @@ module Data.List.Lazy
   , init
   , uncons
 
-  , (!!), index
+  , (!!)
+  , index
   , elemIndex
   , elemLastIndex
   , findIndex
@@ -78,7 +80,8 @@ module Data.List.Lazy
   , unionBy
   , delete
   , deleteBy
-  , (\\), difference
+  , (\\)
+  , difference
   , intersect
   , intersectBy
 
@@ -102,11 +105,11 @@ import Control.Alt ((<|>))
 import Control.Alternative (class Alternative)
 import Control.Lazy as Z
 import Control.Monad.Rec.Class as Rec
-import Data.Foldable (class Foldable, foldr, any, foldl)
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
+import Data.Foldable (class Foldable, any, foldl, foldr)
+import Data.Foldable (all, any, elem, find, findMap, fold, foldMap, foldl, foldr, intercalate, notElem) as Exports
 import Data.Lazy (defer)
 import Data.List.Internal (emptySet, insertAndLookupBy)
-import Data.List.Lazy.Types (List(..), Step(..), step, nil, cons, (:))
+import Data.List.Lazy.Types (List(..), Step(..), cons, nil, step, (:))
 import Data.List.Lazy.Types (NonEmptyList(..)) as NEL
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Newtype (class Newtype, unwrap)
@@ -147,13 +150,17 @@ infix 8 range as ..
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
 range start end
-    | start > end =
-        let g x | x >= end  = Just (Tuple x (x - 1))
-                | otherwise = Nothing
-         in unfoldr g start
-    | otherwise = unfoldr f start
-  where
-    f x | x <= end  = Just (Tuple x (x + 1))
+  | start > end =
+      let
+        g x
+          | x >= end = Just (Tuple x (x - 1))
+          | otherwise = Nothing
+      in
+        unfoldr g start
+  | otherwise = unfoldr f start
+      where
+      f x
+        | x <= end = Just (Tuple x (x + 1))
         | otherwise = Nothing
 
 -- | Create a list with repeated instances of a value.
@@ -173,7 +180,7 @@ replicateM n m
 -- |
 -- | The `Lazy` constraint is used to generate the result lazily, to ensure
 -- | termination.
-some :: forall f a. Alternative f => Z.Lazy (f (List  a)) => f a -> f (List  a)
+some :: forall f a. Alternative f => Z.Lazy (f (List a)) => f a -> f (List a)
 some v = cons <$> v <*> Z.defer (\_ -> many v)
 
 -- | Attempt a computation multiple times, returning as many successful results
@@ -239,7 +246,7 @@ insertBy cmp x xs = List (go <$> unwrap xs)
   go ys@(Cons y ys') =
     case cmp x y of
       GT -> Cons y (insertBy cmp x ys')
-      _  -> Cons x (fromStep ys)
+      _ -> Cons x (fromStep ys)
 
 --------------------------------------------------------------------------------
 -- Non-indexed reads -----------------------------------------------------------
@@ -320,11 +327,11 @@ findIndex fn = go 0
   where
   go :: Int -> List a -> Maybe Int
   go n list = do
-      o <- uncons list
-      if fn o.head then
-        pure n
-      else
-        go (n + 1) o.tail
+    o <- uncons list
+    if fn o.head then
+      pure n
+    else
+      go (n + 1) o.tail
 
 -- | Find the last index for which a predicate holds.
 findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
@@ -429,13 +436,12 @@ filter p = List <<< map go <<< unwrap
 -- | ```
 filterM :: forall a m. Monad m => (a -> m Boolean) -> List a -> m (List a)
 filterM p list =
-    case uncons list of
-         Nothing -> pure nil
-         Just { head: x, tail: xs } -> do
-             b <- p x
-             xs' <- filterM p xs
-             pure if b then cons x xs' else xs'
-
+  case uncons list of
+    Nothing -> pure nil
+    Just { head: x, tail: xs } -> do
+      b <- p x
+      xs' <- filterM p xs
+      pure if b then cons x xs' else xs'
 
 -- | Apply a function to each element in a list, keeping only the results which
 -- | contain a value.
@@ -463,7 +469,6 @@ catMaybes = mapMaybe identity
 -- Sublists --------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
 -- | A newtype used in cases where there is a list to be matched.
 newtype Pattern a = Pattern (List a)
 
@@ -473,7 +478,6 @@ derive instance newtypePattern :: Newtype (Pattern a) _
 
 instance showPattern :: Show a => Show (Pattern a) where
   show (Pattern s) = "(Pattern " <> show s <> ")"
-
 
 -- | If the list starts with the given prefix, return the portion of the
 -- | list left after removing it, as a Just value. Otherwise, return Nothing.
@@ -587,10 +591,10 @@ groupBy eq = List <<< map go <<< unwrap
 -- |
 -- | Running time: `O(n)`
 partition :: forall a. (a -> Boolean) -> List a -> { yes :: List a, no :: List a }
-partition f = foldr go {yes: nil, no: nil}
+partition f = foldr go { yes: nil, no: nil }
   where
-  go x {yes: ys, no: ns} =
-    if f x then {yes: x : ys, no: ns} else {yes: ys, no: x : ns}
+  go x { yes: ys, no: ns } =
+    if f x then { yes: x : ys, no: ns } else { yes: ys, no: x : ns }
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
@@ -612,11 +616,13 @@ nub = nubBy compare
 nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
 nubBy p = go emptySet
   where
-    go s (List l) = List (map (goStep s) l)
-    goStep _ Nil = Nil
-    goStep s (Cons a as) =
-      let { found, result: s' } = insertAndLookupBy p a s
-      in if found then
+  go s (List l) = List (map (goStep s) l)
+  goStep _ Nil = Nil
+  goStep s (Cons a as) =
+    let
+      { found, result: s' } = insertAndLookupBy p a s
+    in
+      if found then
         step (go s' as)
       else
         Cons a (go s' as)
@@ -664,14 +670,16 @@ deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
 deleteBy eq x xs = List (go <$> unwrap xs)
   where
   go Nil = Nil
-  go (Cons y ys) | eq x y = step ys
-                 | otherwise = Cons y (deleteBy eq x ys)
+  go (Cons y ys)
+    | eq x y = step ys
+    | otherwise = Cons y (deleteBy eq x ys)
 
 -- | Delete the first occurrence of each element in the second list from the first list.
 -- |
 -- | Running time: `O(n^2)`
 difference :: forall a. Eq a => List a -> List a -> List a
 difference = foldl (flip delete)
+
 infix 5 difference as \\
 
 -- | Calculate the intersection of two lists.
@@ -760,25 +768,27 @@ transpose xs =
 -- | Perform a fold using a monadic step function.
 foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> List a -> m b
 foldM f b xs =
-    case uncons xs of
-         Nothing -> pure b
-         Just { head: a, tail: as } ->
-                       f b a >>= \b' -> foldM f b' as
+  case uncons xs of
+    Nothing -> pure b
+    Just { head: a, tail: as } ->
+      f b a >>= \b' -> foldM f b' as
 
 -- | Perform a right fold lazily
 foldrLazy :: forall a b. Z.Lazy b => (a -> b -> b) -> b -> List a -> b
 foldrLazy op z = go
   where
-    go xs = case step xs of
-      Cons x xs' -> Z.defer \_ -> x `op` go xs'
-      Nil -> z
+  go xs = case step xs of
+    Cons x xs' -> Z.defer \_ -> x `op` go xs'
+    Nil -> z
 
 -- | Perform a left scan lazily
 scanlLazy :: forall a b. (b -> a -> b) -> b -> List a -> List b
 scanlLazy f acc xs = List (go <$> unwrap xs)
   where
-    go :: Step a -> Step b
-    go Nil = Nil
-    go (Cons x xs') =
-      let acc' = f acc x
-       in Cons acc' $ scanlLazy f acc' xs'
+  go :: Step a -> Step b
+  go Nil = Nil
+  go (Cons x xs') =
+    let
+      acc' = f acc x
+    in
+      Cons acc' $ scanlLazy f acc' xs'

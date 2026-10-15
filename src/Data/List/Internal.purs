@@ -41,16 +41,16 @@ insertAndLookupBy comp k orig = down Nil orig
     case comp k k1 of
       EQ -> { found: true, result: orig }
       LT -> down (Cons (TwoLeft k1 right) ctx) left
-      _  -> down (Cons (TwoRight left k1) ctx) right
+      _ -> down (Cons (TwoRight left k1) ctx) right
   down ctx (Three left k1 mid k2 right) =
     case comp k k1 of
       EQ -> { found: true, result: orig }
       c1 ->
         case c1, comp k k2 of
-          _ , EQ -> { found: true, result: orig }
-          LT, _  -> down (Cons (ThreeLeft k1 mid k2 right) ctx) left
+          _, EQ -> { found: true, result: orig }
+          LT, _ -> down (Cons (ThreeLeft k1 mid k2 right) ctx) left
           GT, LT -> down (Cons (ThreeMiddle left k1 k2 right) ctx) mid
-          _ , _  -> down (Cons (ThreeRight left k1 mid k2) ctx) right
+          _, _ -> down (Cons (ThreeRight left k1 mid k2) ctx) right
 
   up :: List (TreeContext k) -> KickUp k -> Set k
   up Nil (KickUp left k' right) = Two left k' right

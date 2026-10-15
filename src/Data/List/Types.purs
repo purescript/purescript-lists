@@ -17,7 +17,7 @@ import Control.MonadPlus (class MonadPlus)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldl, foldr, intercalate)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex, foldMapWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype)
@@ -46,10 +46,10 @@ instance eqList :: Eq a => Eq (List a) where
 instance eq1List :: Eq1 List where
   eq1 xs ys = go xs ys true
     where
-      go _ _ false = false
-      go Nil Nil acc = acc
-      go (x : xs') (y : ys') acc = go xs' ys' $ acc && (y == x)
-      go _ _ _ = false
+    go _ _ false = false
+    go Nil Nil acc = acc
+    go (x : xs') (y : ys') acc = go xs' ys' $ acc && (y == x)
+    go _ _ _ = false
 
 instance ordList :: Ord a => Ord (List a) where
   compare = compare1
@@ -117,9 +117,9 @@ instance foldableWithIndexList :: FoldableWithIndex Int List where
   foldrWithIndex f b xs =
     -- as we climb the reversed list, we decrement the index
     snd $ foldl
-            (\(Tuple i b') a -> Tuple (i - 1) (f (i - 1) a b'))
-            (Tuple len b)
-            revList
+      (\(Tuple i b') a -> Tuple (i - 1) (f (i - 1) a b'))
+      (Tuple len b)
+      revList
     where
     Tuple len revList = rev (Tuple 0 Nil) xs
       where
@@ -150,7 +150,7 @@ instance traversableList :: Traversable List where
 instance traversableWithIndexList :: TraversableWithIndex Int List where
   traverseWithIndex f =
     map rev
-    <<< foldlWithIndex (\i acc -> lift2 (flip (:)) acc <<< f i) (pure Nil)
+      <<< foldlWithIndex (\i acc -> lift2 (flip (:)) acc <<< f i) (pure Nil)
     where
     rev = foldl (flip Cons) Nil
 
@@ -183,8 +183,10 @@ instance extendList :: Extend List where
     f l : (foldr go { val: Nil, acc: Nil } as).val
     where
     go a' { val, acc } =
-      let acc' = a' : acc
-      in { val: f acc' : val, acc: acc' }
+      let
+        acc' = a' : acc
+      in
+        { val: f acc' : val, acc: acc' }
 
 newtype NonEmptyList a = NonEmptyList (NonEmpty List a)
 
@@ -260,5 +262,5 @@ instance traversableWithIndexNonEmptyList :: TraversableWithIndex Int NonEmptyLi
 instance traversable1NonEmptyList :: Traversable1 NonEmptyList where
   traverse1 f (NonEmptyList (a :| as)) =
     foldl (\acc -> lift2 (flip nelCons) acc <<< f) (pure <$> f a) as
-      <#> case _ of NonEmptyList (x :| xs) → foldl (flip nelCons) (pure x) xs
+      <#> case _ of NonEmptyList (x :| xs) -> foldl (flip nelCons) (pure x) xs
   sequence1 = traverse1 identity

@@ -16,7 +16,8 @@ module Data.List.NonEmpty
   , init
   , uncons
   , unsnoc
-  , (!!), index
+  , (!!)
+  , index
   , elemIndex
   , elemLastIndex
   , findIndex
@@ -63,21 +64,20 @@ module Data.List.NonEmpty
 import Prelude
 
 import Data.Foldable (class Foldable)
+import Data.Foldable (all, any, elem, find, findMap, fold, foldMap, foldl, foldr, intercalate, notElem) as Exports
 import Data.List ((:))
 import Data.List as L
 import Data.List.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.NonEmpty ((:|))
 import Data.NonEmpty as NE
+import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
 import Data.Semigroup.Traversable (sequence1)
+import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
+import Data.Traversable (scanl, scanr) as Exports
 import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unfoldable (class Unfoldable, unfoldr)
 import Partial.Unsafe (unsafeCrashWith)
-
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
-import Data.Semigroup.Foldable (fold1, foldMap1, for1_, sequence1_, traverse1_) as Exports
-import Data.Semigroup.Traversable (sequence1, traverse1, traverse1Default) as Exports
-import Data.Traversable (scanl, scanr) as Exports
 
 -- | Internal function: any operation on a list that is guaranteed not to delete
 -- | all elements also applies to a NEL, this function is a helper for defining

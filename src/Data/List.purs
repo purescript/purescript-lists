@@ -13,7 +13,8 @@ module Data.List
   , fromFoldable
 
   , singleton
-  , (..), range
+  , (..)
+  , range
   , some
   , someRec
   , many
@@ -33,7 +34,8 @@ module Data.List
   , uncons
   , unsnoc
 
-  , (!!), index
+  , (!!)
+  , index
   , elemIndex
   , elemLastIndex
   , findIndex
@@ -79,7 +81,8 @@ module Data.List
   , unionBy
   , delete
   , deleteBy
-  , (\\), difference
+  , (\\)
+  , difference
   , intersect
   , intersectBy
 
@@ -102,8 +105,8 @@ import Control.Alternative (class Alternative)
 import Control.Lazy (class Lazy, defer)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
 import Data.Bifunctor (bimap)
-import Data.Foldable (class Foldable, foldr, any, foldl)
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
+import Data.Foldable (class Foldable, any, foldl, foldr)
+import Data.Foldable (all, any, elem, find, findMap, fold, foldMap, foldl, foldr, intercalate, notElem) as Exports
 import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
@@ -142,11 +145,13 @@ infix 8 range as ..
 
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
-range start end | start == end = singleton start
-                | otherwise = go end start (if start > end then 1 else -1) Nil
-  where
-  go s e step rest | s == e = s : rest
-                   | otherwise = go (s + step) e step (s : rest)
+range start end
+  | start == end = singleton start
+  | otherwise = go end start (if start > end then 1 else -1) Nil
+      where
+      go s e step rest
+        | s == e = s : rest
+        | otherwise = go (s + step) e step (s : rest)
 
 -- | Attempt a computation multiple times, requiring at least one success.
 -- |
@@ -218,7 +223,7 @@ insertBy _ x Nil = singleton x
 insertBy cmp x ys@(y : ys') =
   case cmp x y of
     GT -> y : (insertBy cmp x ys')
-    _  -> x : ys
+    _ -> x : ys
 
 --------------------------------------------------------------------------------
 -- Non-indexed reads -----------------------------------------------------------
@@ -236,8 +241,8 @@ head (x : _) = Just x
 -- | Running time: `O(n)`.
 last :: List ~> Maybe
 last (x : Nil) = Just x
-last (_ : xs)  = last xs
-last _         = Nothing
+last (_ : xs) = last xs
+last _ = Nothing
 
 -- | Get all but the first element of a list, or `Nothing` if the list is empty.
 -- |
@@ -299,8 +304,9 @@ findIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
 findIndex fn = go 0
   where
   go :: Int -> List a -> Maybe Int
-  go n (x : xs) | fn x = Just n
-                | otherwise = go (n + 1) xs
+  go n (x : xs)
+    | fn x = Just n
+    | otherwise = go (n + 1) xs
   go _ Nil = Nothing
 
 -- | Find the last index for which a predicate holds.
@@ -314,7 +320,7 @@ findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 insertAt :: forall a. Int -> a -> List a -> Maybe (List a)
 insertAt 0 x xs = Just (x : xs)
 insertAt n x (y : ys) = (y : _) <$> insertAt (n - 1) x ys
-insertAt _ _ _  = Nothing
+insertAt _ _ _ = Nothing
 
 -- | Delete an element from a list at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
@@ -323,14 +329,14 @@ insertAt _ _ _  = Nothing
 deleteAt :: forall a. Int -> List a -> Maybe (List a)
 deleteAt 0 (_ : ys) = Just ys
 deleteAt n (y : ys) = (y : _) <$> deleteAt (n - 1) ys
-deleteAt _ _  = Nothing
+deleteAt _ _ = Nothing
 
 -- | Update the element at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 updateAt :: forall a. Int -> a -> List a -> Maybe (List a)
-updateAt 0 x ( _ : xs) = Just (x : xs)
+updateAt 0 x (_ : xs) = Just (x : xs)
 updateAt n x (x1 : xs) = (x1 : _) <$> updateAt (n - 1) x xs
 updateAt _ _ _ = Nothing
 
@@ -353,7 +359,7 @@ alterAt 0 f (y : ys) = Just $
     Nothing -> ys
     Just y' -> y' : ys
 alterAt n f (y : ys) = (y : _) <$> alterAt (n - 1) f ys
-alterAt _ _ _  = Nothing
+alterAt _ _ _ = Nothing
 
 --------------------------------------------------------------------------------
 -- Transformations -------------------------------------------------------------
@@ -466,7 +472,7 @@ sortBy cmp = mergeAll <<< sequences
   merge :: List a -> List a -> List a
   merge as@(a : as') bs@(b : bs')
     | a `cmp` b == GT = b : merge as bs'
-    | otherwise       = a : merge as' bs
+    | otherwise = a : merge as' bs
   merge Nil bs = bs
   merge as Nil = as
 
@@ -483,7 +489,6 @@ derive instance newtypePattern :: Newtype (Pattern a) _
 
 instance showPattern :: Show a => Show (Pattern a) where
   show (Pattern s) = "(Pattern " <> show s <> ")"
-
 
 -- | If the list starts with the given prefix, return the portion of the
 -- | list left after removing it, as a Just value. Otherwise, return Nothing.
@@ -628,11 +633,11 @@ groupAllBy p = groupBy (\x y -> p x y == EQ) <<< sortBy p
 partition :: forall a. (a -> Boolean) -> List a -> { yes :: List a, no :: List a }
 partition p xs = foldr select { no: Nil, yes: Nil } xs
   where
-    select x { no, yes } =
-      if p x then
-        { no, yes: x : yes }
-      else
-        { no: x : no, yes }
+  select x { no, yes } =
+    if p x then
+      { no, yes: x : yes }
+    else
+      { no: x : no, yes }
 
 -- | Returns all final segments of the argument, longest first. For example,
 -- |
@@ -642,7 +647,7 @@ partition p xs = foldr select { no: Nil, yes: Nil } xs
 -- | Running time: `O(n)`
 tails :: forall a. List a -> List (List a)
 tails Nil = singleton Nil
-tails list@(Cons _ tl)= list : tails tl
+tails list@(Cons _ tl) = list : tails tl
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
@@ -672,10 +677,12 @@ nub = nubBy compare
 nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
 nubBy p = reverse <<< go emptySet Nil
   where
-    go _ acc Nil = acc
-    go s acc (a : as) =
-      let { found, result: s' } = insertAndLookupBy p a s
-      in if found then
+  go _ acc Nil = acc
+  go s acc (a : as) =
+    let
+      { found, result: s' } = insertAndLookupBy p a s
+    in
+      if found then
         go s' acc as
       else
         go s' (a : acc) as
@@ -706,7 +713,7 @@ nubEq = nubByEq eq
 -- |
 -- | Running time: `O(n^2)`
 nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubByEq _     Nil = Nil
+nubByEq _ Nil = Nil
 nubByEq eq' (x : xs) = x : nubByEq eq' (filter (\y -> not (eq' x y)) xs)
 
 -- | Calculate the union of two lists.
@@ -756,9 +763,9 @@ intersect = intersectBy (==)
 -- |
 -- | Running time: `O(n^2)`
 intersectBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
-intersectBy _  Nil _   = Nil
-intersectBy _  _   Nil = Nil
-intersectBy eq xs  ys  = filter (\x -> any (eq x) ys) xs
+intersectBy _ Nil _ = Nil
+intersectBy _ _ Nil = Nil
+intersectBy eq xs ys = filter (\x -> any (eq x) ys) xs
 
 --------------------------------------------------------------------------------
 -- Zipping ---------------------------------------------------------------------
