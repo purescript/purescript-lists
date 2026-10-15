@@ -1,5 +1,6 @@
 package:
   name: lists
+  description: Strict and lazy linked lists with helper functions and type class instances
   build:
     strict: true
     pedanticPackages: true
