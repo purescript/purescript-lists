@@ -6,7 +6,7 @@ Notable changes to this project are documented in this file. The format is based
 
 Other improvements:
 
-- Migrate from Bower/Pulp to Spago and update CI.
+- Migrate from Bower/Pulp to Spago and update CI (#223 by @thomashoneyman).
 - Explicitly use `join` for `concat` (#212).
 
 ## [v7.0.0](https://github.com/purescript/purescript-lists/releases/tag/v7.0.0) - 2022-04-27
