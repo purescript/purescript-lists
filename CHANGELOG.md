@@ -2,7 +2,7 @@
 
 Notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased](https://github.com/purescript/purescript-lists/compare/v7.0.1...HEAD)
 
 Breaking changes:
 
@@ -12,9 +12,17 @@ Bugfixes:
 
 Other improvements:
 
+## [v7.0.1](https://github.com/purescript/purescript-lists/releases/tag/v7.0.1) - 2026-10-17
+
+Other improvements:
+
+- Migrate from Bower/Pulp to Spago and update CI (#223 by @thomashoneyman).
+- Explicitly use `join` for `concat` (#212).
+
 ## [v7.0.0](https://github.com/purescript/purescript-lists/releases/tag/v7.0.0) - 2022-04-27
 
 Breaking changes:
+
 - Update project and deps to PureScript v0.15.0 (#203 by @JordanMartinez)
 - Drop deprecated `MonadZero` instance (#205 by @JordanMartinez)
 - Drop deprecated `group'` and `mapWithIndex` (#206 by @JordanMartinez)
@@ -31,21 +39,25 @@ Other improvements:
 Breaking changes:
 
 New features:
+
 - Added `cons` for `Lazy.NonEmptyList` (#143 by @matthewleon)
 
 Bugfixes:
 
 Other improvements:
+
 - Fix ad-hoc usage of case expression (#202 by @JordanMartinez)
 
 ## [v6.0.1](https://github.com/purescript/purescript-lists/releases/tag/v6.0.1) - 2021-04-19
 
 Other improvements:
+
 - Fixed warnings revealed by v0.14.1 PS release (#198 by @JordanMartinez)
 
 ## [v6.0.0](https://github.com/purescript/purescript-lists/releases/tag/v6.0.0) - 2021-02-26
 
 Breaking changes:
+
 - Converted `nub`/`nubBy` to use ordering, rather than equality (#179)
 - Renamed `scanrLazy` to `scanlLazy` and fixed parameter ordering (#161)
 - Renamed `group'` to `groupAll` (#182)
@@ -53,6 +65,7 @@ Breaking changes:
 - Updated the `Show` instances for (non empty) lazy lists (#181)
 
 New features:
+
 - Added `nubEq`/`nubByEq` (#179)
 - Added `groupAllBy` (#182)
 - Added `Eq1` and `Ord1` instances to `NonEmptyList` and `LazyNonEmptyList` (#188)
@@ -60,11 +73,12 @@ New features:
 Bugfixes:
 
 Other improvements:
+
 - Fixed Lazy List docs where original list is returned instead of Nothing (#169)
 - Migrated to GitHub Actions (#177)
 - Changed `foldM` type signature to more closely match `foldl` (#165)
 - Improved `foldr` performance on large lists (#180)
-- Generated changelog and add PR template (#187) 
+- Generated changelog and add PR template (#187)
 
 ## [v5.4.1](https://github.com/purescript/purescript-lists/releases/tag/v5.4.1) - 2019-05-06
 
@@ -308,6 +322,7 @@ Make `Apply` and `Bind` instances for `ListT` consistent. (@puffnfresh)
 ## [v0.6.0](https://github.com/purescript/purescript-lists/releases/tag/v0.6.0) - 2015-02-21
 
 **This release requires PureScript v0.6.8 or later**
+
 - Updated dependencies
 
 ## [v0.5.0](https://github.com/purescript/purescript-lists/releases/tag/v0.5.0) - 2015-01-10
@@ -320,15 +335,11 @@ Remove `scanl`, bump `foldable` dependency.
 
 ## [v0.3.9](https://github.com/purescript/purescript-lists/releases/tag/v0.3.9) - 2014-12-13
 
-
-
 ## [v0.3.8](https://github.com/purescript/purescript-lists/releases/tag/v0.3.8) - 2014-12-09
 
 Bump `unfoldable` dependency.
 
 ## [v0.3.7](https://github.com/purescript/purescript-lists/releases/tag/v0.3.7) - 2014-11-26
-
-
 
 ## [v0.3.5](https://github.com/purescript/purescript-lists/releases/tag/v0.3.5) - 2014-11-18
 
@@ -336,19 +347,11 @@ Fixes for compiler version 0.6.1
 
 ## [v0.3.4](https://github.com/purescript/purescript-lists/releases/tag/v0.3.4) - 2014-11-14
 
-
-
 ## [v0.3.3](https://github.com/purescript/purescript-lists/releases/tag/v0.3.3) - 2014-11-08
-
-
 
 ## [v0.3.2](https://github.com/purescript/purescript-lists/releases/tag/v0.3.2) - 2014-10-29
 
-
-
 ## [v0.3.1](https://github.com/purescript/purescript-lists/releases/tag/v0.3.1) - 2014-10-06
-
-
 
 ## [v0.3.0](https://github.com/purescript/purescript-lists/releases/tag/v0.3.0) - 2014-10-01
 
@@ -356,8 +359,4 @@ Fixes for compiler version 0.6.1
 
 ## [v0.2.0](https://github.com/purescript/purescript-lists/releases/tag/v0.2.0) - 2014-08-13
 
-
-
 ## [v0.0.1](https://github.com/purescript/purescript-lists/releases/tag/v0.0.1) - 2014-07-07
-
-
