@@ -19,12 +19,14 @@ tail (Cons _ xs) = xs
 -- |
 -- | Running time: `O(n)`
 last :: forall a. Partial => List a -> a
-last (Cons x Nil) = x
-last (Cons _ xs) = last xs
+last list = case list of
+  Cons x Nil -> x
+  Cons _ xs -> last xs
 
 -- | Get all but the last element of a non-empty list.
 -- |
 -- | Running time: `O(n)`
 init :: forall a. Partial => List a -> List a
-init (Cons _ Nil) = Nil
-init (Cons x xs) = Cons x (init xs)
+init list = case list of
+  Cons _ Nil -> Nil
+  Cons x xs -> Cons x (init xs)

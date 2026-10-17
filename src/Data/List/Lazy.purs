@@ -150,13 +150,12 @@ infix 8 range as ..
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
 range start end
-  | start > end =
+  | start > end = do
       let
         g x
           | x >= end = Just (Tuple x (x - 1))
           | otherwise = Nothing
-      in
-        unfoldr g start
+      unfoldr g start
   | otherwise = unfoldr f start
       where
       f x
@@ -242,11 +241,12 @@ insert = insertBy compare
 insertBy :: forall a. (a -> a -> Ordering) -> a -> List a -> List a
 insertBy cmp x xs = List (go <$> unwrap xs)
   where
-  go Nil = Cons x nil
-  go ys@(Cons y ys') =
-    case cmp x y of
-      GT -> Cons y (insertBy cmp x ys')
-      _ -> Cons x (fromStep ys)
+  go list = case list of
+    Nil -> Cons x nil
+    ys@(Cons y ys') ->
+      case cmp x y of
+        GT -> Cons y (insertBy cmp x ys')
+        _ -> Cons x (fromStep ys)
 
 --------------------------------------------------------------------------------
 -- Non-indexed reads -----------------------------------------------------------
@@ -264,10 +264,11 @@ head xs = _.head <$> uncons xs
 last :: List ~> Maybe
 last = go <<< step
   where
-  go (Cons x xs)
-    | null xs = Just x
-    | otherwise = go (step xs)
-  go _ = Nothing
+  go list = case list of
+    Cons x xs
+      | null xs -> Just x
+      | otherwise -> go (step xs)
+    _ -> Nothing
 
 -- | Get all but the first element of a list, or `Nothing` if the list is empty.
 -- |
@@ -282,10 +283,11 @@ init :: forall a. List a -> Maybe (List a)
 init = go <<< step
   where
   go :: Step a -> Maybe (List a)
-  go (Cons x xs)
-    | null xs = Just nil
-    | otherwise = cons x <$> go (step xs)
-  go _ = Nothing
+  go list = case list of
+    Cons x xs
+      | null xs -> Just nil
+      | otherwise -> cons x <$> go (step xs)
+    _ -> Nothing
 
 -- | Break a list into its first element, and the remaining elements,
 -- | or `Nothing` if the list is empty.
@@ -306,9 +308,10 @@ uncons xs = case step xs of
 index :: forall a. List a -> Int -> Maybe a
 index xs = go (step xs)
   where
-  go Nil _ = Nothing
-  go (Cons a _) 0 = Just a
-  go (Cons _ as) i = go (step as) (i - 1)
+  go list i = case list, i of
+    Nil, _ -> Nothing
+    Cons a _, 0 -> Just a
+    Cons _ as, _ -> go (step as) (i - 1)
 
 -- | An infix synonym for `index`.
 infixl 8 index as !!
@@ -342,11 +345,14 @@ findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 -- |
 -- | Running time: `O(n)`
 insertAt :: forall a. Int -> a -> List a -> List a
-insertAt 0 x xs = cons x xs
-insertAt n x xs = List (go <$> unwrap xs)
-  where
-  go Nil = Cons x nil
-  go (Cons y ys) = Cons y (insertAt (n - 1) x ys)
+insertAt n x xs = case n of
+  0 -> cons x xs
+  _ -> do
+    let
+      go list = case list of
+        Nil -> Cons x nil
+        Cons y ys -> Cons y (insertAt (n - 1) x ys)
+    List (go <$> unwrap xs)
 
 -- | Delete an element from a list at the specified index, returning a new list,
 -- | or return the original list unchanged if the index is out-of-bounds.
@@ -355,9 +361,10 @@ insertAt n x xs = List (go <$> unwrap xs)
 deleteAt :: forall a. Int -> List a -> List a
 deleteAt n xs = List (go n <$> unwrap xs)
   where
-  go _ Nil = Nil
-  go 0 (Cons _ ys) = step ys
-  go n' (Cons y ys) = Cons y (deleteAt (n' - 1) ys)
+  go n' list = case n', list of
+    _, Nil -> Nil
+    0, Cons _ ys -> step ys
+    _, Cons y ys -> Cons y (deleteAt (n' - 1) ys)
 
 -- | Update the element at the specified index, returning a new list,
 -- | or return the original list unchanged if the index is out-of-bounds.
@@ -366,9 +373,10 @@ deleteAt n xs = List (go n <$> unwrap xs)
 updateAt :: forall a. Int -> a -> List a -> List a
 updateAt n x xs = List (go n <$> unwrap xs)
   where
-  go _ Nil = Nil
-  go 0 (Cons _ ys) = Cons x ys
-  go n' (Cons y ys) = Cons y (updateAt (n' - 1) x ys)
+  go n' list = case n', list of
+    _, Nil -> Nil
+    0, Cons _ ys -> Cons x ys
+    _, Cons y ys -> Cons y (updateAt (n' - 1) x ys)
 
 -- | Update the element at the specified index by applying a function to
 -- | the current value, returning a new list, or return the original list unchanged
@@ -386,11 +394,12 @@ modifyAt n f = alterAt n (Just <<< f)
 alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> List a
 alterAt n f xs = List (go n <$> unwrap xs)
   where
-  go _ Nil = Nil
-  go 0 (Cons y ys) = case f y of
-    Nothing -> step ys
-    Just y' -> Cons y' ys
-  go n' (Cons y ys) = Cons y (alterAt (n' - 1) f ys)
+  go n' list = case n', list of
+    _, Nil -> Nil
+    0, Cons y ys -> case f y of
+      Nothing -> step ys
+      Just y' -> Cons y' ys
+    _, Cons y ys -> Cons y (alterAt (n' - 1) f ys)
 
 --------------------------------------------------------------------------------
 -- Transformations -------------------------------------------------------------
@@ -421,10 +430,11 @@ concatMap = flip bind
 filter :: forall a. (a -> Boolean) -> List a -> List a
 filter p = List <<< map go <<< unwrap
   where
-  go Nil = Nil
-  go (Cons x xs)
-    | p x = Cons x (filter p xs)
-    | otherwise = go (step xs)
+  go list = case list of
+    Nil -> Nil
+    Cons x xs
+      | p x -> Cons x (filter p xs)
+      | otherwise -> go (step xs)
 
 -- | Filter where the predicate returns a monadic `Boolean`.
 -- |
@@ -450,11 +460,12 @@ filterM p list =
 mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
 mapMaybe f = List <<< map go <<< unwrap
   where
-  go Nil = Nil
-  go (Cons x xs) =
-    case f x of
-      Nothing -> go (step xs)
-      Just y -> Cons y (mapMaybe f xs)
+  go list = case list of
+    Nil -> Nil
+    Cons x xs ->
+      case f x of
+        Nothing -> go (step xs)
+        Just y -> Cons y (mapMaybe f xs)
 
 -- | Filter a list of optional values, keeping only the elements which contain
 -- | a value.
@@ -510,8 +521,9 @@ take n =
     List <<< map (go n) <<< unwrap
   where
   go :: Int -> Step a -> Step a
-  go _ Nil = Nil
-  go n' (Cons x xs) = Cons x (take (n' - 1) xs)
+  go n' list = case list of
+    Nil -> Nil
+    Cons x xs -> Cons x (take (n' - 1) xs)
 
 -- | Take those elements from the front of a list which match a predicate.
 -- |
@@ -519,8 +531,9 @@ take n =
 takeWhile :: forall a. (a -> Boolean) -> List a -> List a
 takeWhile p = List <<< map go <<< unwrap
   where
-  go (Cons x xs) | p x = Cons x (takeWhile p xs)
-  go _ = Nil
+  go list = case list of
+    Cons x xs | p x -> Cons x (takeWhile p xs)
+    _ -> Nil
 
 -- | Drop the specified number of elements from the front of a list.
 -- |
@@ -528,9 +541,10 @@ takeWhile p = List <<< map go <<< unwrap
 drop :: forall a. Int -> List a -> List a
 drop n = List <<< map (go n) <<< unwrap
   where
-  go 0 xs = xs
-  go _ Nil = Nil
-  go n' (Cons _ xs) = go (n' - 1) (step xs)
+  go n' list = case n', list of
+    0, xs -> xs
+    _, Nil -> Nil
+    _, Cons _ xs -> go (n' - 1) (step xs)
 
 -- | Drop those elements from the front of a list which match a predicate.
 -- |
@@ -538,8 +552,9 @@ drop n = List <<< map (go n) <<< unwrap
 dropWhile :: forall a. (a -> Boolean) -> List a -> List a
 dropWhile p = go <<< step
   where
-  go (Cons x xs) | p x = go (step xs)
-  go xs = fromStep xs
+  go list = case list of
+    Cons x xs | p x -> go (step xs)
+    xs -> fromStep xs
 
 -- | Split a list into two parts:
 -- |
@@ -580,11 +595,12 @@ group = groupBy (==)
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
 groupBy eq = List <<< map go <<< unwrap
   where
-  go Nil = Nil
-  go (Cons x xs) =
-    case span (eq x) xs of
-      { init: ys, rest: zs } ->
-        Cons (NEL.NonEmptyList (defer \_ -> x :| ys)) (groupBy eq zs)
+  go list = case list of
+    Nil -> Nil
+    Cons x xs ->
+      case span (eq x) xs of
+        { init: ys, rest: zs } ->
+          Cons (NEL.NonEmptyList (defer \_ -> x :| ys)) (groupBy eq zs)
 
 -- | Returns a tuple of lists of elements which do
 -- | and do not satisfy a predicate, respectively.
@@ -617,11 +633,10 @@ nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
 nubBy p = go emptySet
   where
   go s (List l) = List (map (goStep s) l)
-  goStep _ Nil = Nil
-  goStep s (Cons a as) =
-    let
-      { found, result: s' } = insertAndLookupBy p a s
-    in
+  goStep s list = case list of
+    Nil -> Nil
+    Cons a as -> do
+      let { found, result: s' } = insertAndLookupBy p a s
       if found then
         step (go s' as)
       else
@@ -640,8 +655,9 @@ nubEq = nubByEq eq
 nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
 nubByEq eq = List <<< map go <<< unwrap
   where
-  go Nil = Nil
-  go (Cons x xs) = Cons x (nubByEq eq (filter (\y -> not (eq x y)) xs))
+  go list = case list of
+    Nil -> Nil
+    Cons x xs -> Cons x (nubByEq eq (filter (\y -> not (eq x y)) xs))
 
 -- | Calculate the union of two lists.
 -- |
@@ -669,10 +685,11 @@ delete = deleteBy (==)
 deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
 deleteBy eq x xs = List (go <$> unwrap xs)
   where
-  go Nil = Nil
-  go (Cons y ys)
-    | eq x y = step ys
-    | otherwise = Cons y (deleteBy eq x ys)
+  go list = case list of
+    Nil -> Nil
+    Cons y ys
+      | eq x y -> step ys
+      | otherwise -> Cons y (deleteBy eq x ys)
 
 -- | Delete the first occurrence of each element in the second list from the first list.
 -- |
@@ -715,9 +732,10 @@ zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
 zipWith f xs ys = List (go <$> unwrap xs <*> unwrap ys)
   where
   go :: Step a -> Step b -> Step c
-  go Nil _ = Nil
-  go _ Nil = Nil
-  go (Cons a as) (Cons b bs) = Cons (f a b) (zipWith f as bs)
+  go left right = case left, right of
+    Nil, _ -> Nil
+    _, Nil -> Nil
+    Cons a as, Cons b bs -> Cons (f a b) (zipWith f as bs)
 
 -- | A generalization of `zipWith` which accumulates results in some `Applicative`
 -- | functor.
@@ -786,9 +804,8 @@ scanlLazy :: forall a b. (b -> a -> b) -> b -> List a -> List b
 scanlLazy f acc xs = List (go <$> unwrap xs)
   where
   go :: Step a -> Step b
-  go Nil = Nil
-  go (Cons x xs') =
-    let
-      acc' = f acc x
-    in
+  go list = case list of
+    Nil -> Nil
+    Cons x xs' -> do
+      let acc' = f acc x
       Cons acc' $ scanlLazy f acc' xs'

@@ -34,8 +34,9 @@ newtype List a = List (Lazy (Step a))
 data Step a = Nil | Cons a (List a)
 
 instance showStep :: Show a => Show (Step a) where
-  show Nil = "Nil"
-  show (Cons x xs) = "(" <> show x <> " : " <> show xs <> ")"
+  show list = case list of
+    Nil -> "Nil"
+    Cons x xs -> "(" <> show x <> " : " <> show xs <> ")"
 
 -- | Unwrap a lazy linked list
 step :: forall a. List a -> Step a
@@ -75,10 +76,11 @@ instance eqList :: Eq a => Eq (List a) where
 instance eq1List :: Eq1 List where
   eq1 xs ys = go (step xs) (step ys)
     where
-    go Nil Nil = true
-    go (Cons x xs') (Cons y ys')
-      | x == y = go (step xs') (step ys')
-    go _ _ = false
+    go left right = case left, right of
+      Nil, Nil -> true
+      Cons x xs', Cons y ys'
+        | x == y -> go (step xs') (step ys')
+      _, _ -> false
 
 instance ordList :: Ord a => Ord (List a) where
   compare = compare1
@@ -86,13 +88,14 @@ instance ordList :: Ord a => Ord (List a) where
 instance ord1List :: Ord1 List where
   compare1 xs ys = go (step xs) (step ys)
     where
-    go Nil Nil = EQ
-    go Nil _ = LT
-    go _ Nil = GT
-    go (Cons x xs') (Cons y ys') =
-      case compare x y of
-        EQ -> go (step xs') (step ys')
-        other -> other
+    go left right = case left, right of
+      Nil, Nil -> EQ
+      Nil, _ -> LT
+      _, Nil -> GT
+      Cons x xs', Cons y ys' ->
+        case compare x y of
+          EQ -> go (step xs') (step ys')
+          other -> other
 
 instance lazyList :: Z.Lazy (List a) where
   defer f = List $ defer (step <<< f)
@@ -100,8 +103,9 @@ instance lazyList :: Z.Lazy (List a) where
 instance semigroupList :: Semigroup (List a) where
   append xs ys = List (go <$> unwrap xs)
     where
-    go Nil = step ys
-    go (Cons x xs') = Cons x (xs' <> ys)
+    go list = case list of
+      Nil -> step ys
+      Cons x xs' -> Cons x (xs' <> ys)
 
 instance monoidList :: Monoid (List a) where
   mempty = nil
@@ -109,8 +113,9 @@ instance monoidList :: Monoid (List a) where
 instance functorList :: Functor List where
   map f xs = List (go <$> unwrap xs)
     where
-    go Nil = Nil
-    go (Cons x xs') = Cons (f x) (f <$> xs')
+    go list = case list of
+      Nil -> Nil
+      Cons x xs' -> Cons (f x) (f <$> xs')
 
 instance functorWithIndexList :: FunctorWithIndex Int List where
   mapWithIndex f = foldrWithIndex (\i x acc -> f i x : acc) nil
@@ -180,8 +185,9 @@ instance applicativeList :: Applicative List where
 instance bindList :: Bind List where
   bind xs f = List (go <$> unwrap xs)
     where
-    go Nil = Nil
-    go (Cons x xs') = step (f x <> bind xs' f)
+    go list = case list of
+      Nil -> Nil
+      Cons x xs' -> step (f x <> bind xs' f)
 
 instance monadList :: Monad List
 
@@ -202,11 +208,9 @@ instance extendList :: Extend List where
       Cons _ as ->
         f l : (foldr go { val: nil, acc: nil } as).val
     where
-    go a { val, acc } =
-      let
-        acc' = a : acc
-      in
-        { val: f acc' : val, acc: acc' }
+    go a { val, acc } = do
+      let acc' = a : acc
+      { val: f acc' : val, acc: acc' }
 
 newtype NonEmptyList a = NonEmptyList (Lazy (NonEmpty List a))
 

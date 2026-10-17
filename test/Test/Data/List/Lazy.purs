@@ -285,12 +285,11 @@ testListLazy = do
   assert $ (take 1 nil') == nil'
 
   log "take should evaluate exactly n items which we needed"
-  assert
+  do
     let
       oops x = 0 : oops x
       xs = 1 : defer oops
-    in
-      take 1 xs == l [ 1 ]
+    assert $ take 1 xs == l [ 1 ]
   -- If `take` evaluate more than once, it would crash with a stack overflow
 
   log "takeWhile should keep all values that match a predicate from the front of an list"
@@ -387,13 +386,12 @@ testListLazy = do
   assert $ zipWithA (\x y -> Just $ Tuple x y) (l [ 1, 2, 3 ]) (l [ "a", "b", "c" ]) == Just (l [ Tuple 1 "a", Tuple 2 "b", Tuple 3 "c" ])
 
   log "zipWithA should work with infinite lists"
-  assert $
+  do
     let
       inf = repeat 1
       ints = replicate 10 3
       zipped = zipWithA (\x y -> Just (x + y)) inf ints
-    in
-      map length zipped == pure (length ints)
+    assert $ map length zipped == pure (length ints)
   log "zip should use the specified function to zip two lists together"
   assert $ zip (l [ 1, 2, 3 ]) (l [ "a", "b", "c" ]) == l [ Tuple 1 "a", Tuple 2 "b", Tuple 3 "c" ]
 
@@ -405,28 +403,25 @@ testListLazy = do
   assert $ foldM (\_ _ -> Nothing) 0 (range 1 10) == Nothing
 
   log "foldM should work ok on infinite lists"
-  assert
+  do
     let
       infs = iterate (_ + 1) 1
       f acc x = if x >= 10 then Nothing else Just (cons 0 acc)
-    in
-      foldM f nil infs == Nothing
+    assert $ foldM f nil infs == Nothing
 
   log "foldrLazy should work ok on infinite lists"
-  assert
+  do
     let
       infs = iterate (_ + 1) 1
       infs' = foldrLazy cons nil infs
-    in
-      take 1000 infs == take 1000 infs'
+    assert $ take 1000 infs == take 1000 infs'
 
   log "scanlLazy should work ok on infinite lists"
-  assert
+  do
     let
       infs = iterate (_ + 1) 1
       infs' = scanlLazy (\_ i -> i) 0 infs
-    in
-      take 1000 infs == take 1000 infs'
+    assert $ take 1000 infs == take 1000 infs'
 
   log "scanlLazy folds to the left"
   assert $ scanlLazy (+) 5 (1 .. 4) == l [ 6, 8, 11, 15 ]
@@ -475,8 +470,9 @@ testListLazy = do
   assert $ (nel (1 :| l [ 2, 3, 4, 5 ])) == unfoldr1 step1 1
 
 step :: Int -> Maybe (Tuple Int Int)
-step 6 = Nothing
-step n = Just (Tuple n (n + 1))
+step n = case n of
+  6 -> Nothing
+  _ -> Just (Tuple n (n + 1))
 
 step1 :: Int -> Tuple Int (Maybe Int)
 step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))

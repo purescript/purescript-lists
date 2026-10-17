@@ -119,8 +119,9 @@ fromFoldable :: forall f a. Foldable f => f a -> Maybe (NonEmptyList a)
 fromFoldable = fromList <<< L.fromFoldable
 
 fromList :: forall a. L.List a -> Maybe (NonEmptyList a)
-fromList L.Nil = Nothing
-fromList (x : xs) = Just (NonEmptyList (x :| xs))
+fromList list = case list of
+  L.Nil -> Nothing
+  x : xs -> Just (NonEmptyList (x :| xs))
 
 toList :: NonEmptyList ~> L.List
 toList (NonEmptyList (x :| xs)) = x : xs
@@ -138,8 +139,9 @@ snoc :: forall a. NonEmptyList a -> a -> NonEmptyList a
 snoc (NonEmptyList (x :| xs)) y = NonEmptyList (x :| L.snoc xs y)
 
 snoc' :: forall a. L.List a -> a -> NonEmptyList a
-snoc' (x : xs) y = NonEmptyList (x :| L.snoc xs y)
-snoc' L.Nil y = singleton y
+snoc' list y = case list of
+  x : xs -> NonEmptyList (x :| L.snoc xs y)
+  L.Nil -> singleton y
 
 head :: forall a. NonEmptyList a -> a
 head (NonEmptyList (x :| _)) = x

@@ -412,8 +412,9 @@ testList = do
   void $ pure $ xs <> xs
 
 step :: Int -> Maybe (Tuple Int Int)
-step 6 = Nothing
-step n = Just (Tuple n (n + 1))
+step n = case n of
+  6 -> Nothing
+  _ -> Just (Tuple n (n + 1))
 
 step1 :: Int -> Tuple Int (Maybe Int)
 step1 n = Tuple n (if n >= 5 then Nothing else Just (n + 1))
