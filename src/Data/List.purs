@@ -13,7 +13,8 @@ module Data.List
   , fromFoldable
 
   , singleton
-  , (..), range
+  , (..)
+  , range
   , some
   , someRec
   , many
@@ -33,7 +34,8 @@ module Data.List
   , uncons
   , unsnoc
 
-  , (!!), index
+  , (!!)
+  , index
   , elemIndex
   , elemLastIndex
   , findIndex
@@ -79,7 +81,8 @@ module Data.List
   , unionBy
   , delete
   , deleteBy
-  , (\\), difference
+  , (\\)
+  , difference
   , intersect
   , intersectBy
 
@@ -102,8 +105,8 @@ import Control.Alternative (class Alternative)
 import Control.Lazy (class Lazy, defer)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM, tailRecM2)
 import Data.Bifunctor (bimap)
-import Data.Foldable (class Foldable, foldr, any, foldl)
-import Data.Foldable (foldl, foldr, foldMap, fold, intercalate, elem, notElem, find, findMap, any, all) as Exports
+import Data.Foldable (class Foldable, any, foldl, foldr)
+import Data.Foldable (all, any, elem, find, findMap, fold, foldMap, foldl, foldr, intercalate, notElem) as Exports
 import Data.List.Internal (emptySet, insertAndLookupBy)
 import Data.List.Types (List(..), (:))
 import Data.List.Types (NonEmptyList(..)) as NEL
@@ -142,11 +145,13 @@ infix 8 range as ..
 
 -- | Create a list containing a range of integers, including both endpoints.
 range :: Int -> Int -> List Int
-range start end | start == end = singleton start
-                | otherwise = go end start (if start > end then 1 else -1) Nil
-  where
-  go s e step rest | s == e = s : rest
-                   | otherwise = go (s + step) e step (s : rest)
+range start end
+  | start == end = singleton start
+  | otherwise = go end start (if start > end then 1 else -1) Nil
+      where
+      go s e step rest
+        | s == e = s : rest
+        | otherwise = go (s + step) e step (s : rest)
 
 -- | Attempt a computation multiple times, requiring at least one success.
 -- |
@@ -184,8 +189,9 @@ manyRec p = tailRecM go Nil
 -- |
 -- | Running time: `O(1)`
 null :: forall a. List a -> Boolean
-null Nil = true
-null _ = false
+null xs = case xs of
+  Nil -> true
+  _ -> false
 
 -- | Get the length of a list
 -- |
@@ -214,11 +220,12 @@ insert = insertBy compare
 -- |
 -- | Running time: `O(n)`
 insertBy :: forall a. (a -> a -> Ordering) -> a -> List a -> List a
-insertBy _ x Nil = singleton x
-insertBy cmp x ys@(y : ys') =
-  case cmp x y of
-    GT -> y : (insertBy cmp x ys')
-    _  -> x : ys
+insertBy cmp x list = case list of
+  Nil -> singleton x
+  ys@(y : ys') ->
+    case cmp x y of
+      GT -> y : (insertBy cmp x ys')
+      _ -> x : ys
 
 --------------------------------------------------------------------------------
 -- Non-indexed reads -----------------------------------------------------------
@@ -228,23 +235,26 @@ insertBy cmp x ys@(y : ys') =
 -- |
 -- | Running time: `O(1)`.
 head :: List ~> Maybe
-head Nil = Nothing
-head (x : _) = Just x
+head xs = case xs of
+  Nil -> Nothing
+  x : _ -> Just x
 
 -- | Get the last element in a list, or `Nothing` if the list is empty.
 -- |
 -- | Running time: `O(n)`.
 last :: List ~> Maybe
-last (x : Nil) = Just x
-last (_ : xs)  = last xs
-last _         = Nothing
+last list = case list of
+  x : Nil -> Just x
+  _ : xs -> last xs
+  _ -> Nothing
 
 -- | Get all but the first element of a list, or `Nothing` if the list is empty.
 -- |
 -- | Running time: `O(1)`
 tail :: forall a. List a -> Maybe (List a)
-tail Nil = Nothing
-tail (_ : xs) = Just xs
+tail list = case list of
+  Nil -> Nothing
+  _ : xs -> Just xs
 
 -- | Get all but the last element of a list, or `Nothing` if the list is empty.
 -- |
@@ -257,8 +267,9 @@ init lst = _.init <$> unsnoc lst
 -- |
 -- | Running time: `O(1)`
 uncons :: forall a. List a -> Maybe { head :: a, tail :: List a }
-uncons Nil = Nothing
-uncons (x : xs) = Just { head: x, tail: xs }
+uncons list = case list of
+  Nil -> Nothing
+  x : xs -> Just { head: x, tail: xs }
 
 -- | Break a list into its last element, and the preceding elements,
 -- | or `Nothing` if the list is empty.
@@ -267,9 +278,10 @@ uncons (x : xs) = Just { head: x, tail: xs }
 unsnoc :: forall a. List a -> Maybe { init :: List a, last :: a }
 unsnoc lst = (\h -> { init: reverse h.revInit, last: h.last }) <$> go lst Nil
   where
-  go Nil _ = Nothing
-  go (x : Nil) acc = Just { revInit: acc, last: x }
-  go (x : xs) acc = go xs (x : acc)
+  go list acc = case list of
+    Nil -> Nothing
+    x : Nil -> Just { revInit: acc, last: x }
+    x : xs -> go xs (x : acc)
 
 --------------------------------------------------------------------------------
 -- Indexed operations ----------------------------------------------------------
@@ -279,9 +291,10 @@ unsnoc lst = (\h -> { init: reverse h.revInit, last: h.last }) <$> go lst Nil
 -- |
 -- | Running time: `O(n)` where `n` is the required index.
 index :: forall a. List a -> Int -> Maybe a
-index Nil _ = Nothing
-index (a : _) 0 = Just a
-index (_ : as) i = index as (i - 1)
+index xs i = case xs, i of
+  Nil, _ -> Nothing
+  a : _, 0 -> Just a
+  _ : as, _ -> index as (i - 1)
 
 -- | An infix synonym for `index`.
 infixl 8 index as !!
@@ -299,9 +312,11 @@ findIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
 findIndex fn = go 0
   where
   go :: Int -> List a -> Maybe Int
-  go n (x : xs) | fn x = Just n
-                | otherwise = go (n + 1) xs
-  go _ Nil = Nothing
+  go n list = case list of
+    x : xs
+      | fn x -> Just n
+      | otherwise -> go (n + 1) xs
+    Nil -> Nothing
 
 -- | Find the last index for which a predicate holds.
 findLastIndex :: forall a. (a -> Boolean) -> List a -> Maybe Int
@@ -312,27 +327,30 @@ findLastIndex fn xs = ((length xs - 1) - _) <$> findIndex fn (reverse xs)
 -- |
 -- | Running time: `O(n)`
 insertAt :: forall a. Int -> a -> List a -> Maybe (List a)
-insertAt 0 x xs = Just (x : xs)
-insertAt n x (y : ys) = (y : _) <$> insertAt (n - 1) x ys
-insertAt _ _ _  = Nothing
+insertAt n x xs = case n, xs of
+  0, _ -> Just (x : xs)
+  _, y : ys -> (y : _) <$> insertAt (n - 1) x ys
+  _, _ -> Nothing
 
 -- | Delete an element from a list at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 deleteAt :: forall a. Int -> List a -> Maybe (List a)
-deleteAt 0 (_ : ys) = Just ys
-deleteAt n (y : ys) = (y : _) <$> deleteAt (n - 1) ys
-deleteAt _ _  = Nothing
+deleteAt n xs = case n, xs of
+  0, _ : ys -> Just ys
+  _, y : ys -> (y : _) <$> deleteAt (n - 1) ys
+  _, _ -> Nothing
 
 -- | Update the element at the specified index, returning a new
 -- | list or `Nothing` if the index is out-of-bounds.
 -- |
 -- | Running time: `O(n)`
 updateAt :: forall a. Int -> a -> List a -> Maybe (List a)
-updateAt 0 x ( _ : xs) = Just (x : xs)
-updateAt n x (x1 : xs) = (x1 : _) <$> updateAt (n - 1) x xs
-updateAt _ _ _ = Nothing
+updateAt n x list = case n, list of
+  0, _ : xs -> Just (x : xs)
+  _, x1 : xs -> (x1 : _) <$> updateAt (n - 1) x xs
+  _, _ -> Nothing
 
 -- | Update the element at the specified index by applying a function to
 -- | the current value, returning a new list or `Nothing` if the index is
@@ -348,12 +366,13 @@ modifyAt n f = alterAt n (Just <<< f)
 -- |
 -- | Running time: `O(n)`
 alterAt :: forall a. Int -> (a -> Maybe a) -> List a -> Maybe (List a)
-alterAt 0 f (y : ys) = Just $
-  case f y of
-    Nothing -> ys
-    Just y' -> y' : ys
-alterAt n f (y : ys) = (y : _) <$> alterAt (n - 1) f ys
-alterAt _ _ _  = Nothing
+alterAt n f xs = case n, xs of
+  0, y : ys -> Just $
+    case f y of
+      Nothing -> ys
+      Just y' -> y' : ys
+  _, y : ys -> (y : _) <$> alterAt (n - 1) f ys
+  _, _ -> Nothing
 
 --------------------------------------------------------------------------------
 -- Transformations -------------------------------------------------------------
@@ -365,8 +384,9 @@ alterAt _ _ _  = Nothing
 reverse :: List ~> List
 reverse = go Nil
   where
-  go acc Nil = acc
-  go acc (x : xs) = go (x : acc) xs
+  go acc list = case list of
+    Nil -> acc
+    x : xs -> go (x : acc) xs
 
 -- | Flatten a list of lists.
 -- |
@@ -387,10 +407,11 @@ concatMap = flip bind
 filter :: forall a. (a -> Boolean) -> List a -> List a
 filter p = go Nil
   where
-  go acc Nil = reverse acc
-  go acc (x : xs)
-    | p x = go (x : acc) xs
-    | otherwise = go acc xs
+  go acc list = case list of
+    Nil -> reverse acc
+    x : xs
+      | p x -> go (x : acc) xs
+      | otherwise -> go acc xs
 
 -- | Filter where the predicate returns a monadic `Boolean`.
 -- |
@@ -401,11 +422,12 @@ filter p = go Nil
 -- | powerSet = filterM (const [true, false])
 -- | ```
 filterM :: forall a m. Monad m => (a -> m Boolean) -> List a -> m (List a)
-filterM _ Nil = pure Nil
-filterM p (x : xs) = do
-  b <- p x
-  xs' <- filterM p xs
-  pure if b then x : xs' else xs'
+filterM p list = case list of
+  Nil -> pure Nil
+  x : xs -> do
+    b <- p x
+    xs' <- filterM p xs
+    pure if b then x : xs' else xs'
 
 -- | Apply a function to each element in a list, keeping only the results which
 -- | contain a value.
@@ -414,11 +436,12 @@ filterM p (x : xs) = do
 mapMaybe :: forall a b. (a -> Maybe b) -> List a -> List b
 mapMaybe f = go Nil
   where
-  go acc Nil = reverse acc
-  go acc (x : xs) =
-    case f x of
-      Nothing -> go acc xs
-      Just y -> go (y : acc) xs
+  go acc list = case list of
+    Nil -> reverse acc
+    x : xs ->
+      case f x of
+        Nothing -> go acc xs
+        Just y -> go (y : acc) xs
 
 -- | Filter a list of optional values, keeping only the elements which contain
 -- | a value.
@@ -440,35 +463,39 @@ sortBy cmp = mergeAll <<< sequences
   -- implementation lifted from http://hackage.haskell.org/package/base-4.8.0.0/docs/src/Data-OldList.html#sort
   where
   sequences :: List a -> List (List a)
-  sequences (a : b : xs)
-    | a `cmp` b == GT = descending b (singleton a) xs
-    | otherwise = ascending b (a : _) xs
-  sequences xs = singleton xs
+  sequences list = case list of
+    a : b : xs
+      | a `cmp` b == GT -> descending b (singleton a) xs
+      | otherwise -> ascending b (a : _) xs
+    xs -> singleton xs
 
   descending :: a -> List a -> List a -> List (List a)
-  descending a as (b : bs)
-    | a `cmp` b == GT = descending b (a : as) bs
-  descending a as bs = (a : as) : sequences bs
+  descending a as list = case list of
+    b : bs | a `cmp` b == GT -> descending b (a : as) bs
+    bs -> (a : as) : sequences bs
 
   ascending :: a -> (List a -> List a) -> List a -> List (List a)
-  ascending a as (b : bs)
-    | a `cmp` b /= GT = ascending b (\ys -> as (a : ys)) bs
-  ascending a as bs = ((as $ singleton a) : sequences bs)
+  ascending a as list = case list of
+    b : bs | a `cmp` b /= GT -> ascending b (\ys -> as (a : ys)) bs
+    bs -> ((as $ singleton a) : sequences bs)
 
   mergeAll :: List (List a) -> List a
-  mergeAll (x : Nil) = x
-  mergeAll xs = mergeAll (mergePairs xs)
+  mergeAll xs = case xs of
+    x : Nil -> x
+    _ -> mergeAll (mergePairs xs)
 
   mergePairs :: List (List a) -> List (List a)
-  mergePairs (a : b : xs) = merge a b : mergePairs xs
-  mergePairs xs = xs
+  mergePairs list = case list of
+    a : b : xs -> merge a b : mergePairs xs
+    xs -> xs
 
   merge :: List a -> List a -> List a
-  merge as@(a : as') bs@(b : bs')
-    | a `cmp` b == GT = b : merge as bs'
-    | otherwise       = a : merge as' bs
-  merge Nil bs = bs
-  merge as Nil = as
+  merge as bs = case as, bs of
+    a : as', b : bs'
+      | a `cmp` b == GT -> b : merge as bs'
+      | otherwise -> a : merge as' bs
+    Nil, _ -> bs
+    _, Nil -> as
 
 --------------------------------------------------------------------------------
 -- Sublists --------------------------------------------------------------------
@@ -483,7 +510,6 @@ derive instance newtypePattern :: Newtype (Pattern a) _
 
 instance showPattern :: Show a => Show (Pattern a) where
   show (Pattern s) = "(Pattern " <> show s <> ")"
-
 
 -- | If the list starts with the given prefix, return the portion of the
 -- | list left after removing it, as a Just value. Otherwise, return Nothing.
@@ -510,9 +536,10 @@ slice start end xs = take (end - start) (drop start xs)
 take :: forall a. Int -> List a -> List a
 take = go Nil
   where
-  go acc n _ | n < 1 = reverse acc
-  go acc _ Nil = reverse acc
-  go acc n (x : xs) = go (x : acc) (n - 1) xs
+  go acc n list = case list of
+    _ | n < 1 -> reverse acc
+    Nil -> reverse acc
+    x : xs -> go (x : acc) (n - 1) xs
 
 -- | Take the specified number of elements from the end of a list.
 -- |
@@ -527,16 +554,18 @@ takeEnd n xs = drop (length xs - n) xs
 takeWhile :: forall a. (a -> Boolean) -> List a -> List a
 takeWhile p = go Nil
   where
-  go acc (x : xs) | p x = go (x : acc) xs
-  go acc _ = reverse acc
+  go acc list = case list of
+    x : xs | p x -> go (x : acc) xs
+    _ -> reverse acc
 
 -- | Drop the specified number of elements from the front of a list.
 -- |
 -- | Running time: `O(n)` where `n` is the number of elements to drop.
 drop :: forall a. Int -> List a -> List a
-drop n xs | n < 1 = xs
-drop _ Nil = Nil
-drop n (_ : xs) = drop (n - 1) xs
+drop n list = case list of
+  xs | n < 1 -> xs
+  Nil -> Nil
+  _ : xs -> drop (n - 1) xs
 
 -- | Drop the specified number of elements from the end of a list.
 -- |
@@ -551,8 +580,9 @@ dropEnd n xs = take (length xs - n) xs
 dropWhile :: forall a. (a -> Boolean) -> List a -> List a
 dropWhile p = go
   where
-  go (x : xs) | p x = go xs
-  go xs = xs
+  go list = case list of
+    x : xs | p x -> go xs
+    xs -> xs
 
 -- | Split a list into two parts:
 -- |
@@ -567,9 +597,10 @@ dropWhile p = go
 -- |
 -- | Running time: `O(n)`
 span :: forall a. (a -> Boolean) -> List a -> { init :: List a, rest :: List a }
-span p (x : xs') | p x = case span p xs' of
-  { init: ys, rest: zs } -> { init: x : ys, rest: zs }
-span _ xs = { init: Nil, rest: xs }
+span p xs = case xs of
+  x : xs' | p x -> case span p xs' of
+    { init: ys, rest: zs } -> { init: x : ys, rest: zs }
+  _ -> { init: Nil, rest: xs }
 
 -- | Group equal, consecutive elements of a list into lists.
 -- |
@@ -607,9 +638,10 @@ groupAll = group <<< sort
 -- |
 -- | Running time: `O(n)`
 groupBy :: forall a. (a -> a -> Boolean) -> List a -> List (NEL.NonEmptyList a)
-groupBy _ Nil = Nil
-groupBy eq (x : xs) = case span (eq x) xs of
-  { init: ys, rest: zs } -> NEL.NonEmptyList (x :| ys) : groupBy eq zs
+groupBy eq list = case list of
+  Nil -> Nil
+  x : xs -> case span (eq x) xs of
+    { init: ys, rest: zs } -> NEL.NonEmptyList (x :| ys) : groupBy eq zs
 
 -- | Sort, then group equal elements of a list into lists, using the provided comparison function.
 -- |
@@ -628,9 +660,11 @@ groupAllBy p = groupBy (\x y -> p x y == EQ) <<< sortBy p
 partition :: forall a. (a -> Boolean) -> List a -> { yes :: List a, no :: List a }
 partition p xs = foldr select { no: Nil, yes: Nil } xs
   where
-    select x { no, yes } = if p x
-                           then { no, yes: x : yes }
-                           else { no: x : no, yes }
+  select x { no, yes } =
+    if p x then
+      { no, yes: x : yes }
+    else
+      { no: x : no, yes }
 
 -- | Returns all final segments of the argument, longest first. For example,
 -- |
@@ -639,8 +673,9 @@ partition p xs = foldr select { no: Nil, yes: Nil } xs
 -- | ```
 -- | Running time: `O(n)`
 tails :: forall a. List a -> List (List a)
-tails Nil = singleton Nil
-tails list@(Cons _ tl)= list : tails tl
+tails list = case list of
+  Nil -> singleton Nil
+  Cons _ tl -> list : tails tl
 
 --------------------------------------------------------------------------------
 -- Set-like operations ---------------------------------------------------------
@@ -670,12 +705,14 @@ nub = nubBy compare
 nubBy :: forall a. (a -> a -> Ordering) -> List a -> List a
 nubBy p = reverse <<< go emptySet Nil
   where
-    go _ acc Nil = acc
-    go s acc (a : as) =
+  go s acc list = case list of
+    Nil -> acc
+    a : as -> do
       let { found, result: s' } = insertAndLookupBy p a s
-      in if found
-        then go s' acc as
-        else go s' (a : acc) as
+      if found then
+        go s' acc as
+      else
+        go s' (a : acc) as
 
 -- | Remove duplicate elements from a list.
 -- | Keeps the first occurrence of each element in the input list,
@@ -703,8 +740,9 @@ nubEq = nubByEq eq
 -- |
 -- | Running time: `O(n^2)`
 nubByEq :: forall a. (a -> a -> Boolean) -> List a -> List a
-nubByEq _     Nil = Nil
-nubByEq eq' (x : xs) = x : nubByEq eq' (filter (\y -> not (eq' x y)) xs)
+nubByEq eq' list = case list of
+  Nil -> Nil
+  x : xs -> x : nubByEq eq' (filter (\y -> not (eq' x y)) xs)
 
 -- | Calculate the union of two lists.
 -- |
@@ -730,9 +768,10 @@ delete = deleteBy (==)
 -- |
 -- | Running time: `O(n)`
 deleteBy :: forall a. (a -> a -> Boolean) -> a -> List a -> List a
-deleteBy _ _ Nil = Nil
-deleteBy eq' x (y : ys) | eq' x y = ys
-deleteBy eq' x (y : ys) = y : deleteBy eq' x ys
+deleteBy eq' x list = case list of
+  Nil -> Nil
+  y : ys | eq' x y -> ys
+  y : ys -> y : deleteBy eq' x ys
 
 infix 5 difference as \\
 
@@ -753,9 +792,10 @@ intersect = intersectBy (==)
 -- |
 -- | Running time: `O(n^2)`
 intersectBy :: forall a. (a -> a -> Boolean) -> List a -> List a -> List a
-intersectBy _  Nil _   = Nil
-intersectBy _  _   Nil = Nil
-intersectBy eq xs  ys  = filter (\x -> any (eq x) ys) xs
+intersectBy eq xs ys = case xs, ys of
+  Nil, _ -> Nil
+  _, Nil -> Nil
+  _, _ -> filter (\x -> any (eq x) ys) xs
 
 --------------------------------------------------------------------------------
 -- Zipping ---------------------------------------------------------------------
@@ -776,9 +816,10 @@ intersectBy eq xs  ys  = filter (\x -> any (eq x) ys) xs
 zipWith :: forall a b c. (a -> b -> c) -> List a -> List b -> List c
 zipWith f xs ys = reverse $ go xs ys Nil
   where
-  go Nil _ acc = acc
-  go _ Nil acc = acc
-  go (a : as) (b : bs) acc = go as bs $ f a b : acc
+  go left right acc = case left, right of
+    Nil, _ -> acc
+    _, Nil -> acc
+    a : as, b : bs -> go as bs $ f a b : acc
 
 -- | A generalization of `zipWith` which accumulates results in some `Applicative`
 -- | functor.
@@ -811,10 +852,11 @@ unzip = foldr (\(Tuple a b) (Tuple as bs) -> Tuple (a : as) (b : bs)) (Tuple Nil
 -- |     transpose ((10:11:Nil) : (20:Nil) : Nil : (30:31:32:Nil) : Nil) ==
 -- |       ((10:20:30:Nil) : (11:31:Nil) : (32:Nil) : Nil)
 transpose :: forall a. List (List a) -> List (List a)
-transpose Nil = Nil
-transpose (Nil : xss) = transpose xss
-transpose ((x : xs) : xss) =
-  (x : mapMaybe head xss) : transpose (xs : mapMaybe tail xss)
+transpose list = case list of
+  Nil -> Nil
+  Nil : xss -> transpose xss
+  (x : xs) : xss ->
+    (x : mapMaybe head xss) : transpose (xs : mapMaybe tail xss)
 
 --------------------------------------------------------------------------------
 -- Folding ---------------------------------------------------------------------
@@ -822,5 +864,6 @@ transpose ((x : xs) : xss) =
 
 -- | Perform a fold using a monadic step function.
 foldM :: forall m a b. Monad m => (b -> a -> m b) -> b -> List a -> m b
-foldM _ b Nil = pure b
-foldM f b (a : as) = f b a >>= \b' -> foldM f b' as
+foldM f b list = case list of
+  Nil -> pure b
+  a : as -> f b a >>= \b' -> foldM f b' as

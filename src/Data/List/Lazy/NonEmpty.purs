@@ -21,11 +21,11 @@ module Data.List.Lazy.NonEmpty
 import Prelude
 
 import Data.Foldable (class Foldable)
-import Data.Lazy (force, defer)
+import Data.Lazy (defer, force)
 import Data.List.Lazy ((:))
 import Data.List.Lazy as L
 import Data.List.Lazy.Types (NonEmptyList(..))
-import Data.Maybe (Maybe(..), maybe, fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.NonEmpty ((:|))
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr)

@@ -1,0 +1,14 @@
+package:
+  name: lists-bench
+  build:
+    strict: true
+    pedanticPackages: true
+  dependencies:
+    - console: ">=6.0.0 <7.0.0"
+    - effect: ">=4.0.0 <5.0.0"
+    - foldable-traversable: ">=6.0.0 <7.0.0"
+    - integers: ">=6.0.0 <7.0.0"
+    - lists: "*"
+    - maybe: ">=6.0.0 <7.0.0"
+    - minibench: ">=4.0.0 <5.0.0"
+    - prelude: ">=6.0.0 <7.0.0"

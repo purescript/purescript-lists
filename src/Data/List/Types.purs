@@ -17,7 +17,7 @@ import Control.MonadPlus (class MonadPlus)
 import Control.Plus (class Plus)
 import Data.Eq (class Eq1, eq1)
 import Data.Foldable (class Foldable, foldl, foldr, intercalate)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex, foldMapWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype)
@@ -37,8 +37,9 @@ data List a = Nil | Cons a (List a)
 infixr 6 Cons as :
 
 instance showList :: Show a => Show (List a) where
-  show Nil = "Nil"
-  show xs = "(" <> intercalate " : " (show <$> xs) <> " : Nil)"
+  show xs = case xs of
+    Nil -> "Nil"
+    _ -> "(" <> intercalate " : " (show <$> xs) <> " : Nil)"
 
 instance eqList :: Eq a => Eq (List a) where
   eq = eq1
@@ -46,10 +47,11 @@ instance eqList :: Eq a => Eq (List a) where
 instance eq1List :: Eq1 List where
   eq1 xs ys = go xs ys true
     where
-      go _ _ false = false
-      go Nil Nil acc = acc
-      go (x : xs') (y : ys') acc = go xs' ys' $ acc && (y == x)
-      go _ _ _ = false
+    go left right acc = case left, right, acc of
+      _, _, false -> false
+      Nil, Nil, _ -> acc
+      x : xs', y : ys', _ -> go xs' ys' $ acc && (y == x)
+      _, _, _ -> false
 
 instance ordList :: Ord a => Ord (List a) where
   compare = compare1
@@ -57,13 +59,14 @@ instance ordList :: Ord a => Ord (List a) where
 instance ord1List :: Ord1 List where
   compare1 xs ys = go xs ys
     where
-    go Nil Nil = EQ
-    go Nil _ = LT
-    go _ Nil = GT
-    go (x : xs') (y : ys') =
-      case compare x y of
-        EQ -> go xs' ys'
-        other -> other
+    go left right = case left, right of
+      Nil, Nil -> EQ
+      Nil, _ -> LT
+      _, Nil -> GT
+      x : xs', y : ys' ->
+        case compare x y of
+          EQ -> go xs' ys'
+          other -> other
 
 instance semigroupList :: Semigroup (List a) where
   append xs ys = foldr (:) ys xs
@@ -81,20 +84,23 @@ listMap :: forall a b. (a -> b) -> List a -> List b
 listMap f = chunkedRevMap Nil
   where
   chunkedRevMap :: List (List a) -> List a -> List b
-  chunkedRevMap chunksAcc chunk@(_ : _ : _ : xs) =
-    chunkedRevMap (chunk : chunksAcc) xs
-  chunkedRevMap chunksAcc xs =
-    reverseUnrolledMap chunksAcc $ unrolledMap xs
-    where
-    unrolledMap :: List a -> List b
-    unrolledMap (x1 : x2 : Nil) = f x1 : f x2 : Nil
-    unrolledMap (x1 : Nil) = f x1 : Nil
-    unrolledMap _ = Nil
+  chunkedRevMap chunksAcc list = case list of
+    chunk@(_ : _ : _ : xs) ->
+      chunkedRevMap (chunk : chunksAcc) xs
+    xs -> do
+      let
+        unrolledMap :: List a -> List b
+        unrolledMap rest = case rest of
+          x1 : x2 : Nil -> f x1 : f x2 : Nil
+          x1 : Nil -> f x1 : Nil
+          _ -> Nil
 
-    reverseUnrolledMap :: List (List a) -> List b -> List b
-    reverseUnrolledMap ((x1 : x2 : x3 : _) : cs) acc =
-      reverseUnrolledMap cs (f x1 : f x2 : f x3 : acc)
-    reverseUnrolledMap _ acc = acc
+        reverseUnrolledMap :: List (List a) -> List b -> List b
+        reverseUnrolledMap chunks acc = case chunks of
+          (x1 : x2 : x3 : _) : cs ->
+            reverseUnrolledMap cs (f x1 : f x2 : f x3 : acc)
+          _ -> acc
+      reverseUnrolledMap chunksAcc $ unrolledMap xs
 
 instance functorWithIndexList :: FunctorWithIndex Int List where
   mapWithIndex f = foldrWithIndex (\i x acc -> f i x : acc) Nil
@@ -104,8 +110,9 @@ instance foldableList :: Foldable List where
     where
     rev = go Nil
       where
-      go acc Nil = acc
-      go acc (x : xs) = go (x : acc) xs
+      go acc list = case list of
+        Nil -> acc
+        x : xs -> go (x : acc) xs
   foldl f = go
     where
     go b = case _ of
@@ -117,9 +124,9 @@ instance foldableWithIndexList :: FoldableWithIndex Int List where
   foldrWithIndex f b xs =
     -- as we climb the reversed list, we decrement the index
     snd $ foldl
-            (\(Tuple i b') a -> Tuple (i - 1) (f (i - 1) a b'))
-            (Tuple len b)
-            revList
+      (\(Tuple i b') a -> Tuple (i - 1) (f (i - 1) a b'))
+      (Tuple len b)
+      revList
     where
     Tuple len revList = rev (Tuple 0 Nil) xs
       where
@@ -150,20 +157,22 @@ instance traversableList :: Traversable List where
 instance traversableWithIndexList :: TraversableWithIndex Int List where
   traverseWithIndex f =
     map rev
-    <<< foldlWithIndex (\i acc -> lift2 (flip (:)) acc <<< f i) (pure Nil)
+      <<< foldlWithIndex (\i acc -> lift2 (flip (:)) acc <<< f i) (pure Nil)
     where
     rev = foldl (flip Cons) Nil
 
 instance applyList :: Apply List where
-  apply Nil _ = Nil
-  apply (f : fs) xs = (f <$> xs) <> (fs <*> xs)
+  apply functions xs = case functions of
+    Nil -> Nil
+    f : fs -> (f <$> xs) <> (fs <*> xs)
 
 instance applicativeList :: Applicative List where
   pure a = a : Nil
 
 instance bindList :: Bind List where
-  bind Nil _ = Nil
-  bind (x : xs) f = f x <> bind xs f
+  bind list f = case list of
+    Nil -> Nil
+    x : xs -> f x <> bind xs f
 
 instance monadList :: Monad List
 
@@ -178,13 +187,14 @@ instance alternativeList :: Alternative List
 instance monadPlusList :: MonadPlus List
 
 instance extendList :: Extend List where
-  extend _ Nil = Nil
-  extend f l@(_ : as) =
-    f l : (foldr go { val: Nil, acc: Nil } as).val
-    where
-    go a' { val, acc } =
-      let acc' = a' : acc
-      in { val: f acc' : val, acc: acc' }
+  extend f list = case list of
+    Nil -> Nil
+    l@(_ : as) -> do
+      let
+        go a' { val, acc } = do
+          let acc' = a' : acc
+          { val: f acc' : val, acc: acc' }
+      f l : (foldr go { val: Nil, acc: Nil } as).val
 
 newtype NonEmptyList a = NonEmptyList (NonEmpty List a)
 
@@ -260,5 +270,5 @@ instance traversableWithIndexNonEmptyList :: TraversableWithIndex Int NonEmptyLi
 instance traversable1NonEmptyList :: Traversable1 NonEmptyList where
   traverse1 f (NonEmptyList (a :| as)) =
     foldl (\acc -> lift2 (flip nelCons) acc <<< f) (pure <$> f a) as
-      <#> case _ of NonEmptyList (x :| xs) → foldl (flip nelCons) (pure x) xs
+      <#> case _ of NonEmptyList (x :| xs) -> foldl (flip nelCons) (pure x) xs
   sequence1 = traverse1 identity

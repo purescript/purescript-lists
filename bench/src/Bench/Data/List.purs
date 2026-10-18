@@ -1,9 +1,10 @@
 module Bench.Data.List where
 
 import Prelude
+
 import Data.Foldable (maximum)
 import Data.Int (pow)
-import Data.List (List(..), take, range, foldr, length)
+import Data.List (List(..), foldr, length, range, take)
 import Data.Maybe (fromMaybe)
 import Data.Traversable (traverse_)
 import Effect (Effect)
